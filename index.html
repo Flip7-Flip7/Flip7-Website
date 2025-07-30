@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip 7 - Online Card Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Card Animation Area -->
+        <div class="card-animation-area" id="card-animation-area">
+            <!-- Animated card appears here -->
+        </div>
+        
+        <!-- Main Game Area -->
+        <div class="game-area">
+            <!-- Players Grid -->
+            <div class="players-grid">
+                <!-- Opponent 1 (Left) -->
+                <div class="player-area opponent-player opponent-left" id="opponent1">
+                    <h3>Dane</h3>
+                    <div class="player-stats">
+                        <span class="total-score">Total: <span class="score-value">0</span></span>
+                        <span class="round-score">Round: <span class="round-value">0</span></span>
+                        <span class="player-status">Waiting</span>
+                    </div>
+                    <div class="modifier-cards"></div>
+                    <div class="number-cards"></div>
+                    <div class="unique-counter">Unique: <span class="unique-count">0</span>/7</div>
+                </div>
+
+                <!-- Opponent 2 (Top) -->
+                <div class="player-area opponent-player opponent-top" id="opponent2">
+                    <h3>Brian</h3>
+                    <div class="player-stats">
+                        <span class="total-score">Total: <span class="score-value">0</span></span>
+                        <span class="round-score">Round: <span class="round-value">0</span></span>
+                        <span class="player-status">Waiting</span>
+                    </div>
+                    <div class="modifier-cards"></div>
+                    <div class="number-cards"></div>
+                    <div class="unique-counter">Unique: <span class="unique-count">0</span>/7</div>
+                </div>
+
+                <!-- Draw Pile (Center) -->
+                <div class="draw-pile-area">
+                    <div class="draw-pile" id="draw-pile">
+                        <div class="card back draw-card">
+                            <span>FLIP 7</span>
+                        </div>
+                        <div class="pile-info">
+                            <span id="cards-remaining">94</span> cards
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Opponent 3 (Right) -->
+                <div class="player-area opponent-player opponent-right" id="opponent3">
+                    <h3>Eric Olsen</h3>
+                    <div class="player-stats">
+                        <span class="total-score">Total: <span class="score-value">0</span></span>
+                        <span class="round-score">Round: <span class="round-value">0</span></span>
+                        <span class="player-status">Waiting</span>
+                    </div>
+                    <div class="modifier-cards"></div>
+                    <div class="number-cards"></div>
+                    <div class="unique-counter">Unique: <span class="unique-count">0</span>/7</div>
+                </div>
+
+                <!-- Human Player (Bottom) -->
+                <div class="player-area main-player" id="player">
+                    <h3>You</h3>
+                    <div class="player-stats">
+                        <span class="total-score">Total: <span class="score-value">0</span></span>
+                        <span class="round-score">Round: <span class="round-value">0</span></span>
+                        <span class="player-status">Waiting</span>
+                    </div>
+                    <div class="modifier-cards" id="player-modifiers"></div>
+                    <div class="number-cards" id="player-numbers"></div>
+                    <div class="unique-counter">
+                        Unique: <span class="unique-count" id="player-unique">0</span>/7
+                        <span class="flip7-bonus" id="flip7-indicator" style="display: none;">🎉 Flip 7!</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="hit-btn" class="btn primary" disabled>Hit</button>
+                        <button id="stay-btn" class="btn secondary" disabled>Stay</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <h3>Game Controls</h3>
+            
+            <div class="control-section" id="pre-game-controls">
+                <button id="new-game-btn" class="btn primary" style="width: 100%; margin-bottom: 10px;">Start Game</button>
+                <div class="game-settings">
+                    <label>
+                        Points to win: 
+                        <input type="number" id="win-points" value="200" min="50" max="500" step="50">
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <button id="rules-btn" class="btn secondary" style="width: 100%;">Rules</button>
+            </div>
+
+            <div class="scoreboard">
+                <h4>Scoreboard</h4>
+                <div id="scoreboard-content"></div>
+            </div>
+
+            <div class="game-log">
+                <h4>Game Log</h4>
+                <div id="log-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Message -->
+    <div class="game-message" id="game-message">
+        Welcome to Flip 7! Click "Start Game" to begin.
+    </div>
+
+    <!-- Action Card Prompt -->
+    <div class="action-card-prompt" id="action-prompt" style="display: none;">
+        <h3 id="action-title">Action Card</h3>
+        <p id="action-description"></p>
+        <div id="action-buttons"></div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div id="rules-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" id="close-rules">&times;</span>
+            <h2>Flip 7 Rules</h2>
+            <div class="rules-text">
+                <h3>Objective</h3>
+                <p>Score points by collecting Number cards (0-12) without duplicates. Get exactly 7 unique Number cards for a 15-point bonus!</p>
+                
+                <h3>How to Play</h3>
+                <ol>
+                    <li>Each player receives one card to start</li>
+                    <li>On your turn: Hit (draw a card) or Stay (keep your points)</li>
+                    <li>If you draw a duplicate number, you BUST and score 0 (unless you have Second Chance)</li>
+                    <li>Round ends when all players stay/bust OR someone gets 7 unique numbers</li>
+                </ol>
+                
+                <h3>Card Types</h3>
+                <ul>
+                    <li><strong>Number Cards (0-12):</strong> Worth their face value</li>
+                    <li><strong>Freeze:</strong> Forces you to stay immediately</li>
+                    <li><strong>Flip Three:</strong> You must draw 3 cards in a row</li>
+                    <li><strong>Second Chance:</strong> Protects from one bust</li>
+                    <li><strong>+2, +4, +6, +8, +10:</strong> Bonus points</li>
+                    <li><strong>x2:</strong> Doubles your number card total</li>
+                </ul>
+                
+                <h3>Scoring</h3>
+                <p>Sum of number cards + modifier bonuses (x2 applied last) + 15 if you got exactly 7 unique numbers</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
