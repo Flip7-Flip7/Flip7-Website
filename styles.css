@@ -1080,18 +1080,18 @@ body {
     
     /* Cards sized so 7 fit across screen width */
     .card {
-        width: calc((100vw - 40px) / 7 - 4px);
-        height: calc(((100vw - 40px) / 7 - 4px) * 1.4);
+        width: calc((100vw - 20px) / 7 - 2px);
+        height: calc(((100vw - 20px) / 7 - 2px) * 1.4);
         font-size: 0.7em;
-        min-width: 35px;
-        max-width: 50px;
+        min-width: unset;
+        max-width: unset;
     }
     
     .draw-card {
-        width: calc((100vw - 40px) / 7 - 4px);
-        height: calc(((100vw - 40px) / 7 - 4px) * 1.4);
-        min-width: 40px;
-        max-width: 55px;
+        width: calc((100vw - 20px) / 7 - 2px);
+        height: calc(((100vw - 20px) / 7 - 2px) * 1.4);
+        min-width: unset;
+        max-width: unset;
     }
     
     .player-stats {
@@ -1143,10 +1143,10 @@ body {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: calc((100vw - 40px) / 7 - 4px);
-        height: calc(((100vw - 40px) / 7 - 4px) * 1.4);
-        min-width: 35px;
-        max-width: 50px;
+        width: calc((100vw - 20px) / 7 - 2px);
+        height: calc(((100vw - 20px) / 7 - 2px) * 1.4);
+        min-width: unset;
+        max-width: unset;
         z-index: 150;
         pointer-events: none;
     }
