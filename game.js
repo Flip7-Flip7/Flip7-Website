@@ -1352,32 +1352,38 @@ class Flip7Game {
     }
 
     updateScoreboard() {
-        const scoreboard = document.getElementById('scoreboard-content');
-        scoreboard.innerHTML = '';
-        
-        const sortedPlayers = [...this.players].sort((a, b) => b.totalScore - a.totalScore);
-        sortedPlayers.forEach(player => {
-            const entry = document.createElement('div');
-            entry.className = 'score-entry';
-            entry.innerHTML = `
-                <span>${player.name}</span>
-                <span>${player.totalScore} pts</span>
-            `;
-            scoreboard.appendChild(entry);
+        // Update both desktop and mobile scoreboards
+        const scoreboards = document.querySelectorAll('#scoreboard-content');
+        scoreboards.forEach(scoreboard => {
+            scoreboard.innerHTML = '';
+            
+            const sortedPlayers = [...this.players].sort((a, b) => b.totalScore - a.totalScore);
+            sortedPlayers.forEach(player => {
+                const entry = document.createElement('div');
+                entry.className = 'score-entry';
+                entry.innerHTML = `
+                    <span>${player.name}</span>
+                    <span>${player.totalScore} pts</span>
+                `;
+                scoreboard.appendChild(entry);
+            });
         });
     }
 
     addToLog(message) {
-        const log = document.getElementById('log-content');
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        entry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
-        log.insertBefore(entry, log.firstChild);
-        
-        // Keep only last 10 entries
-        while (log.children.length > 10) {
-            log.removeChild(log.lastChild);
-        }
+        // Update both desktop and mobile log elements
+        const logs = document.querySelectorAll('#log-content');
+        logs.forEach(log => {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            log.insertBefore(entry, log.firstChild);
+            
+            // Keep only last 10 entries
+            while (log.children.length > 10) {
+                log.removeChild(log.lastChild);
+            }
+        });
     }
 
     showMessage(message) {
