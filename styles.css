@@ -30,10 +30,10 @@ body {
 .card-animation-area {
     position: absolute;
     top: 50%;
-    left: calc(50% + 6px);
+    left: 50%;
     transform: translate(-50%, -50%);
-    width: 80px;
-    height: 100px;
+    width: 60px;
+    height: 80px;
     z-index: 150;
     pointer-events: none;
 }
@@ -1007,7 +1007,17 @@ body {
         min-width: 60px;
     }
     
-    .mobile-game-board .card-animation-area {
+    /* Position mobile draw pile area for proper animation centering */
+    .mobile-game-board .draw-pile-area {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 0;
+    }
+    
+    .mobile-game-board .draw-pile-area .card-animation-area {
+        position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
@@ -1015,6 +1025,8 @@ body {
         height: calc(((100vw - 40px) / 7 - 4px) * 1.4);
         min-width: 35px;
         max-width: 50px;
+        z-index: 150;
+        pointer-events: none;
     }
     
     /* Ultra-compact controls */
