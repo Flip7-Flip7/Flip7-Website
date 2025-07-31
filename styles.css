@@ -840,7 +840,7 @@ body {
     
     .game-container {
         grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
+        grid-template-rows: auto;
         gap: 8px;
         max-width: 100%;
         min-height: 100vh;
@@ -879,10 +879,13 @@ body {
     .mobile-game-board {
         display: block;
         order: 2;
-        flex: 1;
-        margin: 10px 5px;
-        background: transparent;
-        padding: 0;
+        flex: 0 1 auto;
+        margin: 5px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 8px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(15px);
     }
     
     .mobile-game-board .players-grid {
@@ -893,9 +896,8 @@ body {
         position: relative;
     }
     
-    /* Hide desktop log and scoreboard in controls panel */
-    .controls-panel .game-log,
-    .controls-panel .scoreboard {
+    /* Hide desktop info sections on mobile */
+    .desktop-info {
         display: none;
     }
     
@@ -903,6 +905,7 @@ body {
     .mobile-info-panel {
         display: block;
         order: 3;
+        flex: 0 1 auto;
         background: rgba(255, 255, 255, 0.2);
         border-radius: 15px;
         padding: 8px;
