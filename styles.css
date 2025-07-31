@@ -855,14 +855,9 @@ body {
         padding: 3px 5px;
     }
     
-    /* Game message adjustments for mobile */
+    /* Hide game message on mobile */
     .game-message {
-        font-size: 1em;
-        padding: 12px 20px;
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
-        max-width: 90%;
+        display: none;
     }
     
     .action-card-prompt {
