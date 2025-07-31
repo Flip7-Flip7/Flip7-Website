@@ -701,32 +701,34 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
     body {
-        padding: 10px;
+        padding: 5px;
+        overflow-x: hidden;
     }
     
     .game-container {
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr;
-        gap: 15px;
+        gap: 8px;
         max-width: 100%;
+        min-height: 100vh;
     }
     
-    /* Move controls to top on mobile */
+    /* Compact controls at top */
     .controls-panel {
         order: -1;
-        padding: 15px;
-        margin-bottom: 10px;
+        padding: 8px;
+        margin-bottom: 5px;
     }
     
     .flip7-logo {
-        height: 30px;
+        height: 25px;
     }
     
-    /* Vertical layout for mobile */
+    /* Ultra-compact vertical layout */
     .players-grid {
         grid-template-columns: 1fr;
         grid-template-rows: auto auto auto auto auto;
-        gap: 15px;
+        gap: 8px;
         min-height: auto;
     }
     
@@ -747,7 +749,7 @@ body {
         grid-column: 1;
         grid-row: 3;
         order: 3;
-        padding: 10px 0;
+        padding: 5px 0;
     }
     
     .opponent-right {
@@ -763,58 +765,64 @@ body {
     }
     
     .player-area {
-        padding: 12px;
+        padding: 6px;
         margin: 0;
     }
     
     .player-area h3 {
-        font-size: 1em;
-        margin-bottom: 8px;
+        font-size: 0.9em;
+        margin-bottom: 4px;
     }
     
+    /* Cards sized so 7 fit across screen width */
     .card {
-        width: 35px;
-        height: 50px;
-        font-size: 0.8em;
+        width: calc((100vw - 40px) / 7 - 4px);
+        height: calc(((100vw - 40px) / 7 - 4px) * 1.4);
+        font-size: 0.7em;
+        min-width: 35px;
+        max-width: 50px;
     }
     
     .draw-card {
-        width: 40px;
-        height: 55px;
+        width: calc((100vw - 40px) / 7 - 4px);
+        height: calc(((100vw - 40px) / 7 - 4px) * 1.4);
+        min-width: 40px;
+        max-width: 55px;
     }
     
     .player-stats {
-        font-size: 0.8em;
-        gap: 8px;
-        margin: 8px 0;
+        font-size: 0.7em;
+        gap: 4px;
+        margin: 4px 0;
+        flex-wrap: wrap;
     }
     
     .player-stats span {
-        padding: 3px 6px;
-        font-size: 0.75em;
+        padding: 2px 4px;
+        font-size: 0.65em;
     }
     
     .modifier-cards, .number-cards {
-        min-height: 55px;
-        gap: 3px;
-        margin: 6px 0;
-        padding: 4px;
+        min-height: auto;
+        gap: 2px;
+        margin: 3px 0;
+        padding: 2px;
     }
     
     .unique-counter {
-        font-size: 0.75em;
-        margin-top: 6px;
+        font-size: 0.65em;
+        margin-top: 3px;
     }
     
     .action-buttons {
-        gap: 8px;
-        margin-top: 8px;
+        gap: 6px;
+        margin-top: 5px;
     }
     
     .btn {
-        padding: 8px 16px;
-        font-size: 0.85em;
-        min-width: 70px;
+        padding: 6px 12px;
+        font-size: 0.8em;
+        min-width: 60px;
     }
     
     .card-animation-area {
@@ -822,37 +830,37 @@ body {
         left: 50%;
     }
     
-    /* Mobile-specific controls */
+    /* Ultra-compact controls */
     .control-section {
-        margin-bottom: 15px;
+        margin-bottom: 8px;
     }
     
     .game-settings label {
-        font-size: 0.85em;
-        gap: 8px;
+        font-size: 0.8em;
+        gap: 6px;
     }
     
     .game-settings input[type="number"] {
-        width: 70px;
-        padding: 4px 6px;
+        width: 60px;
+        padding: 3px 5px;
     }
     
     #scoreboard-content {
-        max-height: 100px;
+        max-height: 80px;
     }
     
     #log-content {
-        max-height: 120px;
+        max-height: 100px;
     }
     
     .score-entry {
-        font-size: 0.75em;
-        padding: 4px 6px;
+        font-size: 0.7em;
+        padding: 3px 5px;
     }
     
     .log-entry {
-        font-size: 0.7em;
-        padding: 3px 5px;
+        font-size: 0.65em;
+        padding: 2px 4px;
     }
     
     /* Hide game message on mobile */
