@@ -1044,6 +1044,46 @@ class Flip7Game {
         this.addToLog(`🎉 ${winner.name} wins with ${winner.totalScore} points!`);
         this.showMessage(`${winner.name} wins the game! Click "Start Game" to play again.`);
         this.disablePlayerActions();
+        
+        // Show celebration if human player wins
+        if (winner.isHuman) {
+            this.showWinningCelebration();
+        }
+    }
+
+    showWinningCelebration() {
+        const celebration = document.getElementById('winning-celebration');
+        celebration.style.display = 'flex';
+        
+        // Generate confetti
+        this.createConfetti();
+        
+        // Hide celebration after 5 seconds
+        setTimeout(() => {
+            celebration.style.display = 'none';
+        }, 5000);
+    }
+
+    createConfetti() {
+        const container = document.getElementById('confetti-container');
+        container.innerHTML = ''; // Clear existing confetti
+        
+        // Create 50 confetti pieces
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            
+            // Random horizontal position
+            confetti.style.left = Math.random() * 100 + '%';
+            
+            // Random animation delay
+            confetti.style.animationDelay = Math.random() * 3 + 's';
+            
+            // Random animation duration (2-4 seconds)
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            
+            container.appendChild(confetti);
+        }
     }
 
     displayCard(card, playerId) {
