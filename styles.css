@@ -49,9 +49,9 @@ body {
 .players-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr 1fr;
-    gap: 20px;
-    min-height: 500px;
+    grid-template-rows: 0.8fr 1fr 0.8fr;
+    gap: 15px;
+    min-height: 400px;
     position: relative;
 }
 
