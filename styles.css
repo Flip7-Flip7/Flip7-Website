@@ -1065,7 +1065,10 @@ body {
         order: 5;
     }
     
-    .player-area {
+    .mobile-game-board .player-area {
+        background: transparent;
+        border: none;
+        backdrop-filter: none;
         padding: 6px;
         margin: 0;
     }
