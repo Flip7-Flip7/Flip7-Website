@@ -638,6 +638,134 @@ body {
     100% { opacity: 1; transform: scale(1); }
 }
 
+/* Bust Animation and Styling */
+.player-area.busted {
+    position: relative;
+    overflow: hidden;
+}
+
+.player-area.busted::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(239, 68, 68, 0.1),
+        rgba(239, 68, 68, 0.1) 10px,
+        rgba(220, 38, 38, 0.1) 10px,
+        rgba(220, 38, 38, 0.1) 20px
+    );
+    z-index: 1;
+    pointer-events: none;
+}
+
+.player-area.busted::after {
+    content: "BUSTED";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #ef4444;
+    text-shadow: 
+        2px 2px 0 #000,
+        -2px -2px 0 #000,
+        2px -2px 0 #000,
+        -2px 2px 0 #000,
+        0 0 20px rgba(239, 68, 68, 0.8);
+    z-index: 10;
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+.player-area.busted h3 {
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.player-area.busted .card {
+    opacity: 0.4;
+    filter: grayscale(80%);
+}
+
+/* Bust animation for cards */
+.bust-animation .card {
+    animation: bustShake 0.3s ease-out, bustExplode 0.9s ease-out 0.3s;
+}
+
+@keyframes bustShake {
+    0%, 100% { transform: translateX(0); }
+    10% { transform: translateX(-5px) rotate(-2deg); }
+    20% { transform: translateX(5px) rotate(2deg); }
+    30% { transform: translateX(-7px) rotate(-3deg); }
+    40% { transform: translateX(7px) rotate(3deg); }
+    50% { transform: translateX(-5px) rotate(-2deg); }
+    60% { transform: translateX(5px) rotate(2deg); }
+    70% { transform: translateX(-3px) rotate(-1deg); }
+    80% { transform: translateX(3px) rotate(1deg); }
+    90% { transform: translateX(-1px); }
+}
+
+@keyframes bustExplode {
+    0% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+    30% {
+        transform: scale(1.2) translateY(-10px);
+        opacity: 1;
+    }
+    60% {
+        transform: scale(0.8) translateY(20px) rotate(var(--rotate-angle, 15deg));
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(0.5) translateY(40px) rotate(var(--rotate-angle, 15deg));
+        opacity: 0.2;
+    }
+}
+
+/* Screen shake on bust */
+.game-container.bust-shake {
+    animation: screenShake 0.5s ease-out;
+}
+
+@keyframes screenShake {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-2px, -2px); }
+    20% { transform: translate(2px, -2px); }
+    30% { transform: translate(-2px, 2px); }
+    40% { transform: translate(2px, 2px); }
+    50% { transform: translate(-1px, -1px); }
+    60% { transform: translate(1px, -1px); }
+    70% { transform: translate(-1px, 1px); }
+    80% { transform: translate(1px, 1px); }
+    90% { transform: translate(0, 0); }
+}
+
+/* Red flash effect */
+.bust-flash {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at center, rgba(239, 68, 68, 0.8) 0%, transparent 70%);
+    animation: bustFlash 0.6s ease-out;
+    pointer-events: none;
+    z-index: 100;
+}
+
+@keyframes bustFlash {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
 /* Modal */
 .modal {
     position: fixed;
@@ -909,6 +1037,11 @@ body {
     /* Hide game message on mobile */
     .game-message {
         display: none;
+    }
+    
+    /* Mobile bust styling adjustments */
+    .player-area.busted::after {
+        font-size: 1.8em;
     }
     
     .action-card-prompt {

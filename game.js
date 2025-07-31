@@ -200,9 +200,9 @@ class Flip7Game {
             player.status = 'active';
             player.hasSecondChance = false;
             
-            // Clear frozen effects
+            // Clear frozen and busted effects
             const container = document.getElementById(player.id);
-            container.classList.remove('frozen');
+            container.classList.remove('frozen', 'busted');
             const frozenIndicator = container.querySelector('.frozen-indicator');
             if (frozenIndicator) {
                 frozenIndicator.remove();
@@ -399,6 +399,7 @@ class Flip7Game {
                     player.status = 'busted';
                     player.roundScore = 0;
                     this.addToLog(`${player.name} busted with duplicate ${card.value}!`);
+                    this.animateBust(player);
                     return { endTurn: true, busted: true };
                 }
             }
@@ -763,6 +764,39 @@ class Flip7Game {
         // Discard both cards
         this.discardPile.push(duplicateCard);
         this.discardPile.push({ type: 'action', value: 'second_chance', display: 'Second Chance' });
+    }
+
+    animateBust(player) {
+        const playerArea = document.getElementById(player.id);
+        const gameContainer = document.querySelector('.game-container');
+        
+        // Add bust animation class to trigger card animations
+        playerArea.classList.add('bust-animation');
+        
+        // Add screen shake
+        gameContainer.classList.add('bust-shake');
+        
+        // Create and add red flash effect
+        const flashDiv = document.createElement('div');
+        flashDiv.className = 'bust-flash';
+        playerArea.appendChild(flashDiv);
+        
+        // Set random rotation angles for cards
+        const cards = playerArea.querySelectorAll('.card');
+        cards.forEach((card, index) => {
+            const angle = (Math.random() - 0.5) * 60; // Random angle between -30 and 30
+            card.style.setProperty('--rotate-angle', `${angle}deg`);
+        });
+        
+        // Remove animation classes after animation completes
+        setTimeout(() => {
+            playerArea.classList.remove('bust-animation');
+            gameContainer.classList.remove('bust-shake');
+            flashDiv.remove();
+            
+            // Add persistent busted class
+            playerArea.classList.add('busted');
+        }, 1200);
     }
 
     checkForRoundEnd() {
@@ -1230,6 +1264,11 @@ class Flip7Game {
         if (statusElement) {
             statusElement.textContent = this.getStatusText(player.status);
             statusElement.className = `player-status ${player.status}`;
+        }
+        
+        // Maintain busted visual state
+        if (player.status === 'busted') {
+            container.classList.add('busted');
         }
         
         // Update unique count
