@@ -699,44 +699,240 @@ body {
 }
 
 /* Responsive Design */
-@media (max-width: 1000px) {
-    .game-container {
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr auto;
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
     }
     
+    .game-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        gap: 15px;
+        max-width: 100%;
+    }
+    
+    /* Move controls to top on mobile */
     .controls-panel {
+        order: -1;
+        padding: 15px;
+        margin-bottom: 10px;
+    }
+    
+    .flip7-logo {
+        height: 30px;
+    }
+    
+    /* Vertical layout for mobile */
+    .players-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto auto;
+        gap: 15px;
+        min-height: auto;
+    }
+    
+    /* Mobile player positioning */
+    .opponent-top {
+        grid-column: 1;
+        grid-row: 1;
+        order: 1;
+    }
+    
+    .opponent-left {
+        grid-column: 1;
+        grid-row: 2;
         order: 2;
     }
     
-    .players-grid {
-        grid-template-columns: 1fr;
-        grid-template-rows: repeat(4, auto);
+    .draw-pile-area {
+        grid-column: 1;
+        grid-row: 3;
+        order: 3;
+        padding: 10px 0;
+    }
+    
+    .opponent-right {
+        grid-column: 1;
+        grid-row: 4;
+        order: 4;
     }
     
     .main-player {
         grid-column: 1;
-        order: 4;
-    }
-    
-    .card-animation-area {
-        top: 40%;
-    }
-}
-
-@media (max-width: 600px) {
-    .players-grid {
-        gap: 15px;
-        min-height: 400px;
+        grid-row: 5;
+        order: 5;
     }
     
     .player-area {
-        padding: 15px;
+        padding: 12px;
+        margin: 0;
+    }
+    
+    .player-area h3 {
+        font-size: 1em;
+        margin-bottom: 8px;
     }
     
     .card {
-        width: 45px;
-        height: 65px;
+        width: 35px;
+        height: 50px;
+        font-size: 0.8em;
+    }
+    
+    .draw-card {
+        width: 40px;
+        height: 55px;
+    }
+    
+    .player-stats {
+        font-size: 0.8em;
+        gap: 8px;
+        margin: 8px 0;
+    }
+    
+    .player-stats span {
+        padding: 3px 6px;
+        font-size: 0.75em;
+    }
+    
+    .modifier-cards, .number-cards {
+        min-height: 55px;
+        gap: 3px;
+        margin: 6px 0;
+        padding: 4px;
+    }
+    
+    .unique-counter {
+        font-size: 0.75em;
+        margin-top: 6px;
+    }
+    
+    .action-buttons {
+        gap: 8px;
+        margin-top: 8px;
+    }
+    
+    .btn {
+        padding: 8px 16px;
+        font-size: 0.85em;
+        min-width: 70px;
+    }
+    
+    .card-animation-area {
+        top: 50%;
+        left: 50%;
+    }
+    
+    /* Mobile-specific controls */
+    .control-section {
+        margin-bottom: 15px;
+    }
+    
+    .game-settings label {
+        font-size: 0.85em;
+        gap: 8px;
+    }
+    
+    .game-settings input[type="number"] {
+        width: 70px;
+        padding: 4px 6px;
+    }
+    
+    #scoreboard-content {
+        max-height: 100px;
+    }
+    
+    #log-content {
+        max-height: 120px;
+    }
+    
+    .score-entry {
+        font-size: 0.75em;
+        padding: 4px 6px;
+    }
+    
+    .log-entry {
+        font-size: 0.7em;
+        padding: 3px 5px;
+    }
+    
+    /* Game message adjustments for mobile */
+    .game-message {
+        font-size: 1em;
+        padding: 12px 20px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        max-width: 90%;
+    }
+    
+    .action-card-prompt {
+        max-width: 320px;
+        padding: 20px;
+        margin: 0 10px;
+    }
+    
+    .action-card-prompt h3 {
+        font-size: 1.1em;
+        margin-bottom: 12px;
+    }
+    
+    .action-card-prompt p {
         font-size: 0.9em;
+        margin-bottom: 15px;
+    }
+    
+    #action-buttons .btn {
+        min-width: 70px;
+        padding: 6px 12px;
+        font-size: 0.8em;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    body {
+        padding: 5px;
+    }
+    
+    .game-container {
+        gap: 10px;
+    }
+    
+    .controls-panel {
+        padding: 12px;
+    }
+    
+    .players-grid {
+        gap: 10px;
+    }
+    
+    .player-area {
+        padding: 10px;
+    }
+    
+    .card {
+        width: 30px;
+        height: 42px;
+        font-size: 0.7em;
+    }
+    
+    .draw-card {
+        width: 35px;
+        height: 48px;
+    }
+    
+    .flip7-logo {
+        height: 25px;
+    }
+    
+    .btn {
+        padding: 6px 12px;
+        font-size: 0.8em;
+        min-width: 60px;
+    }
+    
+    .game-message {
+        font-size: 0.9em;
+        padding: 10px 15px;
     }
 }
