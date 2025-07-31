@@ -157,6 +157,12 @@ body {
     transform-style: preserve-3d;
 }
 
+.card.custom-image {
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
 .card:hover {
     transform: translateY(-8px) rotateY(10deg) scale(1.05);
 }
@@ -231,6 +237,10 @@ body {
     font-size: 0.8em;
     cursor: default;
     box-shadow: 0 4px 15px rgba(250, 112, 154, 0.6);
+    background-image: url('images/Flip7CardBack.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .pile-info {

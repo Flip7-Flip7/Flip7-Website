@@ -294,7 +294,8 @@ class Flip7Game {
                 return true;
             } else if (card.value === 'flip3') {
                 // Pass the callback for Flip Three to ensure it completes before continuing
-                this.handleFlipThree(player, onActionComplete);
+                // For initial deal, bots always target themselves
+                this.handleFlipThree(player, onActionComplete, true);
                 return true;
             } else if (card.value === 'second_chance') {
                 // Second Chance is kept
@@ -366,13 +367,13 @@ class Flip7Game {
         switch (card.value) {
             case 'freeze':
                 this.handleFreeze(player);
-                // Turn ends for AI (they auto-execute), but continues for human (they need to choose target)
-                return !player.isHuman;
+                // Turn always ends - Freeze logic will handle nextTurn() call
+                return true;
                 
             case 'flip3':
                 this.handleFlipThree(player);
-                // Turn ends for AI (they auto-execute), but continues for human (they need to choose target)
-                return !player.isHuman;
+                // Turn always ends - Flip3 logic will handle nextTurn() call
+                return true;
                 
             case 'second_chance':
                 if (!player.hasSecondChance) {
@@ -388,10 +389,14 @@ class Flip7Game {
         return false;
     }
 
-    handleFreeze(cardOwner) {
+    handleFreeze(cardOwner, onComplete = null) {
+        // Default callback to move to next turn if none provided
+        const defaultCallback = () => this.nextTurn();
+        const callback = onComplete || defaultCallback;
+        
         if (cardOwner.isHuman) {
             // Show player selection UI for human player
-            this.showPlayerSelection(cardOwner, 'freeze');
+            this.showPlayerSelection(cardOwner, 'freeze', callback);
         } else {
             // AI chooses target - NEVER freeze themselves unless they're the only active player
             const activeOpponents = this.players.filter(p => p.status === 'active' && p.id !== cardOwner.id);
@@ -406,28 +411,39 @@ class Flip7Game {
                 targetPlayer = activeOpponents[Math.floor(Math.random() * activeOpponents.length)];
             }
             
-            this.executeFreeze(cardOwner, targetPlayer);
+            this.executeFreeze(cardOwner, targetPlayer, callback);
         }
     }
 
-    handleFlipThree(cardOwner, onComplete = null) {
+    handleFlipThree(cardOwner, onComplete = null, isInitialDeal = false) {
+        // Default callback to move to next turn if none provided
+        const defaultCallback = () => this.nextTurn();
+        const callback = onComplete || defaultCallback;
+        
         if (cardOwner.isHuman) {
             // Show player selection UI for human player
-            this.showPlayerSelection(cardOwner, 'flip3', onComplete);
+            this.showPlayerSelection(cardOwner, 'flip3', callback);
         } else {
-            // AI chooses target (80% chance self, 20% chance random other active player)
-            const activePlayersExcludingSelf = this.players.filter(p => p.status === 'active' && p.id !== cardOwner.id);
             let targetPlayer;
             
-            if (Math.random() < 0.8 || activePlayersExcludingSelf.length === 0) {
-                // Choose self
+            if (isInitialDeal) {
+                // During initial deal, bots ALWAYS target themselves
                 targetPlayer = cardOwner;
+                this.addToLog(`${cardOwner.name} uses Flip Three on themselves during initial deal.`);
             } else {
-                // Choose random other active player
-                targetPlayer = activePlayersExcludingSelf[Math.floor(Math.random() * activePlayersExcludingSelf.length)];
+                // Regular gameplay: AI chooses target (80% chance self, 20% chance random other active player)
+                const activePlayersExcludingSelf = this.players.filter(p => p.status === 'active' && p.id !== cardOwner.id);
+                
+                if (Math.random() < 0.8 || activePlayersExcludingSelf.length === 0) {
+                    // Choose self
+                    targetPlayer = cardOwner;
+                } else {
+                    // Choose random other active player
+                    targetPlayer = activePlayersExcludingSelf[Math.floor(Math.random() * activePlayersExcludingSelf.length)];
+                }
             }
             
-            this.executeFlipThree(cardOwner, targetPlayer, onComplete);
+            this.executeFlipThree(cardOwner, targetPlayer, callback);
         }
     }
 
@@ -458,8 +474,7 @@ class Flip7Game {
                 if (actionType === 'flip3') {
                     this.executeFlipThree(cardOwner, player, onComplete);
                 } else if (actionType === 'freeze') {
-                    this.executeFreeze(cardOwner, player);
-                    if (onComplete) setTimeout(onComplete, 1000);
+                    this.executeFreeze(cardOwner, player, onComplete);
                 }
             };
             buttonsElement.appendChild(button);
@@ -468,7 +483,7 @@ class Flip7Game {
         promptElement.style.display = 'block';
     }
 
-    executeFreeze(cardOwner, targetPlayer) {
+    executeFreeze(cardOwner, targetPlayer, onComplete = null) {
         this.addToLog(`${cardOwner.name} plays Freeze on ${targetPlayer.name}!`);
         
         // Animate freeze card transfer
@@ -489,8 +504,12 @@ class Flip7Game {
             this.addFrozenIndicator(targetPlayer);
             this.updateDisplay();
             
-            // Continue to next turn - game doesn't stop just because someone got frozen
-            setTimeout(() => this.nextTurn(), 1000);
+            // Call the completion callback (which will move to next turn)
+            if (onComplete) {
+                setTimeout(onComplete, 1000);
+            } else {
+                setTimeout(() => this.nextTurn(), 1000);
+            }
         });
     }
 
@@ -1030,8 +1049,65 @@ class Flip7Game {
     createCardElement(card) {
         const cardDiv = document.createElement('div');
         cardDiv.className = `card ${card.type}`;
-        cardDiv.innerHTML = `<span>${card.display}</span>`;
+        
+        // Check if we have a custom image for this card
+        const hasCustomImage = this.hasCustomCardImage(card);
+        
+        if (hasCustomImage) {
+            // Use custom card image
+            const imageName = this.getCardImageName(card);
+            console.log(`Using custom image for card ${card.value}: ${imageName}`);
+            cardDiv.classList.add('custom-image');
+            cardDiv.style.backgroundImage = `url('./images/${imageName}')`;
+            cardDiv.innerHTML = ''; // No text needed
+        } else {
+            // Use text fallback for cards we don't have images for yet
+            cardDiv.innerHTML = `<span>${card.display}</span>`;
+        }
+        
         return cardDiv;
+    }
+    
+    hasCustomCardImage(card) {
+        // Check if we have custom images for this card
+        if (card.type === 'number') {
+            // We have images for all number cards: 0-12
+            const availableNumbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+            return availableNumbers.includes(card.value);
+        }
+        if (card.type === 'modifier') {
+            // We have images for all modifier cards
+            return [2, 4, 6, 8, 10, 'x2'].includes(card.value);
+        }
+        if (card.type === 'action') {
+            // We have images for all action cards
+            return ['freeze', 'flip3', 'second_chance'].includes(card.value);
+        }
+        return false;
+    }
+    
+    getCardImageName(card) {
+        if (card.type === 'number') {
+            return `card-${card.value}.png`;
+        }
+        if (card.type === 'modifier') {
+            if (card.value === 'x2') {
+                return 'card-*2.png'; // Special case for multiply
+            }
+            return `card-+${card.value}.png`;
+        }
+        if (card.type === 'action') {
+            if (card.value === 'flip3') {
+                return 'card-Flip3.png';
+            }
+            if (card.value === 'freeze') {
+                return 'card-Freeze.png';
+            }
+            if (card.value === 'second_chance') {
+                return 'card-SecondChance.png';
+            }
+        }
+        return null;
     }
 
     enablePlayerActions() {
