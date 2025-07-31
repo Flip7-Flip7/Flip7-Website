@@ -8,7 +8,7 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #4a90a4 0%, #357a8a 50%, #2c6b7a 100%);
     color: #ffffff;
     min-height: 100vh;
     padding: 20px;
@@ -28,9 +28,9 @@ body {
 
 /* Card Animation Area */
 .card-animation-area {
-    position: fixed;
+    position: absolute;
     top: 50%;
-    left: 50%;
+    left: calc(50% + 6px);
     transform: translate(-50%, -50%);
     width: 80px;
     height: 100px;
@@ -57,11 +57,11 @@ body {
 
 /* Player Areas */
 .player-area {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 15px;
     padding: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(15px);
     position: relative;
 }
 
@@ -237,10 +237,11 @@ body {
     font-size: 0.8em;
     cursor: default;
     box-shadow: 0 4px 15px rgba(250, 112, 154, 0.6);
-    background-image: url('images/Flip7CardBack.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-image: url('images/Flip7CardBack.png') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-color: transparent !important;
 }
 
 .pile-info {
@@ -315,11 +316,11 @@ body {
 
 /* Controls Panel */
 .controls-panel {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 15px;
     padding: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(15px);
     height: fit-content;
 }
 
@@ -328,6 +329,17 @@ body {
     margin-bottom: 15px;
     text-align: center;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.logo-header {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.flip7-logo {
+    height: 40px;
+    width: auto;
+    filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.8));
 }
 
 .control-section {
@@ -407,7 +419,7 @@ body {
 /* Game Message */
 .game-message {
     position: fixed;
-    bottom: 20px;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(30, 60, 114, 0.95);

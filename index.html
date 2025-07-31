@@ -8,15 +8,15 @@
 </head>
 <body>
     <div class="game-container">
-        <!-- Card Animation Area -->
-        <div class="card-animation-area" id="card-animation-area">
-            <!-- Animated card appears here -->
-        </div>
-        
         <!-- Main Game Area -->
         <div class="game-area">
             <!-- Players Grid -->
-            <div class="players-grid">
+            <div class="players-grid" style="position: relative;">
+                <!-- Card Animation Area -->
+                <div class="card-animation-area" id="card-animation-area">
+                    <!-- Animated card appears here -->
+                </div>
+                
                 <!-- Opponent 1 (Left) -->
                 <div class="player-area opponent-player opponent-left" id="opponent1">
                     <h3>Dane</h3>
@@ -90,7 +90,9 @@
 
         <!-- Controls Panel -->
         <div class="controls-panel">
-            <h3>Game Controls</h3>
+            <div class="logo-header">
+                <img src="images/FLIP7_LOGO_LOCK_UP_transparent.png" alt="Flip 7" class="flip7-logo">
+            </div>
             
             <div class="control-section" id="pre-game-controls">
                 <button id="new-game-btn" class="btn primary" style="width: 100%; margin-bottom: 10px;">Start Game</button>

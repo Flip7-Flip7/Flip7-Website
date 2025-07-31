@@ -184,6 +184,22 @@ class Flip7Game {
             if (frozenIndicator) {
                 frozenIndicator.remove();
             }
+            
+            // Clear all visual cards from DOM
+            const isMainPlayer = player.id === 'player';
+            const numberContainer = isMainPlayer 
+                ? document.getElementById('player-numbers')
+                : container.querySelector('.number-cards');
+            const modifierContainer = isMainPlayer
+                ? document.getElementById('player-modifiers')
+                : container.querySelector('.modifier-cards');
+                
+            if (numberContainer) {
+                numberContainer.innerHTML = '';
+            }
+            if (modifierContainer) {
+                modifierContainer.innerHTML = '';
+            }
         });
         
         // Create new deck if needed
@@ -232,6 +248,30 @@ class Flip7Game {
             }
             
             const player = this.players[dealIndex];
+            
+            // Skip frozen players during initial deal
+            if (player.status === 'frozen') {
+                this.addToLog(`${player.name} is frozen and skipped during initial deal.`);
+                dealIndex++;
+                // Continue to next player
+                if (dealIndex < this.players.length && this.gameActive) {
+                    setTimeout(dealNextCard, 300);
+                } else if (dealIndex >= this.players.length && this.gameActive) {
+                    // All cards dealt, start normal gameplay
+                    this.isInitialDealing = false;
+                    setTimeout(() => {
+                        this.showMessage(`${this.players[this.currentPlayerIndex].name}'s turn!`);
+                        this.highlightCurrentPlayer();
+                        if (this.players[this.currentPlayerIndex].isHuman) {
+                            this.enablePlayerActions();
+                        } else {
+                            setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 1000);
+                        }
+                    }, 1000);
+                }
+                return;
+            }
+            
             const card = this.drawCard();
             
             // Show card animation
@@ -1195,11 +1235,15 @@ class Flip7Game {
         if (numberContainer) {
             const existingCards = Array.from(numberContainer.children);
             
-            // Only add cards if we have fewer DOM elements than player cards
-            if (existingCards.length < player.numberCards.length) {
-                // Clear and redraw all cards to avoid duplicates
+            // Always sort and redraw cards if the counts don't match or if we need to sort
+            if (existingCards.length !== player.numberCards.length || player.numberCards.length > 0) {
+                // Clear and redraw all cards in sorted order
                 numberContainer.innerHTML = '';
-                player.numberCards.forEach(card => {
+                
+                // Sort number cards in numerical order (0-12) - smaller numbers on left, bigger on right
+                const sortedNumberCards = [...player.numberCards].sort((a, b) => a.value - b.value);
+                
+                sortedNumberCards.forEach(card => {
                     const cardElement = this.createCardElement(card);
                     cardElement.dataset.cardValue = card.value;
                     cardElement.dataset.cardType = card.type;

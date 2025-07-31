@@ -1,0 +1,30 @@
+<svg width="120" height="40" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a90a4;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#357a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2c6b7a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- FLIP7 Text -->
+  <text x="60" y="25" font-family="Arial, sans-serif" font-size="20" font-weight="bold" 
+        text-anchor="middle" fill="url(#logoGradient)" stroke="#FFD700" stroke-width="0.5">
+    FLIP7
+  </text>
+  
+  <!-- Card fan decoration -->
+  <g transform="translate(5, 15)">
+    <rect x="0" y="0" width="8" height="12" rx="1" fill="#ff6b6b" opacity="0.8" transform="rotate(-15)"/>
+    <rect x="3" y="0" width="8" height="12" rx="1" fill="#4ecdc4" opacity="0.8" transform="rotate(-5)"/>
+    <rect x="6" y="0" width="8" height="12" rx="1" fill="#45b7d1" opacity="0.8" transform="rotate(5)"/>
+    <rect x="9" y="0" width="8" height="12" rx="1" fill="#96ceb4" opacity="0.8" transform="rotate(15)"/>
+  </g>
+  
+  <g transform="translate(102, 15)">
+    <rect x="0" y="0" width="8" height="12" rx="1" fill="#ffd93d" opacity="0.8" transform="rotate(15)"/>
+    <rect x="-3" y="0" width="8" height="12" rx="1" fill="#ff9ff3" opacity="0.8" transform="rotate(5)"/>
+    <rect x="-6" y="0" width="8" height="12" rx="1" fill="#54a0ff" opacity="0.8" transform="rotate(-5)"/>
+    <rect x="-9" y="0" width="8" height="12" rx="1" fill="#5f27cd" opacity="0.8" transform="rotate(-15)"/>
+  </g>
+</svg>
