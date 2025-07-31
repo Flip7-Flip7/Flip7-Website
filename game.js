@@ -34,7 +34,7 @@ class Flip7Game {
             },
             {
                 id: 'opponent1',
-                name: 'Dane',
+                name: 'AI Bot 1',
                 totalScore: 0,
                 roundScore: 0,
                 numberCards: [],
@@ -47,7 +47,7 @@ class Flip7Game {
             },
             {
                 id: 'opponent2',
-                name: 'Brian',
+                name: 'AI Bot 2',
                 totalScore: 0,
                 roundScore: 0,
                 numberCards: [],
@@ -60,7 +60,7 @@ class Flip7Game {
             },
             {
                 id: 'opponent3',
-                name: 'Eric Olsen',
+                name: 'AI Bot 3',
                 totalScore: 0,
                 roundScore: 0,
                 numberCards: [],
@@ -88,6 +88,29 @@ class Flip7Game {
                 e.target.value = this.winningScore;
             }
         });
+        
+        // Handle mobile layout
+        this.handleMobileLayout();
+        window.addEventListener('resize', () => this.handleMobileLayout());
+    }
+
+    handleMobileLayout() {
+        const isMobile = window.innerWidth <= 768;
+        const playersGrid = document.querySelector('.players-grid');
+        const mobileGameBoard = document.querySelector('.mobile-game-board');
+        const gameArea = document.querySelector('.game-area');
+        
+        if (isMobile) {
+            // Move players-grid to mobile-game-board
+            if (playersGrid && mobileGameBoard && !mobileGameBoard.contains(playersGrid)) {
+                mobileGameBoard.appendChild(playersGrid);
+            }
+        } else {
+            // Move players-grid back to game-area
+            if (playersGrid && gameArea && !gameArea.contains(playersGrid)) {
+                gameArea.appendChild(playersGrid);
+            }
+        }
     }
 
     createDeck() {

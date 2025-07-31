@@ -19,7 +19,7 @@
                 
                 <!-- Opponent 1 (Left) -->
                 <div class="player-area opponent-player opponent-left" id="opponent1">
-                    <h3>Dane</h3>
+                    <h3>AI Bot 1</h3>
                     <div class="player-stats">
                         <span class="total-score">Total: <span class="score-value">0</span></span>
                         <span class="round-score">Round: <span class="round-value">0</span></span>
@@ -32,7 +32,7 @@
 
                 <!-- Opponent 2 (Top) -->
                 <div class="player-area opponent-player opponent-top" id="opponent2">
-                    <h3>Brian</h3>
+                    <h3>AI Bot 2</h3>
                     <div class="player-stats">
                         <span class="total-score">Total: <span class="score-value">0</span></span>
                         <span class="round-score">Round: <span class="round-value">0</span></span>
@@ -55,7 +55,7 @@
 
                 <!-- Opponent 3 (Right) -->
                 <div class="player-area opponent-player opponent-right" id="opponent3">
-                    <h3>Eric Olsen</h3>
+                    <h3>AI Bot 3</h3>
                     <div class="player-stats">
                         <span class="total-score">Total: <span class="score-value">0</span></span>
                         <span class="round-score">Round: <span class="round-value">0</span></span>
@@ -93,6 +93,10 @@
             <div class="logo-header">
                 <img src="images/FLIP7_LOGO_LOCK_UP_transparent.png" alt="Flip 7" class="flip7-logo">
             </div>
+
+            <div class="control-section">
+                <button id="rules-btn" class="btn secondary" style="width: 100%;">Rules</button>
+            </div>
             
             <div class="control-section" id="pre-game-controls">
                 <button id="new-game-btn" class="btn primary" style="width: 100%; margin-bottom: 10px;">Start Game</button>
@@ -104,18 +108,19 @@
                 </div>
             </div>
 
-            <div class="control-section">
-                <button id="rules-btn" class="btn secondary" style="width: 100%;">Rules</button>
-            </div>
-
-            <div class="scoreboard">
-                <h4>Scoreboard</h4>
-                <div id="scoreboard-content"></div>
+            <!-- Mobile Game Board (hidden on desktop) -->
+            <div class="mobile-game-board">
+                <!-- This will contain the players-grid on mobile -->
             </div>
 
             <div class="game-log">
                 <h4>Game Log</h4>
                 <div id="log-content"></div>
+            </div>
+
+            <div class="scoreboard">
+                <h4>Scoreboard</h4>
+                <div id="scoreboard-content"></div>
             </div>
         </div>
     </div>

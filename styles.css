@@ -698,6 +698,11 @@ body {
     margin-left: 20px;
 }
 
+/* Hide mobile game board on desktop */
+.mobile-game-board {
+    display: none;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     body {
@@ -707,58 +712,91 @@ body {
     
     .game-container {
         grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
+        grid-template-rows: 1fr;
         gap: 8px;
         max-width: 100%;
         min-height: 100vh;
     }
     
-    /* Compact controls at top */
+    /* Hide desktop game area on mobile */
+    .game-area {
+        display: none;
+    }
+    
+    /* Expand controls panel to full layout */
     .controls-panel {
-        order: -1;
+        order: 1;
         padding: 8px;
         margin-bottom: 5px;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
     }
     
     .flip7-logo {
         height: 25px;
     }
     
-    /* Ultra-compact vertical layout */
-    .players-grid {
+    /* Set control section orders for mobile */
+    .logo-header {
+        order: 1;
+    }
+    
+    .control-section {
+        order: 2;
+    }
+    
+    /* Mobile game board inside controls panel */
+    .mobile-game-board {
+        display: block;
+        order: 3;
+        flex: 1;
+        margin: 10px 0;
+    }
+    
+    .mobile-game-board .players-grid {
         grid-template-columns: 1fr;
         grid-template-rows: auto auto auto auto auto;
         gap: 8px;
         min-height: auto;
+        position: relative;
     }
     
-    /* Mobile player positioning */
-    .opponent-top {
+    .game-log {
+        order: 4;
+    }
+    
+    .scoreboard {
+        order: 5;
+    }
+    
+    /* Mobile player positioning within mobile game board */
+    .mobile-game-board .opponent-top {
         grid-column: 1;
         grid-row: 1;
         order: 1;
     }
     
-    .opponent-left {
+    .mobile-game-board .opponent-left {
         grid-column: 1;
         grid-row: 2;
         order: 2;
     }
     
-    .draw-pile-area {
+    .mobile-game-board .draw-pile-area {
         grid-column: 1;
         grid-row: 3;
         order: 3;
         padding: 5px 0;
     }
     
-    .opponent-right {
+    .mobile-game-board .opponent-right {
         grid-column: 1;
         grid-row: 4;
         order: 4;
     }
     
-    .main-player {
+    .mobile-game-board .main-player {
         grid-column: 1;
         grid-row: 5;
         order: 5;
@@ -825,9 +863,14 @@ body {
         min-width: 60px;
     }
     
-    .card-animation-area {
+    .mobile-game-board .card-animation-area {
         top: 50%;
         left: 50%;
+        transform: translate(-50%, -50%);
+        width: calc((100vw - 40px) / 7 - 4px);
+        height: calc(((100vw - 40px) / 7 - 4px) * 1.4);
+        min-width: 35px;
+        max-width: 50px;
     }
     
     /* Ultra-compact controls */
