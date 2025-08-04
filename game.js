@@ -376,7 +376,7 @@ class Flip7Game {
                     continueDealing();
                 }
                 // If it was an action card, the action will call continueDealing when complete
-            }, 1400);
+            }, 1800);
         };
         
         dealNextCard();
@@ -438,14 +438,33 @@ class Flip7Game {
         if (card.type === 'number') {
             // Check for bust
             if (player.uniqueNumbers.has(card.value) && !isInitialDeal) {
+                // Add the duplicate card to hand FIRST so it appears next to existing card
+                const existingIndex = player.numberCards.findIndex(c => c.value === card.value);
+                if (existingIndex !== -1) {
+                    // Insert duplicate right after the existing card
+                    player.numberCards.splice(existingIndex + 1, 0, card);
+                } else {
+                    // Fallback: add to end
+                    player.numberCards.push(card);
+                }
+                
                 if (player.hasSecondChance) {
                     this.activateSecondChance(player, card);
                     return { endTurn: false, busted: false };
                 } else {
+                    // Set bust status BEFORE updating display so duplicate highlighting works
                     player.status = 'busted';
                     player.roundScore = 0;
-                    this.addToLog(`${player.name} busted with duplicate ${card.value}!`);
-                    this.animateBust(player);
+                    
+                    // Update display to show duplicate card in hand with highlighting
+                    this.updateDisplay();
+                    
+                    // Brief pause to let player see the duplicates, then animate bust
+                    setTimeout(() => {
+                        this.addToLog(`${player.name} busted with duplicate ${card.value}!`);
+                        this.animateBust(player);
+                    }, 300);
+                    
                     return { endTurn: true, busted: true };
                 }
             }
@@ -788,7 +807,7 @@ class Flip7Game {
                     }
                 } else if (cardsFlipped < 3) {
                     // Continue flipping cards - wait for full animation cycle
-                    setTimeout(processNextCard, 1600);
+                    setTimeout(processNextCard, 2000);
                 } else {
                     // All 3 cards flipped successfully, now process any queued actions
                     if (pendingActions.length > 0) {
@@ -802,7 +821,7 @@ class Flip7Game {
                         }
                     }
                 }
-            }, 1400);
+            }, 1800);
         };
         
         setTimeout(processNextCard, 500);
@@ -978,6 +997,9 @@ class Flip7Game {
             
             // Add persistent busted class
             playerArea.classList.add('busted');
+            
+            // Continue game flow - check if round should end or move to next player
+            this.checkForRoundEnd();
         }, 1200);
     }
 
@@ -1008,23 +1030,32 @@ class Flip7Game {
         
         const card = this.drawCard();
         this.displayCard(card, 'player');
-        const result = this.handleCardDraw(player, card, false, false);
         
         this.disablePlayerActions();
         
-        // If turn ended due to action card (not bust), the action will handle nextTurn
-        if (result.endTurn && !result.busted) {
-            // Action card will handle the turn flow
-            setTimeout(() => {
-                this.updateDisplay();
-            }, 1400);
-        } else {
-            // Normal flow: move to next turn after animation
-            setTimeout(() => {
-                this.updateDisplay();
-                this.nextTurn();
-            }, 1400);
-        }
+        // Wait for card animation to complete before handling card logic
+        setTimeout(() => {
+            const result = this.handleCardDraw(player, card, false, false);
+            
+            // If busted, handleCardDraw already handled everything - exit early
+            if (result.busted) {
+                return; // Don't call updateDisplay() again or nextTurn()
+            }
+            
+            // If turn ended due to action card (not bust), the action will handle nextTurn
+            if (result.endTurn && !result.busted) {
+                // Action card will handle the turn flow
+                setTimeout(() => {
+                    this.updateDisplay();
+                }, 800);
+            } else {
+                // Normal flow: move to next turn after animation
+                setTimeout(() => {
+                    this.updateDisplay();
+                    this.nextTurn();
+                }, 800);
+            }
+        }, 1000);
     }
 
     playerStay() {
@@ -1159,23 +1190,32 @@ class Flip7Game {
     aiHit(player) {
         const card = this.drawCard();
         this.displayCard(card, player.id);
-        const result = this.handleCardDraw(player, card, false, false);
         
         this.addToLog(`${player.name} hits and gets ${card.display}`);
         
-        // If turn ended due to action card (not bust), the action will handle nextTurn
-        if (result.endTurn && !result.busted) {
-            // Action card will handle the turn flow
-            setTimeout(() => {
-                this.updateDisplay();
-            }, 1400);
-        } else {
-            // Normal flow: move to next turn after animation
-            setTimeout(() => {
-                this.updateDisplay();
-                this.nextTurn();
-            }, 1400);
-        }
+        // Wait for card animation to complete before handling card logic
+        setTimeout(() => {
+            const result = this.handleCardDraw(player, card, false, false);
+            
+            // If busted, handleCardDraw already handled everything - exit early
+            if (result.busted) {
+                return; // Don't call updateDisplay() again or nextTurn()
+            }
+            
+            // If turn ended due to action card (not bust), the action will handle nextTurn
+            if (result.endTurn && !result.busted) {
+                // Action card will handle the turn flow
+                setTimeout(() => {
+                    this.updateDisplay();
+                }, 800);
+            } else {
+                // Normal flow: move to next turn after animation
+                setTimeout(() => {
+                    this.updateDisplay();
+                    this.nextTurn();
+                }, 800);
+            }
+        }, 1000);
     }
 
     aiStay(player) {
@@ -1311,8 +1351,21 @@ class Flip7Game {
             return;
         }
         
-        const animatedCard = this.createCardElement(card);
+        // Create enhanced two-element animated card
+        const animatedCard = document.createElement('div');
         animatedCard.classList.add('animated-card');
+        
+        // Create card back element
+        const cardBack = document.createElement('div');
+        cardBack.classList.add('card-back');
+        
+        // Create card front element with actual card content
+        const cardFront = this.createCardElement(card);
+        cardFront.classList.add('card-front');
+        
+        // Assemble the animated card
+        animatedCard.appendChild(cardBack);
+        animatedCard.appendChild(cardFront);
         
         // Clear any existing animation
         animationArea.innerHTML = '';
@@ -1350,7 +1403,7 @@ class Flip7Game {
                     animationArea.innerHTML = '';
                 }
             }
-        }, 600);
+        }, 1000);
     }
 
     getTargetCardContainer(playerId, cardType) {
@@ -1547,13 +1600,34 @@ class Flip7Game {
                 // Clear and redraw all cards in sorted order
                 numberContainer.innerHTML = '';
                 
-                // Sort number cards in numerical order (0-12) - smaller numbers on left, bigger on right
-                const sortedNumberCards = [...player.numberCards].sort((a, b) => a.value - b.value);
+                // For busted players, preserve card order to keep duplicates together
+                // For active players, sort numerically
+                let cardsToDisplay;
+                if (player.status === 'busted') {
+                    // Keep original order to show duplicates next to each other
+                    cardsToDisplay = [...player.numberCards];
+                } else {
+                    // Sort number cards in numerical order (0-12) - smaller numbers on left, bigger on right
+                    cardsToDisplay = [...player.numberCards].sort((a, b) => a.value - b.value);
+                }
                 
-                sortedNumberCards.forEach(card => {
+                cardsToDisplay.forEach((card, index) => {
                     const cardElement = this.createCardElement(card);
                     cardElement.dataset.cardValue = card.value;
                     cardElement.dataset.cardType = card.type;
+                    
+                    // Add special styling for duplicate cards in busted hands
+                    if (player.status === 'busted') {
+                        // Find if this card value appears elsewhere in the hand
+                        const duplicateIndices = cardsToDisplay
+                            .map((c, i) => c.value === card.value ? i : -1)
+                            .filter(i => i !== -1);
+                        
+                        if (duplicateIndices.length > 1) {
+                            cardElement.classList.add('duplicate-card');
+                        }
+                    }
+                    
                     numberContainer.appendChild(cardElement);
                 });
                 
