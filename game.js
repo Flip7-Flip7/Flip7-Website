@@ -11,6 +11,8 @@ class Flip7Game {
         this.gameActive = false;
         this.winningScore = 200;
         this.isInitialDealing = false;
+        this.actionQueue = [];
+        this.isProcessingFlip3 = false;
         
         this.initializePlayers();
         this.initializeEventListeners();
@@ -171,6 +173,14 @@ class Flip7Game {
         const preGameControls = document.getElementById('pre-game-controls');
         if (gameMessage) gameMessage.style.display = 'none';
         if (preGameControls) preGameControls.style.display = 'none';
+        
+        // Update mobile status banner
+        const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
+        const mobileGameInfo = document.getElementById('mobile-game-info');
+        if (mobileTurnIndicator) {
+            mobileTurnIndicator.textContent = 'Game Starting...';
+            mobileGameInfo.textContent = `Round 1 • Target: ${this.winningScore} pts`;
+        }
         
         // Disable points setting during game
         const winPoints = document.getElementById('win-points');
@@ -361,10 +371,13 @@ class Flip7Game {
                 this.handleFlipThree(player, onActionComplete, true);
                 return true;
             } else if (card.value === 'second_chance') {
-                // Second Chance is kept
-                player.hasSecondChance = true;
-                player.actionCards.push(card);
-                this.addToLog(`${player.name} gained a Second Chance!`);
+                if (!player.hasSecondChance) {
+                    player.hasSecondChance = true;
+                    player.actionCards.push(card);
+                    this.addToLog(`${player.name} gained a Second Chance!`);
+                } else {
+                    this.handleDuplicateSecondChance(player, card);
+                }
                 return false;
             }
         }
@@ -388,7 +401,7 @@ class Flip7Game {
         return card;
     }
 
-    handleCardDraw(player, card, isInitialDeal = false) {
+    handleCardDraw(player, card, isInitialDeal = false, duringFlip3 = false) {
         if (card.type === 'number') {
             // Check for bust
             if (player.uniqueNumbers.has(card.value) && !isInitialDeal) {
@@ -419,9 +432,22 @@ class Flip7Game {
         } else if (card.type === 'modifier') {
             player.modifierCards.push(card);
         } else if (card.type === 'action') {
-            // Handle action cards and return whether turn should end
-            const actionEndsTurn = this.handleActionCard(player, card);
-            return { endTurn: actionEndsTurn, busted: false };
+            // During Flip 3, defer action cards to be processed later
+            if (duringFlip3 && (card.value === 'flip3' || card.value === 'freeze')) {
+                return { 
+                    endTurn: false, 
+                    busted: false, 
+                    actionToQueue: {
+                        type: card.value,
+                        owner: player,
+                        target: player // Default to self, will be handled by action logic
+                    }
+                };
+            } else {
+                // Handle action cards normally and return whether turn should end
+                const actionEndsTurn = this.handleActionCard(player, card);
+                return { endTurn: actionEndsTurn, busted: false };
+            }
         }
         
         return { endTurn: false, busted: false };
@@ -445,8 +471,7 @@ class Flip7Game {
                     player.actionCards.push(card);
                     this.addToLog(`${player.name} gained a Second Chance!`);
                 } else {
-                    this.addToLog(`${player.name} already has a Second Chance!`);
-                    this.discardPile.push(card);
+                    this.handleDuplicateSecondChance(player, card);
                 }
                 return false; // Turn continues after getting Second Chance
         }
@@ -509,6 +534,103 @@ class Flip7Game {
             
             this.executeFlipThree(cardOwner, targetPlayer, callback);
         }
+    }
+    
+    handleDuplicateSecondChance(player, card) {
+        // Find all active players who don't have Second Chance
+        const validRecipients = this.players.filter(p => 
+            p.status === 'active' && 
+            !p.hasSecondChance && 
+            p.id !== player.id
+        );
+        
+        if (validRecipients.length === 0) {
+            // No valid recipients - discard the card
+            this.addToLog(`${player.name} already has a Second Chance! No other players need it - discarded.`);
+            this.discardPile.push(card);
+            return;
+        }
+        
+        if (player.isHuman) {
+            // Show player selection UI for human player
+            this.showSecondChanceSelection(player, card, validRecipients);
+        } else {
+            // AI automatically gives to random valid recipient
+            const recipient = validRecipients[Math.floor(Math.random() * validRecipients.length)];
+            this.executeSecondChanceTransfer(player, recipient, card);
+        }
+    }
+    
+    showSecondChanceSelection(player, card, validRecipients) {
+        const promptElement = document.getElementById('action-prompt');
+        const titleElement = document.getElementById('action-title');
+        const descriptionElement = document.getElementById('action-description');
+        const buttonsElement = document.getElementById('action-buttons');
+        
+        titleElement.textContent = 'Second Chance Duplicate';
+        descriptionElement.textContent = 'You already have a Second Chance! Choose a player to give this one to:';
+        buttonsElement.innerHTML = '';
+        
+        validRecipients.forEach(recipient => {
+            const button = document.createElement('button');
+            button.textContent = `Give to ${recipient.name}`;
+            button.className = 'btn primary';
+            button.onclick = () => {
+                promptElement.style.display = 'none';
+                this.executeSecondChanceTransfer(player, recipient, card);
+            };
+            buttonsElement.appendChild(button);
+        });
+        
+        promptElement.style.display = 'block';
+    }
+    
+    executeSecondChanceTransfer(giver, recipient, card) {
+        this.addToLog(`${giver.name} gives their duplicate Second Chance to ${recipient.name}!`);
+        
+        // Animate card transfer (similar to freeze transfer)
+        this.animateSecondChanceTransfer(giver, recipient, () => {
+            // Give Second Chance to recipient
+            recipient.hasSecondChance = true;
+            recipient.actionCards.push(card);
+            
+            this.addToLog(`${recipient.name} now has a Second Chance!`);
+            this.updateDisplay();
+        });
+    }
+    
+    animateSecondChanceTransfer(fromPlayer, toPlayer, onComplete) {
+        // Create animated card element
+        const animatedCard = document.createElement('div');
+        animatedCard.className = 'card back transfer-card';
+        animatedCard.style.position = 'absolute';
+        animatedCard.style.zIndex = '1000';
+        animatedCard.style.pointerEvents = 'none';
+        
+        // Get positions
+        const fromElement = document.getElementById(fromPlayer.isHuman ? 'player' : fromPlayer.id);
+        const toElement = document.getElementById(toPlayer.isHuman ? 'player' : toPlayer.id);
+        const fromRect = fromElement.getBoundingClientRect();
+        const toRect = toElement.getBoundingClientRect();
+        
+        // Start position (center of from player)
+        animatedCard.style.left = (fromRect.left + fromRect.width / 2 - 30) + 'px';
+        animatedCard.style.top = (fromRect.top + fromRect.height / 2 - 42) + 'px';
+        
+        document.body.appendChild(animatedCard);
+        
+        // Animate to target position
+        setTimeout(() => {
+            animatedCard.style.transition = 'all 0.8s ease-in-out';
+            animatedCard.style.left = (toRect.left + toRect.width / 2 - 30) + 'px';
+            animatedCard.style.top = (toRect.top + toRect.height / 2 - 42) + 'px';
+            animatedCard.style.transform = 'scale(0.8)';
+            
+            setTimeout(() => {
+                document.body.removeChild(animatedCard);
+                if (onComplete) onComplete();
+            }, 800);
+        }, 100);
     }
 
     showPlayerSelection(cardOwner, actionType, onComplete = null) {
@@ -580,12 +702,26 @@ class Flip7Game {
     executeFlipThree(cardOwner, targetPlayer, onComplete = null) {
         this.addToLog(`${cardOwner.name} plays Flip Three on ${targetPlayer.name}!`);
         console.log(`Starting Flip Three: ${cardOwner.name} -> ${targetPlayer.name}, hasCallback: ${!!onComplete}`);
+        this.isProcessingFlip3 = true;
         let cardsFlipped = 0;
+        let pendingActions = [];
         
-        const flipNextCard = () => {
+        const processNextCard = () => {
+            // Check if we need to process pending actions first
+            if (pendingActions.length > 0) {
+                const action = pendingActions.shift();
+                console.log('Processing pending action during Flip 3:', action);
+                this.processQueuedAction(action, () => {
+                    // After processing the action, continue with the next card or action
+                    processNextCard();
+                });
+                return;
+            }
+            
             if (cardsFlipped >= 3 || targetPlayer.status !== 'active') {
                 // Flip Three sequence completed
                 console.log(`Flip Three completed, cardsFlipped: ${cardsFlipped}, calling callback: ${!!onComplete}`);
+                this.isProcessingFlip3 = false;
                 if (onComplete) {
                     setTimeout(onComplete, 1000);
                 } else {
@@ -598,12 +734,20 @@ class Flip7Game {
             this.displayCard(nextCard, targetPlayer.id);
             
             setTimeout(() => {
-                const result = this.handleCardDraw(targetPlayer, nextCard);
+                const result = this.handleCardDraw(targetPlayer, nextCard, false, true);
                 this.updateDisplay();
                 cardsFlipped++;
                 
+                // Check if we got an action card to queue
+                if (result.actionToQueue) {
+                    console.log('Queueing action during Flip 3:', result.actionToQueue);
+                    pendingActions.push(result.actionToQueue);
+                }
+                
                 if (result.busted || targetPlayer.status !== 'active') {
                     // Player busted or got Flip 7, end the sequence
+                    console.log('Player busted or achieved Flip 7, ending sequence');
+                    this.isProcessingFlip3 = false;
                     if (onComplete) {
                         setTimeout(onComplete, 1000);
                     } else {
@@ -611,19 +755,24 @@ class Flip7Game {
                     }
                 } else if (cardsFlipped < 3) {
                     // Continue flipping cards - wait for full animation cycle
-                    setTimeout(flipNextCard, 1600);
+                    setTimeout(processNextCard, 1600);
                 } else {
-                    // All 3 cards flipped successfully
-                    if (onComplete) {
-                        setTimeout(onComplete, 1000);
+                    // All 3 cards flipped successfully, now process any queued actions
+                    if (pendingActions.length > 0) {
+                        setTimeout(processNextCard, 1000);
                     } else {
-                        this.checkForRoundEnd();
+                        this.isProcessingFlip3 = false;
+                        if (onComplete) {
+                            setTimeout(onComplete, 1000);
+                        } else {
+                            this.checkForRoundEnd();
+                        }
                     }
                 }
             }, 1400);
         };
         
-        setTimeout(flipNextCard, 500);
+        setTimeout(processNextCard, 500);
     }
 
     activateSecondChance(player, duplicateCard) {
@@ -826,7 +975,7 @@ class Flip7Game {
         
         const card = this.drawCard();
         this.displayCard(card, 'player');
-        const result = this.handleCardDraw(player, card);
+        const result = this.handleCardDraw(player, card, false, false);
         
         this.disablePlayerActions();
         
@@ -863,12 +1012,12 @@ class Flip7Game {
     calculateRoundScore(player) {
         let score = 0;
         
-        // Sum number cards
+        // Step 1: Sum all number cards
         player.numberCards.forEach(card => {
             score += card.value;
         });
         
-        // Apply modifiers
+        // Step 2: Apply x2 multiplier to number card total (if present)
         let hasX2 = false;
         let bonusPoints = 0;
         
@@ -880,13 +1029,14 @@ class Flip7Game {
             }
         });
         
-        // Apply x2 first, then add bonus points
         if (hasX2) {
             score *= 2;
         }
+        
+        // Step 3: Add other modifier bonuses (+2, +4, +6, +8, +10)
         score += bonusPoints;
         
-        // Add Flip 7 bonus if applicable
+        // Step 4: Add Flip 7 bonus if applicable (after all other calculations)
         if (player.uniqueNumbers.size === 7) {
             score += 15;
         }
@@ -976,7 +1126,7 @@ class Flip7Game {
     aiHit(player) {
         const card = this.drawCard();
         this.displayCard(card, player.id);
-        const result = this.handleCardDraw(player, card);
+        const result = this.handleCardDraw(player, card, false, false);
         
         this.addToLog(`${player.name} hits and gets ${card.display}`);
         
@@ -1044,6 +1194,14 @@ class Flip7Game {
         this.addToLog(`🎉 ${winner.name} wins with ${winner.totalScore} points!`);
         this.showMessage(`${winner.name} wins the game! Click "Start Game" to play again.`);
         this.disablePlayerActions();
+        
+        // Update mobile status banner
+        const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
+        const mobileGameInfo = document.getElementById('mobile-game-info');
+        if (mobileTurnIndicator) {
+            mobileTurnIndicator.textContent = `🎉 ${winner.name} Wins!`;
+            mobileGameInfo.textContent = 'Click "Start Game" to play again';
+        }
         
         // Show celebration if human player wins
         if (winner.isHuman) {
@@ -1311,10 +1469,11 @@ class Flip7Game {
             container.classList.add('busted');
         }
         
-        // Update unique count
+        // Update unique count with visual dots
         const uniqueElement = container.querySelector('.unique-count');
         if (uniqueElement) {
-            uniqueElement.textContent = player.uniqueNumbers.size;
+            const count = player.uniqueNumbers.size;
+            uniqueElement.innerHTML = `Cards: ${count}/7 <span class="card-dots">${this.createCardDots(count)}</span>`;
         }
         
         // Clear and redraw cards only when starting a new round
@@ -1351,6 +1510,10 @@ class Flip7Game {
                     cardElement.dataset.cardType = card.type;
                     numberContainer.appendChild(cardElement);
                 });
+                
+                // Update card count class for dynamic sizing
+                const cardCount = player.numberCards.length;
+                numberContainer.className = `number-cards cards-${Math.min(cardCount, 7)}`;
             }
         }
         
@@ -1390,6 +1553,33 @@ class Flip7Game {
         };
         return statusTexts[status] || status;
     }
+    
+    createCardDots(count) {
+        let dots = '';
+        for (let i = 0; i < 7; i++) {
+            if (i < count) {
+                dots += '<span class="filled">●</span>';
+            } else {
+                dots += '<span class="empty">○</span>';
+            }
+        }
+        return dots;
+    }
+
+    processQueuedAction(actionData, onComplete) {
+        console.log('Processing queued action:', actionData);
+        switch (actionData.type) {
+            case 'flip3':
+                // Execute the queued Flip 3
+                this.executeFlipThree(actionData.owner, actionData.target, onComplete);
+                break;
+            case 'freeze':
+                this.executeFreeze(actionData.owner, actionData.target, onComplete);
+                break;
+            default:
+                if (onComplete) onComplete();
+        }
+    }
 
     updateScoreboard() {
         // Update both desktop and mobile scoreboards
@@ -1424,10 +1614,31 @@ class Flip7Game {
                 log.removeChild(log.lastChild);
             }
         });
+        
+        // Update mobile status banner with recent action
+        const mobileGameInfo = document.getElementById('mobile-game-info');
+        if (mobileGameInfo && this.gameActive && !message.includes('turn')) {
+            // Show recent game actions briefly
+            mobileGameInfo.textContent = message;
+        }
     }
 
     showMessage(message) {
         document.getElementById('game-message').textContent = message;
+        
+        // Update mobile status banner
+        const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
+        const mobileGameInfo = document.getElementById('mobile-game-info');
+        if (mobileTurnIndicator && this.gameActive) {
+            // Extract turn information
+            if (message.includes('turn')) {
+                mobileTurnIndicator.textContent = message;
+                mobileGameInfo.textContent = `Round ${this.roundNumber} • Target: ${this.winningScore} pts`;
+            } else {
+                // Show other important messages in the info line
+                mobileGameInfo.textContent = message;
+            }
+        }
     }
 
     highlightCurrentPlayer() {

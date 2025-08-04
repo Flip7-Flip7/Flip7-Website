@@ -144,6 +144,12 @@
         Welcome to Flip 7! Click "Start Game" to begin.
     </div>
 
+    <!-- Mobile Status Banner -->
+    <div class="mobile-status-banner" id="mobile-status-banner">
+        <div class="turn-indicator" id="mobile-turn-indicator">Welcome to Flip 7!</div>
+        <div class="game-info" id="mobile-game-info">Click "Start Game" to begin</div>
+    </div>
+
     <!-- Action Card Prompt -->
     <div class="action-card-prompt" id="action-prompt" style="display: none;">
         <h3 id="action-title">Action Card</h3>
@@ -188,7 +194,10 @@
                 </ul>
                 
                 <h3>Scoring</h3>
-                <p>Sum of number cards + modifier bonuses (x2 applied last) + 15 if you got exactly 7 unique numbers</p>
+                <p>1. Sum all number cards<br>
+                2. Apply x2 multiplier (if you have it)<br>
+                3. Add modifier bonuses (+2, +4, +6, +8, +10)<br>
+                4. Add 15 bonus if you got exactly 7 unique numbers</p>
             </div>
         </div>
     </div>
