@@ -132,7 +132,7 @@ body {
 .modifier-cards, .number-cards {
     display: flex;
     gap: 3px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: center;
     min-height: 82px;
     margin: 4px 0;
@@ -1583,41 +1583,41 @@ body {
 
 /* Desktop Dynamic Card Sizing */
 @media (min-width: 769px) {
-    /* Dynamic sizing for desktop based on card count - larger cards when fewer cards */
+    /* Dynamic sizing for desktop - ensures 7 cards always fit horizontally */
     .number-cards.desktop-cards-1 .card,
     .number-cards.desktop-cards-2 .card {
-        width: 75px;
-        height: 105px;
+        width: 65px;
+        height: 91px;
         font-size: 1.1em;
     }
     
     .number-cards.desktop-cards-3 .card {
-        width: 68px;
-        height: 95px;
+        width: 58px;
+        height: 81px;
         font-size: 1.05em;
     }
     
     .number-cards.desktop-cards-4 .card {
-        width: 62px;
-        height: 87px;
+        width: 54px;
+        height: 76px;
         font-size: 1em;
     }
     
     .number-cards.desktop-cards-5 .card {
-        width: 58px;
-        height: 81px;
+        width: 50px;
+        height: 70px;
         font-size: 0.95em;
     }
     
     .number-cards.desktop-cards-6 .card {
-        width: 55px;
-        height: 77px;
+        width: 47px;
+        height: 66px;
         font-size: 0.9em;
     }
     
     .number-cards.desktop-cards-7 .card {
-        width: 52px;
-        height: 73px;
+        width: 44px;
+        height: 62px;
         font-size: 0.85em;
     }
 }
