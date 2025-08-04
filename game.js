@@ -84,7 +84,10 @@ class Flip7Game {
         document.getElementById('close-rules').addEventListener('click', () => this.hideRules());
         
         // Game message start button
-        document.getElementById('game-message').addEventListener('click', () => this.startNewGame());
+        document.getElementById('game-message').addEventListener('click', () => {
+            console.log('Game message button clicked!');
+            this.startNewGame();
+        });
         
         // Mobile rules button
         const mobileRulesBtn = document.getElementById('mobile-rules-btn');
