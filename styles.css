@@ -1123,8 +1123,8 @@ body {
         flex-direction: column;
     }
     
-    /* Hide desktop game area on mobile */
-    .game-area {
+    /* Hide desktop elements on mobile */
+    .game-area, .draw-pile-column {
         display: none;
     }
     

@@ -131,6 +131,17 @@ class Flip7Game {
             }
         });
         
+        // Reattach event listeners to mobile buttons
+        const mobileHitBtn = document.querySelector('#mobile-player #hit-btn');
+        const mobileStayBtn = document.querySelector('#mobile-player #stay-btn');
+        
+        if (mobileHitBtn) {
+            mobileHitBtn.addEventListener('click', () => this.playerHit());
+        }
+        if (mobileStayBtn) {
+            mobileStayBtn.addEventListener('click', () => this.playerStay());
+        }
+        
         // Update mobile cards remaining counter
         const desktopCardsRemaining = document.getElementById('cards-remaining');
         const mobileCardsRemaining = document.getElementById('mobile-cards-remaining');
@@ -1498,18 +1509,37 @@ class Flip7Game {
     enablePlayerActions() {
         const player = this.players[0];
         if (player.status === 'active') {
+            // Enable desktop buttons
             document.getElementById('hit-btn').disabled = false;
             document.getElementById('stay-btn').disabled = player.numberCards.length === 0;
+            
+            // Enable mobile buttons if they exist
+            const mobileHitBtn = document.querySelector('#mobile-player #hit-btn');
+            const mobileStayBtn = document.querySelector('#mobile-player #stay-btn');
+            if (mobileHitBtn) mobileHitBtn.disabled = false;
+            if (mobileStayBtn) mobileStayBtn.disabled = player.numberCards.length === 0;
         } else if (player.status === 'frozen') {
             // Player is frozen, can't take actions - buttons stay disabled
             document.getElementById('hit-btn').disabled = true;
             document.getElementById('stay-btn').disabled = true;
+            
+            const mobileHitBtn = document.querySelector('#mobile-player #hit-btn');
+            const mobileStayBtn = document.querySelector('#mobile-player #stay-btn');
+            if (mobileHitBtn) mobileHitBtn.disabled = true;
+            if (mobileStayBtn) mobileStayBtn.disabled = true;
         }
     }
 
     disablePlayerActions() {
+        // Disable desktop buttons
         document.getElementById('hit-btn').disabled = true;
         document.getElementById('stay-btn').disabled = true;
+        
+        // Disable mobile buttons if they exist
+        const mobileHitBtn = document.querySelector('#mobile-player #hit-btn');
+        const mobileStayBtn = document.querySelector('#mobile-player #stay-btn');
+        if (mobileHitBtn) mobileHitBtn.disabled = true;
+        if (mobileStayBtn) mobileStayBtn.disabled = true;
     }
 
     updateDisplay() {
