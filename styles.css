@@ -32,8 +32,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 60px;
-    height: 80px;
+    width: 65px;
+    height: 91px;
     z-index: 150;
     pointer-events: none;
 }
@@ -49,17 +49,17 @@ body {
 .players-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 0.8fr 1fr 0.8fr;
-    gap: 15px;
-    min-height: 400px;
+    grid-template-rows: 0.6fr 1fr 0.6fr;
+    gap: 12px;
+    min-height: 350px;
     position: relative;
 }
 
 /* Player Areas */
 .player-area {
     background: rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 10px;
     border: 2px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(15px);
     position: relative;
@@ -99,17 +99,17 @@ body {
 
 .player-area h3 {
     text-align: center;
-    margin-bottom: 15px;
+    margin-bottom: 8px;
     color: #FFD700;
-    font-size: 1.2em;
+    font-size: 1.1em;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .player-stats {
     display: flex;
-    gap: 10px;
-    margin: 10px 0;
-    font-size: 0.9em;
+    gap: 6px;
+    margin: 5px 0;
+    font-size: 0.85em;
     flex-wrap: wrap;
     justify-content: center;
 }
@@ -131,20 +131,20 @@ body {
 /* Cards */
 .modifier-cards, .number-cards {
     display: flex;
-    gap: 5px;
+    gap: 3px;
     flex-wrap: wrap;
     justify-content: center;
-    min-height: 85px;
-    margin: 8px 0;
-    padding: 5px;
+    min-height: 82px;
+    margin: 4px 0;
+    padding: 3px;
     background: rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .card {
-    width: 50px;
-    height: 70px;
+    width: 55px;
+    height: 77px;
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -192,9 +192,9 @@ body {
 }
 
 .unique-counter {
-    font-size: 0.8em;
+    font-size: 0.75em;
     color: #fbbf24;
-    margin-top: 8px;
+    margin-top: 4px;
     text-align: center;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
@@ -232,9 +232,9 @@ body {
 }
 
 .draw-card {
-    width: 60px;
-    height: 80px;
-    font-size: 0.8em;
+    width: 65px;
+    height: 91px;
+    font-size: 0.9em;
     cursor: default;
     box-shadow: 0 4px 15px rgba(250, 112, 154, 0.6);
     background-image: url('images/Flip7CardBack.png') !important;
@@ -262,9 +262,9 @@ body {
 /* Action Buttons */
 .action-buttons {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     justify-content: center;
-    margin-top: 10px;
+    margin-top: 6px;
     z-index: 100;
     position: relative;
     align-items: center;
