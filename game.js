@@ -567,7 +567,13 @@ class Flip7Game {
                 player.roundScore += 15;
                 player.status = 'flip7';
                 this.addToLog(`${player.name} achieved Flip 7! +15 bonus points!`);
-                this.endRound();
+                
+                // Trigger epic celebration for human players
+                if (player.isHuman) {
+                    this.animateFlip7Celebration(player);
+                } else {
+                    this.endRound();
+                }
                 return { endTurn: true, busted: false };
             }
         } else if (card.type === 'modifier') {
@@ -1957,6 +1963,170 @@ class Flip7Game {
         
         if (gameMessage) gameMessage.style.display = 'none';
         if (namePopup) namePopup.style.display = 'none';
+    }
+    
+    animateFlip7Celebration(player) {
+        console.log('🎉 Starting Flip 7 celebration for', player.name);
+        
+        // Show celebration overlay
+        const celebrationEl = document.getElementById('flip7-celebration');
+        celebrationEl.style.display = 'block';
+        
+        // Stage 1: Card wave animation (2.5s)
+        this.animateCardWave(player);
+        
+        setTimeout(() => {
+            // Stage 2: Piñata appears (0.5s)
+            this.showPinata();
+            
+            setTimeout(() => {
+                // Stage 3: Piñata shake & smash (1s)
+                this.smashPinata();
+                
+                setTimeout(() => {
+                    // Stage 4: Glitter explosion (3s)
+                    this.explodeGlitter();
+                    
+                    setTimeout(() => {
+                        // Stage 5: Clean up and end round (7s total)
+                        this.cleanupFlip7Celebration();
+                        this.endRound();
+                    }, 3000);
+                }, 1000);
+            }, 500);
+        }, 2500);
+    }
+    
+    animateCardWave(player) {
+        const playerContainer = document.getElementById(player.id);
+        const numberCards = playerContainer.querySelectorAll('.number-cards .card');
+        
+        // Clone and animate each card
+        numberCards.forEach((card, index) => {
+            // Create animated clone
+            const cardClone = card.cloneNode(true);
+            cardClone.classList.add('card-wave-up');
+            
+            // Position at original card location
+            const rect = card.getBoundingClientRect();
+            cardClone.style.left = rect.left + 'px';
+            cardClone.style.top = rect.top + 'px';
+            cardClone.style.width = rect.width + 'px';
+            cardClone.style.height = rect.height + 'px';
+            
+            // Add to document
+            document.body.appendChild(cardClone);
+            
+            // Stagger animation start (200ms delay between cards)
+            setTimeout(() => {
+                cardClone.style.animationDelay = '0s';
+            }, index * 200);
+            
+            // Remove clone after animation
+            setTimeout(() => {
+                if (cardClone.parentNode) {
+                    cardClone.parentNode.removeChild(cardClone);
+                }
+            }, 2500 + (index * 200));
+        });
+        
+        // Hide original cards during animation
+        setTimeout(() => {
+            const numberContainer = playerContainer.querySelector('.number-cards');
+            if (numberContainer) {
+                numberContainer.style.opacity = '0.3';
+            }
+        }, 200);
+    }
+    
+    showPinata() {
+        const pinata = document.getElementById('pinata');
+        pinata.classList.add('show');
+    }
+    
+    smashPinata() {
+        const pinata = document.getElementById('pinata');
+        
+        // Shake first
+        pinata.classList.remove('show');
+        pinata.classList.add('shake');
+        
+        // Then explode
+        setTimeout(() => {
+            pinata.classList.remove('shake');
+            pinata.classList.add('explode');
+        }, 500);
+    }
+    
+    explodeGlitter() {
+        const glitterContainer = document.getElementById('glitter-explosion');
+        const isMobile = window.innerWidth <= 768;
+        const particleCount = isMobile ? 75 : 150;
+        
+        // Create glitter particles
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('glitter-particle');
+            
+            // Random particle type
+            const types = ['glitter-star', 'glitter-circle', 'glitter-diamond'];
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            particle.classList.add(randomType);
+            
+            // Random colors for different types
+            if (randomType === 'glitter-star') {
+                const colors = ['#ffd700', '#ffed4e', '#fff700'];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            } else if (randomType === 'glitter-circle') {
+                const colors = ['#c0c0c0', '#e6e6fa', '#f0f8ff'];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            } else {
+                const colors = ['#ff69b4', '#ff1493', '#ffc0cb', '#9370db'];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            // Random starting position (spread from pinata location)
+            const startX = 50 + (Math.random() - 0.5) * 30; // Center ± 15%
+            const startY = 5 + Math.random() * 10; // Top area
+            particle.style.left = startX + '%';
+            particle.style.top = startY + '%';
+            
+            // Random animation duration and delay
+            const duration = 2.5 + Math.random() * 1; // 2.5-3.5s
+            const delay = Math.random() * 0.5; // 0-0.5s delay
+            particle.style.animationDuration = duration + 's';
+            particle.style.animationDelay = delay + 's';
+            
+            glitterContainer.appendChild(particle);
+        }
+        
+        // Clean up particles
+        setTimeout(() => {
+            glitterContainer.innerHTML = '';
+        }, 4000);
+    }
+    
+    cleanupFlip7Celebration() {
+        // Hide celebration overlay
+        const celebrationEl = document.getElementById('flip7-celebration');
+        celebrationEl.style.display = 'none';
+        
+        // Reset piñata classes
+        const pinata = document.getElementById('pinata');
+        pinata.classList.remove('show', 'shake', 'explode');
+        
+        // Clear any remaining particles
+        const glitterContainer = document.getElementById('glitter-explosion');
+        glitterContainer.innerHTML = '';
+        
+        // Restore original cards opacity
+        const playerContainer = document.getElementById('player');
+        const numberContainer = playerContainer.querySelector('.number-cards');
+        if (numberContainer) {
+            numberContainer.style.opacity = '1';
+        }
+        
+        console.log('🎉 Flip 7 celebration complete!');
     }
 }
 

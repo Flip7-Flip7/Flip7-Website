@@ -1022,6 +1022,180 @@ body {
     100% { opacity: 0; }
 }
 
+/* Flip 7 Celebration */
+.flip7-celebration {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 6000;
+    pointer-events: none;
+    backdrop-filter: blur(2px);
+}
+
+.pinata-container {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 6001;
+}
+
+.pinata {
+    font-size: 4em;
+    animation: pinataPendulum 2s ease-in-out infinite;
+    transform-origin: center top;
+    opacity: 0;
+}
+
+.pinata.show {
+    opacity: 1;
+    animation: pinataSlideDown 0.5s ease-out, pinataPendulum 2s ease-in-out infinite 0.5s;
+}
+
+.pinata.shake {
+    animation: pinataShake 0.5s ease-in-out;
+}
+
+.pinata.explode {
+    animation: pinataExplode 0.5s ease-out;
+}
+
+@keyframes pinataSlideDown {
+    0% {
+        transform: translateY(-100px) scale(0.5);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes pinataPendulum {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+}
+
+@keyframes pinataShake {
+    0%, 100% { transform: translateX(0); }
+    10% { transform: translateX(-10px) rotate(-2deg); }
+    20% { transform: translateX(10px) rotate(2deg); }
+    30% { transform: translateX(-8px) rotate(-1deg); }
+    40% { transform: translateX(8px) rotate(1deg); }
+    50% { transform: translateX(-6px) rotate(-0.5deg); }
+    60% { transform: translateX(6px) rotate(0.5deg); }
+    70% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+    90% { transform: translateX(-2px); }
+}
+
+@keyframes pinataExplode {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(3);
+        opacity: 0;
+    }
+}
+
+/* Card Wave Animation */
+.card-wave-up {
+    position: fixed !important;
+    z-index: 6002 !important;
+    animation: cardWaveUp 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    pointer-events: none;
+}
+
+@keyframes cardWaveUp {
+    0% {
+        transform: translateY(0) scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    30% {
+        transform: translateY(-200px) scale(1.2) rotate(10deg);
+        opacity: 1;
+    }
+    70% {
+        transform: translateY(-400px) scale(1.1) rotate(-5deg);
+        opacity: 0.9;
+    }
+    100% {
+        transform: translateY(-600px) scale(0.8) rotate(0deg);
+        opacity: 0;
+    }
+}
+
+/* Glitter Explosion */
+.glitter-explosion {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.glitter-particle {
+    position: absolute;
+    pointer-events: none;
+    z-index: 6003;
+}
+
+.glitter-star {
+    width: 8px;
+    height: 8px;
+    background: #ffd700;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    animation: glitterFall 3s linear, glitterTwinkle 0.5s ease-in-out infinite alternate;
+}
+
+.glitter-circle {
+    width: 6px;
+    height: 6px;
+    background: #c0c0c0;
+    border-radius: 50%;
+    animation: glitterFall 3s linear, glitterTwinkle 0.8s ease-in-out infinite alternate;
+}
+
+.glitter-diamond {
+    width: 8px;
+    height: 8px;
+    background: #ff69b4;
+    transform: rotate(45deg);
+    animation: glitterFall 3s linear, glitterSpin 2s linear infinite;
+}
+
+@keyframes glitterFall {
+    0% {
+        transform: translateY(-50px);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh);
+        opacity: 0;
+    }
+}
+
+@keyframes glitterTwinkle {
+    0% { opacity: 0.3; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes glitterSpin {
+    0% { transform: rotate(45deg); }
+    100% { transform: rotate(405deg); }
+}
+
 /* Winning Celebration */
 .winning-celebration {
     position: fixed;
