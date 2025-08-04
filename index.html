@@ -8,15 +8,26 @@
 </head>
 <body>
     <div class="game-container">
-        <!-- Main Game Area -->
-        <div class="game-area">
-            <!-- Players Grid -->
-            <div class="players-grid" style="position: relative;">
+        <!-- Draw Pile Column -->
+        <div class="draw-pile-column">
+            <div class="draw-pile-area">
+                <div class="draw-pile" id="draw-pile">
+                    <div class="card back draw-card"></div>
+                    <div class="pile-info">
+                        <span id="cards-remaining">94</span> cards
+                    </div>
+                </div>
                 <!-- Card Animation Area -->
                 <div class="card-animation-area" id="card-animation-area">
                     <!-- Animated card appears here -->
                 </div>
-                
+            </div>
+        </div>
+
+        <!-- Main Game Area -->
+        <div class="game-area">
+            <!-- Players Grid -->
+            <div class="players-grid" style="position: relative;">
                 <!-- Opponent 1 (Left) -->
                 <div class="player-area opponent-player opponent-left" id="opponent1">
                     <h3>AI Bot 1</h3>
@@ -41,16 +52,6 @@
                     <div class="modifier-cards"></div>
                     <div class="number-cards"></div>
                     <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
-                </div>
-
-                <!-- Draw Pile (Center) -->
-                <div class="draw-pile-area">
-                    <div class="draw-pile" id="draw-pile">
-                        <div class="card back draw-card"></div>
-                        <div class="pile-info">
-                            <span id="cards-remaining">94</span> cards
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Opponent 3 (Right) -->

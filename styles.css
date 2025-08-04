@@ -17,16 +17,16 @@ body {
 
 .game-container {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 1fr 300px;
+    grid-template-columns: 200px 1fr 300px;
     gap: 20px;
     min-height: calc(100vh - 40px);
     position: relative;
 }
 
-/* Card Animation Area */
+/* Card Animation Area - Positioned over Draw Pile */
 .card-animation-area {
     position: absolute;
     top: 50%;
@@ -38,6 +38,18 @@ body {
     pointer-events: none;
 }
 
+/* Position animation area relative to draw pile area for desktop */
+.draw-pile-area .card-animation-area {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 65px;
+    height: 91px;
+    z-index: 160;
+    pointer-events: none;
+}
+
 /* Main Game Area */
 .game-area {
     display: grid;
@@ -45,14 +57,25 @@ body {
     gap: 20px;
 }
 
-/* Players Grid */
+/* Draw Pile Column */
+.draw-pile-column {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Players Grid - Clean 2x2 Centered Layout */
 .players-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 0.6fr 1fr 0.6fr;
-    gap: 12px;
-    min-height: 350px;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 20px;
+    min-height: 400px;
     position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
 /* Player Areas */
@@ -213,29 +236,35 @@ body {
     color: rgba(255, 255, 255, 0.3);
 }
 
-/* Player Positioning */
+/* Player Positioning - Clean 2x2 Grid */
 .opponent-left {
-    grid-column: 1;
-    grid-row: 2;
-}
-
-.opponent-top {
     grid-column: 2;
     grid-row: 1;
 }
 
-.opponent-right {
-    grid-column: 3;
+.opponent-top {
+    grid-column: 1;
     grid-row: 2;
 }
 
-/* Draw Pile (Center) */
-.draw-pile-area {
+.opponent-right {
     grid-column: 2;
     grid-row: 2;
+}
+
+/* Unified Draw Pile Area - Ocean Theme */
+.draw-pile-area {
     display: flex;
     align-items: center;
     justify-content: center;
+    background: linear-gradient(135deg, #4a90a4 0%, #357a8a 50%, #2c6b7a 100%);
+    border: 2px solid #5a9fb5;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(74, 144, 164, 0.3), inset 0 1px 4px rgba(255, 255, 255, 0.15);
+    position: relative;
+    overflow: hidden;
+    width: 160px;
+    height: 200px;
 }
 
 .draw-pile {
@@ -243,6 +272,23 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 10px;
+    z-index: 10;
+    position: relative;
+}
+
+/* Draw Pile Subtle Enhancement */
+.draw-pile-area::after {
+    content: "DRAW";
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.6em;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.7);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    letter-spacing: 1px;
+    z-index: 15;
 }
 
 .draw-card {
@@ -256,6 +302,39 @@ body {
     background-position: center !important;
     background-repeat: no-repeat !important;
     background-color: transparent !important;
+    position: relative;
+    z-index: 3;
+}
+
+/* Card Stack Effect */
+.draw-pile::before {
+    content: "";
+    position: absolute;
+    width: 65px;
+    height: 91px;
+    background-image: url('images/Flip7CardBack.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 8px;
+    transform: translate(-2px, -2px);
+    z-index: 1;
+    box-shadow: 0 2px 8px rgba(250, 112, 154, 0.4);
+}
+
+.draw-pile::after {
+    content: "";
+    position: absolute;
+    width: 65px;
+    height: 91px;
+    background-image: url('images/Flip7CardBack.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 8px;
+    transform: translate(-4px, -4px);
+    z-index: 0;
+    box-shadow: 0 1px 4px rgba(250, 112, 154, 0.3);
 }
 
 .pile-info {
@@ -266,10 +345,10 @@ body {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-/* Main Player (Bottom) */
+/* Main Player (Top Left) */
 .main-player {
-    grid-column: 2;
-    grid-row: 3;
+    grid-column: 1;
+    grid-row: 1;
 }
 
 
@@ -502,21 +581,62 @@ body {
     z-index: 150;
 }
 
+/* Enhanced two-element flip structure */
+.animated-card .card-back,
+.animated-card .card-front {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 8px;
+}
+
+.animated-card .card-back {
+    background-image: url('images/Flip7CardBack.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transform: rotateY(0deg);
+}
+
+.animated-card .card-front {
+    transform: rotateY(180deg);
+}
+
+/* Ensure card content is visible in the front element */
+.animated-card .card-front.card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+}
+
 .animated-card.flip-reveal {
-    animation: flipReveal 0.6s ease-out;
+    animation: flipReveal 1.0s ease-out;
+    transform-style: preserve-3d;
+    perspective: 1000px;
 }
 
 @keyframes flipReveal {
     0% {
-        transform: scale(0.1) rotateY(180deg);
+        transform: scale(0.1) rotateY(0deg);
         opacity: 0;
     }
-    40% {
-        transform: scale(1.3) rotateY(0deg);
+    25% {
+        transform: scale(2.2) rotateY(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(2.2) rotateY(90deg);
+        opacity: 1;
+    }
+    75% {
+        transform: scale(2.2) rotateY(180deg);
         opacity: 1;
     }
     100% {
-        transform: scale(1) rotateY(0deg);
+        transform: scale(1) rotateY(180deg);
         opacity: 1;
     }
 }
@@ -704,6 +824,26 @@ body {
 .player-area.busted .card {
     opacity: 0.4;
     filter: grayscale(80%);
+}
+
+/* Highlight duplicate cards that caused the bust */
+.duplicate-card {
+    border: 3px solid #ef4444 !important;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.8) !important;
+    opacity: 0.9 !important;
+    filter: grayscale(0%) !important;
+    animation: duplicatePulse 2s ease-in-out infinite;
+}
+
+@keyframes duplicatePulse {
+    0%, 100% {
+        border-color: #ef4444;
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+    }
+    50% {
+        border-color: #dc2626;
+        box-shadow: 0 0 25px rgba(220, 38, 38, 1);
+    }
 }
 
 /* Bust animation for cards */
@@ -1049,17 +1189,19 @@ body {
         gap: 15px;
     }
     
-    /* Mobile Draw Pile at Top */
+    /* Mobile Draw Pile - Unified Ocean Theme */
     .mobile-draw-pile-area {
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 15px 0;
-        background: rgba(0, 0, 0, 0.15);
+        background: linear-gradient(135deg, #4a90a4 0%, #357a8a 50%, #2c6b7a 100%);
+        border: 2px solid #5a9fb5;
         border-radius: 12px;
         margin: 0 10px;
-        border: 2px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 20px rgba(74, 144, 164, 0.3), inset 0 1px 4px rgba(255, 255, 255, 0.15);
+        overflow: hidden;
     }
     
     .mobile-draw-pile-area .draw-pile {
@@ -1067,6 +1209,21 @@ body {
         flex-direction: column;
         align-items: center;
         gap: 8px;
+    }
+    
+    /* Mobile Draw Pile Label */
+    .mobile-draw-pile-area::after {
+        content: "DRAW";
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.6em;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.7);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        letter-spacing: 1px;
+        z-index: 15;
     }
     
     .mobile-draw-pile-area .card-animation-area {
@@ -1124,18 +1281,9 @@ body {
     .mobile-bot-player:nth-child(2) { background: #34495e; }
     .mobile-bot-player:nth-child(3) { background: #3a526b; }
     
-    /* Mobile Controls Section */
+    /* Hide mobile controls (logo + rules) to keep draw pile at top */
     .mobile-controls {
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 12px;
-        padding: 15px;
-        margin: 0 10px;
-        text-align: center;
-    }
-    
-    .mobile-controls .flip7-logo {
-        height: 40px;
-        margin-bottom: 10px;
+        display: none;
     }
     
     /* Mobile info panel with log and scoreboard */
@@ -1289,10 +1437,43 @@ body {
         border-radius: 8px;
     }
     
-    /* Draw pile card sizing */
+    /* Draw pile card sizing - bigger for mobile */
     .draw-card {
-        width: 55px;
-        height: 77px;
+        width: 70px;
+        height: 98px;
+        position: relative;
+        z-index: 3;
+    }
+    
+    /* Mobile Card Stack Effect */
+    .mobile-draw-pile-area .draw-pile::before {
+        content: "";
+        position: absolute;
+        width: 70px;
+        height: 98px;
+        background-image: url('images/Flip7CardBack.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        border-radius: 8px;
+        transform: translate(-2px, -2px);
+        z-index: 1;
+        box-shadow: 0 2px 8px rgba(250, 112, 154, 0.4);
+    }
+    
+    .mobile-draw-pile-area .draw-pile::after {
+        content: "";
+        position: absolute;
+        width: 70px;
+        height: 98px;
+        background-image: url('images/Flip7CardBack.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        border-radius: 8px;
+        transform: translate(-4px, -4px);
+        z-index: 0;
+        box-shadow: 0 1px 4px rgba(250, 112, 154, 0.3);
     }
     
     /* Enhanced player stats */
@@ -1561,8 +1742,23 @@ body {
     }
     
     .draw-card {
-        width: 35px;
-        height: 48px;
+        width: 50px;
+        height: 70px;
+        position: relative;
+        z-index: 3;
+    }
+    
+    /* Small Screen Card Stack Effect */
+    @media (max-width: 480px) {
+        .mobile-draw-pile-area .draw-pile::before {
+            width: 50px;
+            height: 70px;
+        }
+        
+        .mobile-draw-pile-area .draw-pile::after {
+            width: 50px;
+            height: 70px;
+        }
     }
     
     .flip7-logo {
