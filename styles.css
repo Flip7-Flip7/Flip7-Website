@@ -1180,9 +1180,10 @@ body {
     .mobile-game-board {
         display: flex;
         flex-direction: column;
-        order: 2;
+        order: 1;
         flex: 1 1 auto;
         margin: 5px;
+        margin-top: 45px; /* Space for status banner */
         background: transparent;
         border: none;
         padding: 0;
@@ -1289,14 +1290,13 @@ body {
     /* Mobile info panel with log and scoreboard */
     .mobile-info-panel {
         display: block;
-        order: 1;
+        order: 2;
         flex: 0 0 auto;
         background: rgba(255, 255, 255, 0.15);
         border-radius: 12px;
         padding: 10px;
         border: none;
         margin: 5px;
-        margin-top: 45px; /* Space for status banner */
     }
     
     /* Enhanced mobile player areas */
