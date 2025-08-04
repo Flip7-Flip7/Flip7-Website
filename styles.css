@@ -1405,7 +1405,7 @@ body {
         display: none;
     }
     
-    /* Mobile Status Banner - Compact */
+    /* Mobile Status Banner - Reasonable size */
     .mobile-status-banner {
         display: block;
         position: fixed;
@@ -1417,8 +1417,9 @@ body {
         padding: 5px;
         text-align: center;
         z-index: 500;
-        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
-        height: 30px; /* Fixed compact height */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        height: 30px; /* Back to 30px */
+        font-size: 0.9em;
     }
     
     .mobile-status-banner .turn-indicator {
@@ -1454,22 +1455,22 @@ body {
         height: 30px;
     }
     
-    /* Mobile game board with CSS Grid layout */
+    /* Mobile game board with CSS Grid layout - Dynamic auto-sizing */
     .mobile-game-board {
         display: grid;
-        grid-template-rows: auto auto auto auto auto;
+        grid-template-rows: auto auto auto auto auto; /* Auto-sizing based on content */
         order: 1;
         flex: 1 1 auto;
         margin: 5px;
-        margin-top: 30px; /* Space for compact status banner */
+        margin-top: 30px; /* Space for status banner */
         background: transparent;
         border: none;
         padding: 0;
-        gap: 2px; /* Further reduced gap */
+        gap: 2px; /* Small gap between players */
         justify-items: center; /* Center all grid items horizontally */
     }
     
-    /* Mobile Bottom Controls Section - Grid Row 5 */
+    /* Mobile Bottom Controls Section - Grid Row 5 - Larger */
     .mobile-bottom-controls {
         grid-row: 5;
         display: flex;
@@ -1479,19 +1480,20 @@ body {
         width: calc(100vw - 20px);
         max-width: 400px;
         gap: 10px;
+        min-height: 70px; /* Reasonable height for draw pile */
     }
     
-    /* Mobile Draw Pile - Center of bottom section */
+    /* Mobile Draw Pile - Center of bottom section - Larger */
     .mobile-draw-pile-area {
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 6px;
+        padding: 8px;
         background: linear-gradient(135deg, #4a90a4 0%, #357a8a 50%, #2c6b7a 100%);
         border: 2px solid #5a9fb5;
         border-radius: 8px;
-        width: 80px;
-        height: 50px;
+        width: 90px;
+        height: 60px;
         box-shadow: 0 2px 10px rgba(74, 144, 164, 0.3);
         overflow: hidden;
         flex: 0 0 auto;
@@ -1535,17 +1537,18 @@ body {
         display: none;
     }
     
-    /* All mobile players are now direct grid children */
+    /* All mobile players with dynamic heights based on card content */
     #mobile-player {
         background: linear-gradient(135deg, #22577a 0%, #38a3a5 100%);
         border: 2px solid #57cc99;
         border-radius: 6px;
-        padding: 4px; /* Further reduced padding */
+        padding: 4px;
         margin: 0;
-        transition: all 0.3s ease;
+        transition: all 0.3s ease; /* Smooth height transitions */
         grid-row: 1; /* Human player in first row */
-        width: calc(100vw - 20px); /* Full width minus margins */
-        max-width: 400px; /* Reasonable max width */
+        width: calc(100vw - 20px);
+        max-width: 400px;
+        min-height: 30px; /* Minimum height when empty */
     }
     
     #mobile-opponent1 {
@@ -1558,6 +1561,7 @@ body {
         grid-row: 2;
         width: calc(100vw - 20px);
         max-width: 400px;
+        min-height: 30px;
     }
     
     #mobile-opponent2 {
@@ -1570,6 +1574,7 @@ body {
         grid-row: 3;
         width: calc(100vw - 20px);
         max-width: 400px;
+        min-height: 30px;
     }
     
     #mobile-opponent3 {
@@ -1582,6 +1587,7 @@ body {
         grid-row: 4;
         width: calc(100vw - 20px);
         max-width: 400px;
+        min-height: 30px;
     }
     
     /* Mobile Rules Button - Left side of bottom section */
@@ -1600,6 +1606,38 @@ body {
     .mobile-logo {
         height: 20px;
         flex: 0 0 auto;
+    }
+    
+    /* Dynamic Player Height Classes based on card content */
+    .mobile-player-empty {
+        min-height: 30px !important;
+        max-height: 35px !important;
+    }
+    
+    .mobile-player-empty h3 {
+        font-size: 0.9em;
+        margin-bottom: 2px;
+    }
+    
+    .mobile-player-empty .unique-counter {
+        font-size: 0.7em;
+        margin-top: 2px;
+    }
+    
+    .mobile-player-small {
+        min-height: 60px !important;
+    }
+    
+    .mobile-player-medium {
+        min-height: 90px !important;
+    }
+    
+    .mobile-player-large {
+        min-height: 120px !important;
+    }
+    
+    .mobile-player-with-buttons {
+        min-height: 140px !important; /* Extra space for action buttons */
     }
     
     /* Mobile info panel with log and scoreboard */
@@ -1754,12 +1792,12 @@ body {
         z-index: 3;
     }
     
-    /* Mobile Card Stack Effect - Smaller for bottom layout */
+    /* Mobile Card Stack Effect - Good size for bottom layout */
     .mobile-draw-pile-area .draw-pile::before {
         content: "";
         position: absolute;
-        width: 50px;
-        height: 70px;
+        width: 55px;
+        height: 77px;
         background-image: url('images/Flip7CardBack.png');
         background-size: cover;
         background-position: center;
@@ -1767,14 +1805,14 @@ body {
         border-radius: 6px;
         transform: translate(-1px, -1px);
         z-index: 1;
-        box-shadow: 0 1px 4px rgba(250, 112, 154, 0.4);
+        box-shadow: 0 2px 6px rgba(250, 112, 154, 0.4);
     }
     
     .mobile-draw-pile-area .draw-pile::after {
         content: "";
         position: absolute;
-        width: 50px;
-        height: 70px;
+        width: 55px;
+        height: 77px;
         background-image: url('images/Flip7CardBack.png');
         background-size: cover;
         background-position: center;
@@ -1782,7 +1820,7 @@ body {
         border-radius: 6px;
         transform: translate(-2px, -2px);
         z-index: 0;
-        box-shadow: 0 1px 2px rgba(250, 112, 154, 0.3);
+        box-shadow: 0 1px 3px rgba(250, 112, 154, 0.3);
     }
     
     /* Enhanced player stats - moved below cards */

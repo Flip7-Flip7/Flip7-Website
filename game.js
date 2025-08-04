@@ -165,6 +165,9 @@ class Flip7Game {
                 mobilePlayer.innerHTML = desktopPlayer.innerHTML;
                 mobilePlayer.className = desktopPlayer.className;
                 
+                // Apply dynamic height classes based on card content
+                this.applyMobilePlayerHeightClass(mobilePlayer, playerMap.desktop);
+                
                 // Modify mobile layout: integrate scores with unique counter
                 const uniqueCounter = mobilePlayer.querySelector('.unique-counter');
                 const scoreValue = mobilePlayer.querySelector('.score-value');
@@ -202,6 +205,34 @@ class Flip7Game {
         const mobileCardsRemaining = document.getElementById('mobile-cards-remaining');
         if (desktopCardsRemaining && mobileCardsRemaining) {
             mobileCardsRemaining.textContent = desktopCardsRemaining.textContent;
+        }
+    }
+
+    applyMobilePlayerHeightClass(mobilePlayerElement, desktopPlayerId) {
+        // Find the corresponding player data
+        const player = this.players.find(p => p.id === desktopPlayerId);
+        if (!player) return;
+
+        // Remove all existing height classes
+        mobilePlayerElement.classList.remove('mobile-player-empty', 'mobile-player-small', 'mobile-player-medium', 'mobile-player-large', 'mobile-player-with-buttons');
+
+        // Count cards to determine height class
+        const cardCount = player.numberCards.length;
+        const isHumanPlayer = player.isHuman;
+        const isCurrentTurn = this.currentPlayerIndex >= 0 && this.players[this.currentPlayerIndex].id === desktopPlayerId;
+        const showButtons = isHumanPlayer && isCurrentTurn && player.status === 'active';
+
+        // Apply height class based on card count and button visibility
+        if (showButtons) {
+            mobilePlayerElement.classList.add('mobile-player-with-buttons');
+        } else if (cardCount === 0) {
+            mobilePlayerElement.classList.add('mobile-player-empty');
+        } else if (cardCount <= 2) {
+            mobilePlayerElement.classList.add('mobile-player-small');
+        } else if (cardCount <= 5) {
+            mobilePlayerElement.classList.add('mobile-player-medium');
+        } else {
+            mobilePlayerElement.classList.add('mobile-player-large');
         }
     }
     
