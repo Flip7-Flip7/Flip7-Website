@@ -1752,6 +1752,12 @@ class Flip7Game {
         
         // Ensure all cards from player data are displayed in DOM
         if (numberContainer) {
+            // ALWAYS apply sizing classes regardless of whether we redraw cards
+            const cardCount = player.numberCards.length;
+            const mobileSizeClass = `cards-${Math.min(cardCount, 7)}`;
+            const desktopSizeClass = `desktop-cards-${Math.min(cardCount, 7)}`;
+            numberContainer.className = `number-cards ${mobileSizeClass} ${desktopSizeClass}`;
+            
             const existingCards = Array.from(numberContainer.children);
             
             // Only redraw cards when the count actually changes
@@ -1790,10 +1796,7 @@ class Flip7Game {
                     numberContainer.appendChild(cardElement);
                 });
                 
-                // Update card count class for dynamic sizing (both mobile and desktop)
-                const cardCount = player.numberCards.length;
-                const mobileSizeClass = `cards-${Math.min(cardCount, 7)}`;
-                const desktopSizeClass = `desktop-cards-${Math.min(cardCount, 7)}`;
+                // Reapply sizing classes after redrawing (ensure they stick)
                 numberContainer.className = `number-cards ${mobileSizeClass} ${desktopSizeClass}`;
             }
         }
