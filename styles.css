@@ -1785,8 +1785,15 @@ body {
     }
     
     .game-message {
-        font-size: 0.9em;
-        padding: 10px 15px;
+        font-size: 1.4em;
+        padding: 20px 40px;
+        min-width: 200px;
+        top: 50%;
+        transform: translateX(-50%) translateY(-50%);
+    }
+    
+    .game-message:hover:not(:disabled) {
+        transform: translateX(-50%) translateY(-50%) scale(1.05);
     }
 }
 
