@@ -1457,7 +1457,7 @@ body {
     /* Mobile game board with CSS Grid layout */
     .mobile-game-board {
         display: grid;
-        grid-template-rows: 1fr 1fr 1fr 1fr;
+        grid-template-rows: auto auto auto auto auto;
         order: 1;
         flex: 1 1 auto;
         margin: 5px;
@@ -1465,26 +1465,36 @@ body {
         background: transparent;
         border: none;
         padding: 0;
-        gap: 5px; /* Reduced gap */
+        gap: 2px; /* Further reduced gap */
+        justify-items: center; /* Center all grid items horizontally */
     }
     
-    /* Mobile Draw Pile - Compact positioning */
+    /* Mobile Bottom Controls Section - Grid Row 5 */
+    .mobile-bottom-controls {
+        grid-row: 5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px;
+        width: calc(100vw - 20px);
+        max-width: 400px;
+        gap: 10px;
+    }
+    
+    /* Mobile Draw Pile - Center of bottom section */
     .mobile-draw-pile-area {
-        position: absolute;
-        top: 5px;
-        right: 5px;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 8px;
+        padding: 6px;
         background: linear-gradient(135deg, #4a90a4 0%, #357a8a 50%, #2c6b7a 100%);
         border: 2px solid #5a9fb5;
         border-radius: 8px;
-        width: 100px;
-        height: 60px;
-        z-index: 100;
+        width: 80px;
+        height: 50px;
         box-shadow: 0 2px 10px rgba(74, 144, 164, 0.3);
         overflow: hidden;
+        flex: 0 0 auto;
     }
     
     .mobile-draw-pile-area .draw-pile {
@@ -1528,47 +1538,68 @@ body {
     /* All mobile players are now direct grid children */
     #mobile-player {
         background: linear-gradient(135deg, #22577a 0%, #38a3a5 100%);
-        border: 2px solid #57cc99; /* Reduced border */
-        border-radius: 8px; /* Reduced radius */
-        padding: 8px; /* Reduced padding */
+        border: 2px solid #57cc99;
+        border-radius: 6px;
+        padding: 4px; /* Further reduced padding */
         margin: 0;
         transition: all 0.3s ease;
         grid-row: 1; /* Human player in first row */
+        width: calc(100vw - 20px); /* Full width minus margins */
+        max-width: 400px; /* Reasonable max width */
     }
     
     #mobile-opponent1 {
         background: #2c3e50;
         border: 2px solid #4a5f7a;
-        border-radius: 8px;
-        padding: 8px;
+        border-radius: 6px;
+        padding: 4px;
         margin: 0;
         transition: all 0.3s ease;
         grid-row: 2;
+        width: calc(100vw - 20px);
+        max-width: 400px;
     }
     
     #mobile-opponent2 {
         background: #34495e;
         border: 2px solid #4a5f7a;
-        border-radius: 8px;
-        padding: 8px;
+        border-radius: 6px;
+        padding: 4px;
         margin: 0;
         transition: all 0.3s ease;
         grid-row: 3;
+        width: calc(100vw - 20px);
+        max-width: 400px;
     }
     
     #mobile-opponent3 {
         background: #3a526b;
         border: 2px solid #4a5f7a;
-        border-radius: 8px;
-        padding: 8px;
+        border-radius: 6px;
+        padding: 4px;
         margin: 0;
         transition: all 0.3s ease;
         grid-row: 4;
+        width: calc(100vw - 20px);
+        max-width: 400px;
     }
     
-    /* Hide mobile controls (logo + rules) to keep draw pile at top */
-    .mobile-controls {
-        display: none;
+    /* Mobile Rules Button - Left side of bottom section */
+    .mobile-rules-btn {
+        padding: 6px 12px;
+        font-size: 0.75em;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 6px;
+        color: white;
+        cursor: pointer;
+        flex: 0 0 auto;
+    }
+    
+    /* Mobile Logo - Right side of bottom section */
+    .mobile-logo {
+        height: 20px;
+        flex: 0 0 auto;
     }
     
     /* Mobile info panel with log and scoreboard */
@@ -1580,8 +1611,8 @@ body {
     .mobile-game-board .player-area {
         background: #2a4d5e;
         border: 2px solid #3a5d6e;
-        border-radius: 8px;
-        padding: 6px; /* Further reduced padding */
+        border-radius: 6px;
+        padding: 4px; /* Further reduced padding */
         margin: 0;
         position: relative;
         transition: all 0.3s ease;
@@ -1723,35 +1754,35 @@ body {
         z-index: 3;
     }
     
-    /* Mobile Card Stack Effect */
+    /* Mobile Card Stack Effect - Smaller for bottom layout */
     .mobile-draw-pile-area .draw-pile::before {
         content: "";
         position: absolute;
-        width: 70px;
-        height: 98px;
+        width: 50px;
+        height: 70px;
         background-image: url('images/Flip7CardBack.png');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        border-radius: 8px;
-        transform: translate(-2px, -2px);
+        border-radius: 6px;
+        transform: translate(-1px, -1px);
         z-index: 1;
-        box-shadow: 0 2px 8px rgba(250, 112, 154, 0.4);
+        box-shadow: 0 1px 4px rgba(250, 112, 154, 0.4);
     }
     
     .mobile-draw-pile-area .draw-pile::after {
         content: "";
         position: absolute;
-        width: 70px;
-        height: 98px;
+        width: 50px;
+        height: 70px;
         background-image: url('images/Flip7CardBack.png');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        border-radius: 8px;
-        transform: translate(-4px, -4px);
+        border-radius: 6px;
+        transform: translate(-2px, -2px);
         z-index: 0;
-        box-shadow: 0 1px 4px rgba(250, 112, 154, 0.3);
+        box-shadow: 0 1px 2px rgba(250, 112, 154, 0.3);
     }
     
     /* Enhanced player stats - moved below cards */
