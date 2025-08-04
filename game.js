@@ -82,6 +82,12 @@ class Flip7Game {
         document.getElementById('stay-btn').addEventListener('click', () => this.playerStay());
         document.getElementById('rules-btn').addEventListener('click', () => this.showRules());
         document.getElementById('close-rules').addEventListener('click', () => this.hideRules());
+        
+        // Mobile rules button
+        const mobileRulesBtn = document.getElementById('mobile-rules-btn');
+        if (mobileRulesBtn) {
+            mobileRulesBtn.addEventListener('click', () => this.showRules());
+        }
         document.getElementById('win-points').addEventListener('change', (e) => {
             if (!this.gameActive) {
                 this.winningScore = parseInt(e.target.value);
@@ -98,20 +104,47 @@ class Flip7Game {
 
     handleMobileLayout() {
         const isMobile = window.innerWidth <= 768;
-        const playersGrid = document.querySelector('.players-grid');
-        const mobileGameBoard = document.querySelector('.mobile-game-board');
-        const gameArea = document.querySelector('.game-area');
         
         if (isMobile) {
-            // Move players-grid to mobile-game-board
-            if (playersGrid && mobileGameBoard && !mobileGameBoard.contains(playersGrid)) {
-                mobileGameBoard.appendChild(playersGrid);
+            this.setupMobilePlayerAreas();
+            this.syncMobileCardCount();
+        }
+    }
+    
+    setupMobilePlayerAreas() {
+        // Clone player content to mobile areas
+        const players = [
+            { desktop: 'player', mobile: 'mobile-player' },
+            { desktop: 'opponent1', mobile: 'mobile-opponent1' },
+            { desktop: 'opponent2', mobile: 'mobile-opponent2' },
+            { desktop: 'opponent3', mobile: 'mobile-opponent3' }
+        ];
+        
+        players.forEach(playerMap => {
+            const desktopPlayer = document.getElementById(playerMap.desktop);
+            const mobilePlayer = document.getElementById(playerMap.mobile);
+            
+            if (desktopPlayer && mobilePlayer) {
+                // Copy content to mobile version
+                mobilePlayer.innerHTML = desktopPlayer.innerHTML;
+                mobilePlayer.className = desktopPlayer.className;
             }
-        } else {
-            // Move players-grid back to game-area
-            if (playersGrid && gameArea && !gameArea.contains(playersGrid)) {
-                gameArea.appendChild(playersGrid);
-            }
+        });
+        
+        // Update mobile cards remaining counter
+        const desktopCardsRemaining = document.getElementById('cards-remaining');
+        const mobileCardsRemaining = document.getElementById('mobile-cards-remaining');
+        if (desktopCardsRemaining && mobileCardsRemaining) {
+            mobileCardsRemaining.textContent = desktopCardsRemaining.textContent;
+        }
+    }
+    
+    syncMobileCardCount() {
+        // Keep mobile card count in sync
+        const desktopCardsRemaining = document.getElementById('cards-remaining');
+        const mobileCardsRemaining = document.getElementById('mobile-cards-remaining');
+        if (desktopCardsRemaining && mobileCardsRemaining) {
+            mobileCardsRemaining.textContent = desktopCardsRemaining.textContent;
         }
     }
 
@@ -1257,7 +1290,11 @@ class Flip7Game {
     }
 
     animateCardFlip(card, playerId) {
-        const animationArea = document.getElementById('card-animation-area');
+        // Use mobile animation area if on mobile, desktop otherwise
+        const isMobile = window.innerWidth <= 768;
+        const animationArea = isMobile 
+            ? document.getElementById('mobile-card-animation-area')
+            : document.getElementById('card-animation-area');
         
         // Fallback if animation area doesn't exist - add card directly
         if (!animationArea) {
@@ -1423,16 +1460,25 @@ class Flip7Game {
     }
 
     updateDisplay() {
-        // Update deck count
+        // Update deck count for both desktop and mobile
         const cardsRemainingElement = document.getElementById('cards-remaining');
+        const mobileCardsRemainingElement = document.getElementById('mobile-cards-remaining');
         if (cardsRemainingElement) {
             cardsRemainingElement.textContent = this.deck.length;
+        }
+        if (mobileCardsRemainingElement) {
+            mobileCardsRemainingElement.textContent = this.deck.length;
         }
         
         // Update each player's display
         this.players.forEach(player => {
             this.updatePlayerDisplay(player);
         });
+        
+        // Sync mobile layout if on mobile
+        if (window.innerWidth <= 768) {
+            this.setupMobilePlayerAreas();
+        }
         
         // Update scoreboard
         this.updateScoreboard();
@@ -1469,11 +1515,11 @@ class Flip7Game {
             container.classList.add('busted');
         }
         
-        // Update unique count with visual dots
+        // Update unique count with visual dots only
         const uniqueElement = container.querySelector('.unique-count');
         if (uniqueElement) {
             const count = player.uniqueNumbers.size;
-            uniqueElement.innerHTML = `Cards: ${count}/7 <span class="card-dots">${this.createCardDots(count)}</span>`;
+            uniqueElement.innerHTML = `<span class="card-dots">${this.createCardDots(count)}</span>`;
         }
         
         // Clear and redraw cards only when starting a new round

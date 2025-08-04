@@ -27,7 +27,7 @@
                     </div>
                     <div class="modifier-cards"></div>
                     <div class="number-cards"></div>
-                    <div class="unique-counter">Unique: <span class="unique-count">0</span>/7</div>
+                    <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
                 </div>
 
                 <!-- Opponent 2 (Top) -->
@@ -40,7 +40,7 @@
                     </div>
                     <div class="modifier-cards"></div>
                     <div class="number-cards"></div>
-                    <div class="unique-counter">Unique: <span class="unique-count">0</span>/7</div>
+                    <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
                 </div>
 
                 <!-- Draw Pile (Center) -->
@@ -63,7 +63,7 @@
                     </div>
                     <div class="modifier-cards"></div>
                     <div class="number-cards"></div>
-                    <div class="unique-counter">Unique: <span class="unique-count">0</span>/7</div>
+                    <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
                 </div>
 
                 <!-- Human Player (Bottom) -->
@@ -77,7 +77,7 @@
                     <div class="modifier-cards" id="player-modifiers"></div>
                     <div class="number-cards" id="player-numbers"></div>
                     <div class="unique-counter">
-                        Unique: <span class="unique-count" id="player-unique">0</span>/7
+                        <span class="unique-count" id="player-unique">○○○○○○○</span>
                         <span class="flip7-bonus" id="flip7-indicator" style="display: none;">🎉 Flip 7!</span>
                     </div>
                     <div class="action-buttons">
@@ -122,7 +122,47 @@
 
         <!-- Mobile Game Board (hidden on desktop, shown on mobile) -->
         <div class="mobile-game-board">
-            <!-- This will contain the players-grid on mobile -->
+            <!-- Mobile Draw Pile at Top -->
+            <div class="mobile-draw-pile-area">
+                <div class="draw-pile" id="mobile-draw-pile">
+                    <div class="card back draw-card"></div>
+                    <div class="pile-info">
+                        <span id="mobile-cards-remaining">94</span> cards
+                    </div>
+                </div>
+                <!-- Card Animation Area for mobile -->
+                <div class="card-animation-area" id="mobile-card-animation-area">
+                    <!-- Animated card appears here -->
+                </div>
+            </div>
+
+            <!-- Human Player Hand -->
+            <div class="mobile-human-player" id="mobile-player">
+                <!-- Will be populated by JavaScript -->
+            </div>
+
+            <!-- Bot Players -->
+            <div class="mobile-bot-players">
+                <div class="mobile-bot-player" id="mobile-opponent1">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                <div class="mobile-bot-player" id="mobile-opponent2">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                <div class="mobile-bot-player" id="mobile-opponent3">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Mobile Controls (Logo + Rules) -->
+            <div class="mobile-controls">
+                <div class="logo-header">
+                    <img src="images/FLIP7_LOGO_LOCK_UP_transparent.png" alt="Flip 7" class="flip7-logo">
+                </div>
+                <div class="control-section">
+                    <button id="mobile-rules-btn" class="btn secondary" style="width: 100%;">Rules</button>
+                </div>
+            </div>
         </div>
 
         <!-- Mobile Info Panel (hidden on desktop) -->

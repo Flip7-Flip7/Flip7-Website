@@ -192,11 +192,25 @@ body {
 }
 
 .unique-counter {
-    font-size: 0.75em;
+    font-size: 0.9em;
     color: #fbbf24;
     margin-top: 4px;
     text-align: center;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    letter-spacing: 2px;
+}
+
+.unique-counter .card-dots {
+    display: inline-block;
+    letter-spacing: 2px;
+}
+
+.unique-counter .card-dots .filled {
+    color: #22c55e;
+}
+
+.unique-counter .card-dots .empty {
+    color: rgba(255, 255, 255, 0.3);
 }
 
 /* Player Positioning */
@@ -1022,28 +1036,106 @@ body {
         height: 30px;
     }
     
-    /* Mobile game board outside controls panel */
+    /* Mobile game board with new layout */
     .mobile-game-board {
-        display: block;
+        display: flex;
+        flex-direction: column;
         order: 2;
         flex: 1 1 auto;
         margin: 5px;
         background: transparent;
         border: none;
         padding: 0;
+        gap: 15px;
     }
     
-    .mobile-game-board .players-grid {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto auto auto;
-        gap: 10px;
-        min-height: auto;
+    /* Mobile Draw Pile at Top */
+    .mobile-draw-pile-area {
         position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 15px 0;
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        margin: 0 10px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .mobile-draw-pile-area .draw-pile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .mobile-draw-pile-area .card-animation-area {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 65px;
+        height: 91px;
+        z-index: 150;
+        pointer-events: none;
     }
     
     /* Hide desktop info sections on mobile */
     .desktop-info {
         display: none;
+    }
+    
+    /* Mobile Human Player */
+    .mobile-human-player {
+        background: linear-gradient(135deg, #22577a 0%, #38a3a5 100%);
+        border: 3px solid #57cc99;
+        border-radius: 12px;
+        padding: 15px;
+        margin: 0 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-human-player h3 {
+        color: #c7f9cc;
+        font-size: 1.2em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    
+    /* Mobile Bot Players Container */
+    .mobile-bot-players {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin: 0 10px;
+    }
+    
+    .mobile-bot-player {
+        background: #34495e;
+        border: 3px solid #4a5f7a;
+        border-radius: 12px;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-bot-player:nth-child(1) { background: #2c3e50; }
+    .mobile-bot-player:nth-child(2) { background: #34495e; }
+    .mobile-bot-player:nth-child(3) { background: #3a526b; }
+    
+    /* Mobile Controls Section */
+    .mobile-controls {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 15px;
+        margin: 0 10px;
+        text-align: center;
+    }
+    
+    .mobile-controls .flip7-logo {
+        height: 40px;
+        margin-bottom: 10px;
     }
     
     /* Mobile info panel with log and scoreboard */
@@ -1251,7 +1343,6 @@ body {
     
     .unique-counter .card-dots {
         display: inline-block;
-        margin-left: 5px;
         letter-spacing: 2px;
     }
     
