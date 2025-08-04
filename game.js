@@ -1557,9 +1557,11 @@ class Flip7Game {
                     numberContainer.appendChild(cardElement);
                 });
                 
-                // Update card count class for dynamic sizing
+                // Update card count class for dynamic sizing (both mobile and desktop)
                 const cardCount = player.numberCards.length;
-                numberContainer.className = `number-cards cards-${Math.min(cardCount, 7)}`;
+                const mobileSizeClass = `cards-${Math.min(cardCount, 7)}`;
+                const desktopSizeClass = `desktop-cards-${Math.min(cardCount, 7)}`;
+                numberContainer.className = `number-cards ${mobileSizeClass} ${desktopSizeClass}`;
             }
         }
         
