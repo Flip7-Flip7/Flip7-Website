@@ -1455,7 +1455,7 @@ body {
         height: 30px;
     }
     
-    /* Mobile game board with CSS Grid layout - Dynamic auto-sizing */
+    /* Mobile game board with CSS Grid layout - Dynamic auto-sizing - No horizontal scroll */
     .mobile-game-board {
         display: grid;
         grid-template-rows: auto auto auto auto auto; /* Auto-sizing based on content */
@@ -1467,20 +1467,24 @@ body {
         border: none;
         padding: 0;
         gap: 2px; /* Small gap between players */
-        justify-items: center; /* Center all grid items horizontally */
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden; /* Prevent horizontal scrolling */
+        box-sizing: border-box;
     }
     
-    /* Mobile Bottom Controls Section - Grid Row 5 - Larger */
+    /* Mobile Bottom Controls Section - Grid Row 5 - Perfectly aligned */
     .mobile-bottom-controls {
         grid-row: 5;
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 8px;
-        width: calc(100vw - 20px);
-        max-width: 400px;
+        width: 100%;
+        max-width: 100%;
         gap: 10px;
         min-height: 70px; /* Reasonable height for draw pile */
+        box-sizing: border-box;
     }
     
     /* Mobile Draw Pile - Center of bottom section - Larger */
@@ -1537,7 +1541,7 @@ body {
         display: none;
     }
     
-    /* All mobile players with dynamic heights based on card content */
+    /* All mobile players with dynamic heights - perfectly aligned */
     #mobile-player {
         background: linear-gradient(135deg, #22577a 0%, #38a3a5 100%);
         border: 2px solid #57cc99;
@@ -1546,9 +1550,10 @@ body {
         margin: 0;
         transition: all 0.3s ease; /* Smooth height transitions */
         grid-row: 1; /* Human player in first row */
-        width: calc(100vw - 20px);
-        max-width: 400px;
+        width: 100%;
+        max-width: 100%;
         min-height: 30px; /* Minimum height when empty */
+        box-sizing: border-box;
     }
     
     #mobile-opponent1 {
@@ -1559,9 +1564,10 @@ body {
         margin: 0;
         transition: all 0.3s ease;
         grid-row: 2;
-        width: calc(100vw - 20px);
-        max-width: 400px;
+        width: 100%;
+        max-width: 100%;
         min-height: 30px;
+        box-sizing: border-box;
     }
     
     #mobile-opponent2 {
@@ -1572,9 +1578,10 @@ body {
         margin: 0;
         transition: all 0.3s ease;
         grid-row: 3;
-        width: calc(100vw - 20px);
-        max-width: 400px;
+        width: 100%;
+        max-width: 100%;
         min-height: 30px;
+        box-sizing: border-box;
     }
     
     #mobile-opponent3 {
@@ -1585,9 +1592,10 @@ body {
         margin: 0;
         transition: all 0.3s ease;
         grid-row: 4;
-        width: calc(100vw - 20px);
-        max-width: 400px;
+        width: 100%;
+        max-width: 100%;
         min-height: 30px;
+        box-sizing: border-box;
     }
     
     /* Mobile Rules Button - Left side of bottom section */
