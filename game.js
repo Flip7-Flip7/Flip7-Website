@@ -159,7 +159,9 @@ class Flip7Game {
             const mobilePlayer = document.getElementById(playerMap.mobile);
             
             if (desktopPlayer && mobilePlayer) {
-                // Copy content to mobile version (innerHTML replacement clears existing content)
+                // Clear mobile container first to prevent duplication artifacts
+                mobilePlayer.innerHTML = '';
+                // Then copy content from desktop
                 mobilePlayer.innerHTML = desktopPlayer.innerHTML;
                 mobilePlayer.className = desktopPlayer.className;
             }
@@ -1104,10 +1106,13 @@ class Flip7Game {
             // Add persistent busted class
             playerArea.classList.add('busted');
             
-            // Clear bust animation flag and sync mobile layout
+            // Clear bust animation flag and sync mobile layout after a brief delay
             this.isBustAnimating = false;
             if (window.innerWidth <= 768) {
-                this.setupMobilePlayerAreas();
+                // Small delay to ensure desktop DOM is fully settled before mobile sync
+                setTimeout(() => {
+                    this.setupMobilePlayerAreas();
+                }, 50);
             }
             
             // Continue game flow - check if round should end or move to next player
@@ -1749,17 +1754,17 @@ class Flip7Game {
         if (numberContainer) {
             const existingCards = Array.from(numberContainer.children);
             
-            // Always sort and redraw cards if the counts don't match or if we need to sort
-            if (existingCards.length !== player.numberCards.length || player.numberCards.length > 0) {
+            // Only redraw cards when the count actually changes
+            if (existingCards.length !== player.numberCards.length) {
                 // Clear and redraw all cards in sorted order
                 numberContainer.innerHTML = '';
                 
-                // For busted players, preserve card order to keep duplicates together
-                // For active players, sort numerically
+                // For busted players, keep cards sorted to show duplicates together
+                // For active players, sort numerically  
                 let cardsToDisplay;
                 if (player.status === 'busted') {
-                    // Keep original order to show duplicates next to each other
-                    cardsToDisplay = [...player.numberCards];
+                    // Sort to keep duplicates together (they're already sorted from handleCardDraw)
+                    cardsToDisplay = [...player.numberCards].sort((a, b) => a.value - b.value);
                 } else {
                     // Sort number cards in numerical order (0-12) - smaller numbers on left, bigger on right
                     cardsToDisplay = [...player.numberCards].sort((a, b) => a.value - b.value);
