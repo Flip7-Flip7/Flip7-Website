@@ -1792,6 +1792,19 @@ body {
         transform: translateX(-50%) translateY(-50%);
     }
     
+    /* Add backdrop blur for mobile Start Game button */
+    .game-message::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        backdrop-filter: blur(8px);
+        background: rgba(0, 0, 0, 0.3);
+        z-index: -1;
+    }
+    
     .game-message:hover:not(:disabled) {
         transform: translateX(-50%) translateY(-50%) scale(1.05);
     }

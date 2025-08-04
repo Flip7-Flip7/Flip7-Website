@@ -14,6 +14,9 @@ class Flip7Game {
         this.actionQueue = [];
         this.isProcessingFlip3 = false;
         
+        // Flag to prevent mobile sync during bust animations
+        this.isBustAnimating = false;
+        
         this.initializePlayers();
         this.initializeEventListeners();
         this.updateDisplay();
@@ -118,6 +121,11 @@ class Flip7Game {
     }
     
     setupMobilePlayerAreas() {
+        // Skip if we're in the middle of a bust animation to prevent duplicate cards
+        if (this.isBustAnimating) {
+            return;
+        }
+        
         // Clone player content to mobile areas
         const players = [
             { desktop: 'player', mobile: 'mobile-player' },
@@ -131,7 +139,7 @@ class Flip7Game {
             const mobilePlayer = document.getElementById(playerMap.mobile);
             
             if (desktopPlayer && mobilePlayer) {
-                // Copy content to mobile version
+                // Copy content to mobile version (innerHTML replacement clears existing content)
                 mobilePlayer.innerHTML = desktopPlayer.innerHTML;
                 mobilePlayer.className = desktopPlayer.className;
             }
@@ -236,8 +244,13 @@ class Flip7Game {
         const winPoints = document.getElementById('win-points');
         if (winPoints) winPoints.disabled = true;
         
-        // Randomly assign dealer for first round
-        this.dealerIndex = Math.floor(Math.random() * this.players.length);
+        // On mobile, always start with Bot 3 as dealer so human player goes first
+        // On desktop, randomly assign dealer
+        if (window.innerWidth <= 768) {
+            this.dealerIndex = 3; // Bot 3 (opponent3) is index 3
+        } else {
+            this.dealerIndex = Math.floor(Math.random() * this.players.length);
+        }
         this.addToLog(`${this.players[this.dealerIndex].name} is the dealer`);
         
         // Create a fresh deck for new game
@@ -996,6 +1009,9 @@ class Flip7Game {
     }
 
     animateBust(player) {
+        // Set flag to prevent mobile sync during animation
+        this.isBustAnimating = true;
+        
         const playerArea = document.getElementById(player.id);
         const gameContainer = document.querySelector('.game-container');
         
@@ -1025,6 +1041,12 @@ class Flip7Game {
             
             // Add persistent busted class
             playerArea.classList.add('busted');
+            
+            // Clear bust animation flag and sync mobile layout
+            this.isBustAnimating = false;
+            if (window.innerWidth <= 768) {
+                this.setupMobilePlayerAreas();
+            }
             
             // Continue game flow - check if round should end or move to next player
             this.checkForRoundEnd();
