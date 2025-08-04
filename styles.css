@@ -542,6 +542,75 @@ body {
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
 }
 
+/* Name popup for all devices */
+.mobile-name-popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.3);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.name-popup-content {
+    background: rgba(30, 60, 114, 0.98);
+    border-radius: 20px;
+    padding: 30px;
+    border: 3px solid rgba(255, 215, 0, 0.8);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    text-align: center;
+    min-width: 280px;
+}
+
+.name-popup-content h2 {
+    color: #ffffff;
+    font-size: 1.4em;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#player-name-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1.1em;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    margin-bottom: 20px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+#player-name-input:focus {
+    outline: none;
+    border-color: rgba(255, 215, 0, 0.8);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.name-submit-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    width: 100%;
+}
+
+.name-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+}
+
 /* Action Card Prompt */
 .action-card-prompt {
     position: fixed;
@@ -1784,26 +1853,11 @@ body {
         min-width: 60px;
     }
     
-    .game-message {
-        font-size: 1.4em;
-        padding: 20px 40px;
-        min-width: 200px;
-        top: 50%;
-        transform: translateX(-50%) translateY(-50%);
+    /* Hide desktop start button on mobile */
+    .desktop-start-btn {
+        display: none;
     }
     
-    /* Add backdrop blur for mobile Start Game button */
-    .game-message::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        backdrop-filter: blur(8px);
-        background: rgba(0, 0, 0, 0.3);
-        z-index: -1;
-    }
     
     .game-message:hover:not(:disabled) {
         transform: translateX(-50%) translateY(-50%) scale(1.05);

@@ -17,16 +17,22 @@ class Flip7Game {
         // Flag to prevent mobile sync during bust animations
         this.isBustAnimating = false;
         
+        // Store custom player name (defaults to "You")
+        this.playerName = "You";
+        
         this.initializePlayers();
         this.initializeEventListeners();
         this.updateDisplay();
+        
+        // Show appropriate start popup based on device type
+        this.showStartPopup();
     }
 
     initializePlayers() {
         this.players = [
             {
                 id: 'player',
-                name: 'You',
+                name: this.playerName,
                 totalScore: 0,
                 roundScore: 0,
                 numberCards: [],
@@ -86,10 +92,24 @@ class Flip7Game {
         document.getElementById('rules-btn').addEventListener('click', () => this.showRules());
         document.getElementById('close-rules').addEventListener('click', () => this.hideRules());
         
-        // Game message start button
-        document.getElementById('game-message').addEventListener('click', () => {
-            console.log('Game message button clicked!');
-            this.startNewGame();
+        // Name input form (used on all devices)
+        document.getElementById('name-input-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('player-name-input');
+            const playerName = nameInput.value.trim();
+            
+            if (playerName && playerName.length > 0) {
+                this.playerName = playerName;
+                // Update the existing player's name
+                this.players[0].name = playerName;
+                
+                // Hide the name popup
+                document.getElementById('mobile-name-popup').style.display = 'none';
+                
+                // Start the game
+                console.log('Player name submitted:', playerName);
+                this.startNewGame();
+            }
         });
         
         // Mobile rules button
@@ -227,9 +247,8 @@ class Flip7Game {
         });
         
         // Hide welcome message and pre-game controls
-        const gameMessage = document.getElementById('game-message');
+        this.hideStartPopups();
         const preGameControls = document.getElementById('pre-game-controls');
-        if (gameMessage) gameMessage.style.display = 'none';
         if (preGameControls) preGameControls.style.display = 'none';
         
         // Update mobile status banner
@@ -522,6 +541,9 @@ class Flip7Game {
                     // Set bust status BEFORE updating display so duplicate highlighting works
                     player.status = 'busted';
                     player.roundScore = 0;
+                    
+                    // Set bust animation flag to prevent mobile sync during entire bust sequence
+                    this.isBustAnimating = true;
                     
                     // Update display to show duplicate card in hand with highlighting
                     this.updateDisplay();
@@ -1046,9 +1068,6 @@ class Flip7Game {
     }
 
     animateBust(player) {
-        // Set flag to prevent mobile sync during animation
-        this.isBustAnimating = true;
-        
         const playerArea = document.getElementById(player.id);
         const gameContainer = document.querySelector('.game-container');
         
@@ -1242,6 +1261,12 @@ class Flip7Game {
         const uniqueCount = player.uniqueNumbers.size;
         const currentScore = player.roundScore;
         
+        // Always hit if round score is less than 20 points
+        if (currentScore < 20) {
+            this.aiHit(player);
+            return;
+        }
+        
         // Always hit if we have very few cards
         if (player.numberCards.length <= 1) {
             this.aiHit(player);
@@ -1348,9 +1373,9 @@ class Flip7Game {
         document.getElementById('win-points').disabled = false;
         
         // Show pre-game controls again
+        this.showStartPopup();
         const gameMessage = document.getElementById('game-message');
-        gameMessage.style.display = 'block';
-        gameMessage.textContent = 'Start New Game';
+        if (gameMessage) gameMessage.textContent = 'Start New Game';
         document.getElementById('pre-game-controls').style.display = 'flex';
         
         this.addToLog(`🎉 ${winner.name} wins with ${winner.totalScore} points!`);
@@ -1906,6 +1931,32 @@ class Flip7Game {
 
     hideRules() {
         document.getElementById('rules-modal').style.display = 'none';
+    }
+    
+    showStartPopup() {
+        const gameMessage = document.getElementById('game-message');
+        const namePopup = document.getElementById('mobile-name-popup');
+        
+        // Show name input popup on all devices
+        if (namePopup) namePopup.style.display = 'flex';
+        if (gameMessage) gameMessage.style.display = 'none';
+        
+        // Focus the input field for better UX
+        setTimeout(() => {
+            const nameInput = document.getElementById('player-name-input');
+            if (nameInput) {
+                nameInput.focus();
+                nameInput.select(); // Select any existing text
+            }
+        }, 100);
+    }
+    
+    hideStartPopups() {
+        const gameMessage = document.getElementById('game-message');
+        const namePopup = document.getElementById('mobile-name-popup');
+        
+        if (gameMessage) gameMessage.style.display = 'none';
+        if (namePopup) namePopup.style.display = 'none';
     }
 }
 

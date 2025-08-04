@@ -172,9 +172,20 @@
     </div>
 
     <!-- Game Message -->
-    <button class="game-message" id="game-message">
+    <button class="game-message desktop-start-btn" id="game-message">
         Start Game
     </button>
+    
+    <!-- Mobile Name Input Popup -->
+    <div class="mobile-name-popup" id="mobile-name-popup">
+        <div class="name-popup-content">
+            <h2>Enter Player Name:</h2>
+            <form id="name-input-form">
+                <input type="text" id="player-name-input" placeholder="Your nickname" maxlength="20" required>
+                <button type="submit" class="name-submit-btn">Start Game</button>
+            </form>
+        </div>
+    </div>
 
     <!-- Mobile Status Banner -->
     <div class="mobile-status-banner" id="mobile-status-banner">
