@@ -83,8 +83,8 @@ class Flip7Game {
         document.getElementById('rules-btn').addEventListener('click', () => this.showRules());
         document.getElementById('close-rules').addEventListener('click', () => this.hideRules());
         
-        // Mobile start game button
-        document.getElementById('mobile-start-game-btn').addEventListener('click', () => this.startNewGame());
+        // Game message start button
+        document.getElementById('game-message').addEventListener('click', () => this.startNewGame());
         
         // Mobile rules button
         const mobileRulesBtn = document.getElementById('mobile-rules-btn');
@@ -221,11 +221,12 @@ class Flip7Game {
         if (gameMessage) gameMessage.style.display = 'none';
         if (preGameControls) preGameControls.style.display = 'none';
         
-        // Update mobile start button
-        const mobileStartBtn = document.getElementById('mobile-start-game-btn');
-        if (mobileStartBtn) {
-            mobileStartBtn.textContent = `Round 1 • Target: ${this.winningScore} pts`;
-            mobileStartBtn.disabled = true;
+        // Update mobile status banner
+        const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
+        const mobileGameInfo = document.getElementById('mobile-game-info');
+        if (mobileTurnIndicator) {
+            mobileTurnIndicator.textContent = 'Game Starting...';
+            mobileGameInfo.textContent = `Round 1 • Target: ${this.winningScore} pts`;
         }
         
         // Disable points setting during game
@@ -1285,18 +1286,20 @@ class Flip7Game {
         document.getElementById('win-points').disabled = false;
         
         // Show pre-game controls again
-        document.getElementById('game-message').style.display = 'block';
+        const gameMessage = document.getElementById('game-message');
+        gameMessage.style.display = 'block';
+        gameMessage.textContent = 'Start New Game';
         document.getElementById('pre-game-controls').style.display = 'flex';
         
         this.addToLog(`🎉 ${winner.name} wins with ${winner.totalScore} points!`);
-        this.showMessage(`${winner.name} wins the game! Click "Start Game" to play again.`);
         this.disablePlayerActions();
         
-        // Update mobile start button
-        const mobileStartBtn = document.getElementById('mobile-start-game-btn');
-        if (mobileStartBtn) {
-            mobileStartBtn.textContent = `🎉 ${winner.name} Wins! Start Game`;
-            mobileStartBtn.disabled = false;
+        // Update mobile status banner
+        const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
+        const mobileGameInfo = document.getElementById('mobile-game-info');
+        if (mobileTurnIndicator) {
+            mobileTurnIndicator.textContent = `🎉 ${winner.name} Wins!`;
+            mobileGameInfo.textContent = 'Click "Start Game" to play again';
         }
         
         // Show celebration if human player wins
@@ -1779,35 +1782,27 @@ class Flip7Game {
             }
         });
         
-        // Update mobile start button with recent action
-        const mobileStartBtn = document.getElementById('mobile-start-game-btn');
-        if (mobileStartBtn && this.gameActive && !message.includes('turn')) {
-            // Show recent game actions briefly in button text
-            mobileStartBtn.textContent = message;
-            setTimeout(() => {
-                if (this.gameActive) {
-                    mobileStartBtn.textContent = `Round ${this.roundNumber} • Target: ${this.winningScore} pts`;
-                }
-            }, 2000);
+        // Update mobile status banner with recent action
+        const mobileGameInfo = document.getElementById('mobile-game-info');
+        if (mobileGameInfo && this.gameActive && !message.includes('turn')) {
+            // Show recent game actions briefly
+            mobileGameInfo.textContent = message;
         }
     }
 
     showMessage(message) {
-        document.getElementById('game-message').textContent = message;
-        
-        // Update mobile start button
-        const mobileStartBtn = document.getElementById('mobile-start-game-btn');
-        if (mobileStartBtn && this.gameActive) {
+        // Game message is now a button, so we don't update its text with random messages
+        // Only update mobile status banner
+        const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
+        const mobileGameInfo = document.getElementById('mobile-game-info');
+        if (mobileTurnIndicator && this.gameActive) {
+            // Extract turn information
             if (message.includes('turn')) {
-                mobileStartBtn.textContent = message;
+                mobileTurnIndicator.textContent = message;
+                mobileGameInfo.textContent = `Round ${this.roundNumber} • Target: ${this.winningScore} pts`;
             } else {
-                // Show other important messages briefly
-                mobileStartBtn.textContent = message;
-                setTimeout(() => {
-                    if (this.gameActive) {
-                        mobileStartBtn.textContent = `Round ${this.roundNumber} • Target: ${this.winningScore} pts`;
-                    }
-                }, 3000);
+                // Show other important messages in the info line
+                mobileGameInfo.textContent = message;
             }
         }
     }
