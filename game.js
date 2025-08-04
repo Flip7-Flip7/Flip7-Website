@@ -332,6 +332,20 @@ class Flip7Game {
                 // All cards dealt, start the game with proper turn highlighting
                 this.isInitialDealing = false;
                 setTimeout(() => {
+                    // Find the first active player for the first turn
+                    let attempts = 0;
+                    while (this.players[this.currentPlayerIndex].status !== 'active' && attempts < this.players.length) {
+                        this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+                        attempts++;
+                    }
+                    
+                    // Check if there are any active players left
+                    const activePlayers = this.players.filter(p => p.status === 'active');
+                    if (activePlayers.length === 0) {
+                        this.endRound();
+                        return;
+                    }
+                    
                     this.showMessage(`${this.players[this.currentPlayerIndex].name}'s turn!`);
                     this.highlightCurrentPlayer();
                     if (this.players[this.currentPlayerIndex].isHuman) {
@@ -345,9 +359,9 @@ class Flip7Game {
             
             const player = this.players[dealIndex];
             
-            // Skip frozen players during initial deal
-            if (player.status === 'frozen') {
-                this.addToLog(`${player.name} is frozen and skipped during initial deal.`);
+            // Skip frozen or busted players during initial deal
+            if (player.status === 'frozen' || player.status === 'busted') {
+                this.addToLog(`${player.name} is ${player.status} and skipped during initial deal.`);
                 dealIndex++;
                 // Continue to next player
                 if (dealIndex < this.players.length && this.gameActive) {
@@ -356,6 +370,20 @@ class Flip7Game {
                     // All cards dealt, start normal gameplay
                     this.isInitialDealing = false;
                     setTimeout(() => {
+                        // Find the first active player for the first turn
+                        let attempts = 0;
+                        while (this.players[this.currentPlayerIndex].status !== 'active' && attempts < this.players.length) {
+                            this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+                            attempts++;
+                        }
+                        
+                        // Check if there are any active players left
+                        const activePlayers = this.players.filter(p => p.status === 'active');
+                        if (activePlayers.length === 0) {
+                            this.endRound();
+                            return;
+                        }
+                        
                         this.showMessage(`${this.players[this.currentPlayerIndex].name}'s turn!`);
                         this.highlightCurrentPlayer();
                         if (this.players[this.currentPlayerIndex].isHuman) {
@@ -387,6 +415,20 @@ class Flip7Game {
                         console.log('All initial cards dealt, starting gameplay');
                         this.isInitialDealing = false;
                         setTimeout(() => {
+                            // Find the first active player for the first turn
+                            let attempts = 0;
+                            while (this.players[this.currentPlayerIndex].status !== 'active' && attempts < this.players.length) {
+                                this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+                                attempts++;
+                            }
+                            
+                            // Check if there are any active players left
+                            const activePlayers = this.players.filter(p => p.status === 'active');
+                            if (activePlayers.length === 0) {
+                                this.endRound();
+                                return;
+                            }
+                            
                             this.showMessage(`${this.players[this.currentPlayerIndex].name}'s turn!`);
                             this.highlightCurrentPlayer();
                             if (this.players[this.currentPlayerIndex].isHuman) {
@@ -468,15 +510,10 @@ class Flip7Game {
         if (card.type === 'number') {
             // Check for bust
             if (player.uniqueNumbers.has(card.value) && !isInitialDeal) {
-                // Add the duplicate card to hand FIRST so it appears next to existing card
-                const existingIndex = player.numberCards.findIndex(c => c.value === card.value);
-                if (existingIndex !== -1) {
-                    // Insert duplicate right after the existing card
-                    player.numberCards.splice(existingIndex + 1, 0, card);
-                } else {
-                    // Fallback: add to end
-                    player.numberCards.push(card);
-                }
+                // Add the duplicate card to hand and sort by numeric value
+                player.numberCards.push(card);
+                // Sort all number cards in numerical order (0-12)
+                player.numberCards.sort((a, b) => a.value - b.value);
                 
                 if (player.hasSecondChance) {
                     this.activateSecondChance(player, card);
