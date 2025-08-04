@@ -1380,30 +1380,45 @@ class Flip7Game {
             return;
         }
         
-        // Create enhanced two-element animated card
-        const animatedCard = document.createElement('div');
-        animatedCard.classList.add('animated-card');
+        // Declare animatedCard outside the if/else blocks
+        let animatedCard;
         
-        // Create card back element
-        const cardBack = document.createElement('div');
-        cardBack.classList.add('card-back');
-        
-        // Create card front element with actual card content
-        const cardFront = this.createCardElement(card);
-        cardFront.classList.add('card-front');
-        
-        // Assemble the animated card
-        animatedCard.appendChild(cardBack);
-        animatedCard.appendChild(cardFront);
-        
-        // Clear any existing animation
-        animationArea.innerHTML = '';
-        animationArea.appendChild(animatedCard);
-        
-        // Start flip reveal animation
-        animatedCard.classList.add('flip-reveal');
+        // Use simplified animation for mobile
+        if (isMobile) {
+            // Simple fade animation for mobile
+            animatedCard = this.createCardElement(card);
+            animatedCard.classList.add('animated-card', 'mobile-reveal');
+            
+            // Clear any existing animation
+            animationArea.innerHTML = '';
+            animationArea.appendChild(animatedCard);
+        } else {
+            // Desktop: Use enhanced two-element flip animation
+            animatedCard = document.createElement('div');
+            animatedCard.classList.add('animated-card');
+            
+            // Create card back element
+            const cardBack = document.createElement('div');
+            cardBack.classList.add('card-back');
+            
+            // Create card front element with actual card content
+            const cardFront = this.createCardElement(card);
+            cardFront.classList.add('card-front');
+            
+            // Assemble the animated card
+            animatedCard.appendChild(cardBack);
+            animatedCard.appendChild(cardFront);
+            
+            // Clear any existing animation
+            animationArea.innerHTML = '';
+            animationArea.appendChild(animatedCard);
+            
+            // Start flip reveal animation
+            animatedCard.classList.add('flip-reveal');
+        }
         
         // After reveal, slide to player's hand
+        const revealDuration = isMobile ? 800 : 1000; // Mobile animation is shorter
         setTimeout(() => {
             try {
                 const animRect = animatedCard.getBoundingClientRect();
@@ -1415,7 +1430,8 @@ class Flip7Game {
                 animatedCard.style.setProperty('--slide-x', `${slideX}px`);
                 animatedCard.style.setProperty('--slide-y', `${slideY}px`);
                 
-                animatedCard.classList.remove('flip-reveal');
+                // Remove the reveal animation class (both desktop and mobile)
+                animatedCard.classList.remove('flip-reveal', 'mobile-reveal');
                 animatedCard.classList.add('slide-to-hand');
                 
                 // Add the actual card to the player's hand
@@ -1432,7 +1448,7 @@ class Flip7Game {
                     animationArea.innerHTML = '';
                 }
             }
-        }, 1000);
+        }, revealDuration);
     }
 
     getTargetCardContainer(playerId, cardType) {
