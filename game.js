@@ -973,6 +973,17 @@ class Flip7Game {
         player.hasSecondChance = false;
         player.actionCards = player.actionCards.filter(card => card.value !== 'second_chance');
         
+        // Remove the duplicate card from player's number cards array
+        const duplicateIndex = player.numberCards.findIndex(card => 
+            card.value === duplicateCard.value && card === duplicateCard
+        );
+        if (duplicateIndex !== -1) {
+            player.numberCards.splice(duplicateIndex, 1);
+        }
+        
+        // Also remove from unique numbers since the duplicate is being discarded
+        // (Keep the original card in uniqueNumbers set)
+        
         // Discard both cards
         this.discardPile.push(duplicateCard);
         this.discardPile.push({ type: 'action', value: 'second_chance', display: 'Second Chance' });
