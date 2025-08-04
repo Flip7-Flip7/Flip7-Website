@@ -123,7 +123,7 @@
 
         <!-- Mobile Game Board (hidden on desktop, shown on mobile) -->
         <div class="mobile-game-board">
-            <!-- Mobile Draw Pile at Top -->
+            <!-- Mobile Draw Pile - Absolutely Positioned -->
             <div class="mobile-draw-pile-area">
                 <div class="draw-pile" id="mobile-draw-pile">
                     <div class="card back draw-card"></div>
@@ -137,22 +137,20 @@
                 </div>
             </div>
 
-            <!-- Human Player Hand -->
-            <div class="mobile-human-player" id="mobile-player">
+            <!-- Human Player (Grid Row 1) -->
+            <div id="mobile-player">
                 <!-- Will be populated by JavaScript -->
             </div>
 
-            <!-- Bot Players -->
-            <div class="mobile-bot-players">
-                <div class="mobile-bot-player" id="mobile-opponent1">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-                <div class="mobile-bot-player" id="mobile-opponent2">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-                <div class="mobile-bot-player" id="mobile-opponent3">
-                    <!-- Will be populated by JavaScript -->
-                </div>
+            <!-- Bot Players (Grid Rows 2-4) -->
+            <div id="mobile-opponent1">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            <div id="mobile-opponent2">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            <div id="mobile-opponent3">
+                <!-- Will be populated by JavaScript -->
             </div>
 
         </div>

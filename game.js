@@ -164,6 +164,25 @@ class Flip7Game {
                 // Then copy content from desktop
                 mobilePlayer.innerHTML = desktopPlayer.innerHTML;
                 mobilePlayer.className = desktopPlayer.className;
+                
+                // Modify mobile layout: integrate scores with unique counter
+                const uniqueCounter = mobilePlayer.querySelector('.unique-counter');
+                const scoreValue = mobilePlayer.querySelector('.score-value');
+                const roundValue = mobilePlayer.querySelector('.round-value');
+                const uniqueCount = mobilePlayer.querySelector('.unique-count');
+                
+                if (uniqueCounter && scoreValue && roundValue && uniqueCount) {
+                    // Create new layout: [Total Score] [○○○○○○○] [Round Score]
+                    const totalScore = scoreValue.textContent;
+                    const roundScore = roundValue.textContent;
+                    const uniqueText = uniqueCount.innerHTML;
+                    
+                    uniqueCounter.innerHTML = `
+                        <span class="mobile-total-score">Total: ${totalScore}</span>
+                        <span class="unique-count">${uniqueText}</span>
+                        <span class="mobile-round-score">Round: ${roundScore}</span>
+                    `;
+                }
             }
         });
         
@@ -1642,9 +1661,11 @@ class Flip7Game {
             document.getElementById('hit-btn').disabled = false;
             document.getElementById('stay-btn').disabled = player.numberCards.length === 0;
             
-            // Enable mobile buttons if they exist
+            // Show and enable mobile buttons
+            const mobilePlayer = document.getElementById('mobile-player');
             const mobileHitBtn = document.querySelector('#mobile-player #hit-btn');
             const mobileStayBtn = document.querySelector('#mobile-player #stay-btn');
+            if (mobilePlayer) mobilePlayer.classList.add('show-buttons');
             if (mobileHitBtn) mobileHitBtn.disabled = false;
             if (mobileStayBtn) mobileStayBtn.disabled = player.numberCards.length === 0;
         } else if (player.status === 'frozen') {
@@ -1652,8 +1673,10 @@ class Flip7Game {
             document.getElementById('hit-btn').disabled = true;
             document.getElementById('stay-btn').disabled = true;
             
+            const mobilePlayer = document.getElementById('mobile-player');
             const mobileHitBtn = document.querySelector('#mobile-player #hit-btn');
             const mobileStayBtn = document.querySelector('#mobile-player #stay-btn');
+            if (mobilePlayer) mobilePlayer.classList.remove('show-buttons');
             if (mobileHitBtn) mobileHitBtn.disabled = true;
             if (mobileStayBtn) mobileStayBtn.disabled = true;
         }
@@ -1664,9 +1687,11 @@ class Flip7Game {
         document.getElementById('hit-btn').disabled = true;
         document.getElementById('stay-btn').disabled = true;
         
-        // Disable mobile buttons if they exist
+        // Hide and disable mobile buttons
+        const mobilePlayer = document.getElementById('mobile-player');
         const mobileHitBtn = document.querySelector('#mobile-player #hit-btn');
         const mobileStayBtn = document.querySelector('#mobile-player #stay-btn');
+        if (mobilePlayer) mobilePlayer.classList.remove('show-buttons');
         if (mobileHitBtn) mobileHitBtn.disabled = true;
         if (mobileStayBtn) mobileStayBtn.disabled = true;
     }
