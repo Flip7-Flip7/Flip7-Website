@@ -1162,9 +1162,9 @@ body {
     
     /* Controls panel only contains logo, rules, and settings */
     .controls-panel {
-        order: 1;
+        order: 3;
         padding: 10px;
-        margin-top: 45px; /* Space for status banner */
+        margin-top: 5px;
         margin-bottom: 5px;
         display: block;
         height: auto;
@@ -1289,13 +1289,14 @@ body {
     /* Mobile info panel with log and scoreboard */
     .mobile-info-panel {
         display: block;
-        order: 3;
+        order: 1;
         flex: 0 0 auto;
         background: rgba(255, 255, 255, 0.15);
         border-radius: 12px;
         padding: 10px;
         border: none;
         margin: 5px;
+        margin-top: 45px; /* Space for status banner */
     }
     
     /* Enhanced mobile player areas */
@@ -1576,28 +1577,7 @@ body {
     }
     
     /* Position mobile draw pile area */
-    .mobile-game-board .draw-pile-area {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 10px 0;
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 12px;
-        margin: 0 20px;
-    }
-    
-    /* Card animation area adjustments */
-    .mobile-game-board .draw-pile-area .card-animation-area {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 60px;
-        height: 84px;
-        z-index: 150;
-        pointer-events: none;
-    }
+    /* Remove conflicting draw-pile-area styling - mobile uses .mobile-draw-pile-area instead */
     
     /* Animated card sizing to match current card count */
     .animated-card {
