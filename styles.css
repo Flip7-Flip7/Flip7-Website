@@ -1384,25 +1384,35 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    * {
+        max-width: 100vw !important;
+        box-sizing: border-box;
+    }
+    
     body {
         padding: 5px;
         overflow: hidden;
+        overflow-x: hidden !important;
         height: 100vh;
+        max-width: 100vw;
     }
     
     .game-container {
         grid-template-columns: 1fr;
         grid-template-rows: auto;
         gap: 5px;
-        max-width: 100%;
+        width: 100%;
+        max-width: 100vw;
         height: 100vh;
         display: flex;
         flex-direction: column;
+        overflow-x: hidden !important;
+        box-sizing: border-box;
     }
     
     /* Hide desktop elements on mobile */
     .game-area, .draw-pile-column, .controls-panel {
-        display: none;
+        display: none !important;
     }
     
     /* Mobile Status Banner - Reasonable size */
