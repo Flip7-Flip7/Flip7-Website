@@ -1401,7 +1401,7 @@ body {
     }
     
     /* Hide desktop elements on mobile */
-    .game-area, .draw-pile-column {
+    .game-area, .draw-pile-column, .controls-panel {
         display: none;
     }
     
@@ -1751,35 +1751,43 @@ body {
         flex-shrink: 0;
     }
     
-    /* Dynamic sizing based on card count */
+    /* Dynamic sizing based on card count - Container relative */
     .number-cards.cards-1 .card,
     .number-cards.cards-2 .card,
     .number-cards.cards-3 .card,
     .number-cards.cards-4 .card {
-        width: calc((100vw - 40px) / 4.5);
-        height: calc(((100vw - 40px) / 4.5) * 1.4);
+        width: calc(100% / 4.5);
+        height: calc((100% / 4.5) * 1.4);
+        max-width: 80px;
+        max-height: 112px;
         font-size: 0.9em;
     }
     
     .number-cards.cards-5 .card {
-        width: calc((100vw - 40px) / 5);
-        height: calc(((100vw - 40px) / 5) * 1.4);
+        width: calc(100% / 5.2);
+        height: calc((100% / 5.2) * 1.4);
+        max-width: 70px;
+        max-height: 98px;
         font-size: 0.85em;
     }
     
     .number-cards.cards-6 .card {
-        width: calc((100vw - 40px) / 6);
-        height: calc(((100vw - 40px) / 6) * 1.4);
+        width: calc(100% / 6.2);
+        height: calc((100% / 6.2) * 1.4);
+        max-width: 60px;
+        max-height: 84px;
         font-size: 0.8em;
     }
     
     .number-cards.cards-7 .card {
-        width: calc((100vw - 40px) / 7);
-        height: calc(((100vw - 40px) / 7) * 1.4);
+        width: calc(100% / 7.2);
+        height: calc((100% / 7.2) * 1.4);
+        max-width: 50px;
+        max-height: 70px;
         font-size: 0.75em;
     }
     
-    /* Modifier cards container */
+    /* Modifier cards container - Mobile aligned */
     .modifier-cards {
         display: flex;
         gap: 4px;
@@ -1790,6 +1798,16 @@ body {
         padding: 4px;
         background: rgba(0, 0, 0, 0.2);
         border-radius: 8px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Number cards container - Mobile aligned */
+    .mobile-game-board .number-cards {
+        width: 100%;
+        box-sizing: border-box;
+        justify-content: center;
+        align-items: center;
     }
     
     /* Draw pile card sizing - bigger for mobile */
