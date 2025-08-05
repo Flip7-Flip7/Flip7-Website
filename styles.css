@@ -1735,10 +1735,12 @@ body {
     }
     
     .player-area h3 {
-        font-size: 1em;
-        margin-bottom: 8px;
+        font-size: 0.85em; /* Smaller font for mobile */
+        margin-bottom: 4px; /* Less margin */
         font-weight: bold;
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        text-align: center;
+        letter-spacing: 0.5px;
     }
     
     /* Dynamic card sizing classes */
@@ -1761,63 +1763,74 @@ body {
         flex-shrink: 0;
     }
     
-    /* Dynamic sizing based on card count - Container relative */
+    /* Dynamic sizing based on card count - Smaller for seamless fit */
     .number-cards.cards-1 .card,
     .number-cards.cards-2 .card,
     .number-cards.cards-3 .card,
     .number-cards.cards-4 .card {
-        width: calc(100% / 4.5);
-        height: calc((100% / 4.5) * 1.4);
-        max-width: 80px;
-        max-height: 112px;
-        font-size: 0.9em;
-    }
-    
-    .number-cards.cards-5 .card {
-        width: calc(100% / 5.2);
-        height: calc((100% / 5.2) * 1.4);
-        max-width: 70px;
-        max-height: 98px;
-        font-size: 0.85em;
-    }
-    
-    .number-cards.cards-6 .card {
-        width: calc(100% / 6.2);
-        height: calc((100% / 6.2) * 1.4);
+        width: 60px;
+        height: 84px;
         max-width: 60px;
         max-height: 84px;
         font-size: 0.8em;
     }
     
-    .number-cards.cards-7 .card {
-        width: calc(100% / 7.2);
-        height: calc((100% / 7.2) * 1.4);
+    .number-cards.cards-5 .card {
+        width: 50px;
+        height: 70px;
         max-width: 50px;
         max-height: 70px;
         font-size: 0.75em;
     }
     
-    /* Modifier cards container - Mobile aligned */
+    .number-cards.cards-6 .card {
+        width: 42px;
+        height: 59px;
+        max-width: 42px;
+        max-height: 59px;
+        font-size: 0.7em;
+    }
+    
+    .number-cards.cards-7 .card {
+        width: 36px;
+        height: 50px;
+        max-width: 36px;
+        max-height: 50px;
+        font-size: 0.65em;
+    }
+    
+    /* Modifier cards container - Mobile aligned and compact */
     .modifier-cards {
         display: flex;
-        gap: 4px;
+        gap: 2px; /* Reduced gap */
         flex-wrap: nowrap;
         justify-content: center;
         min-height: auto;
-        margin: 6px 0;
-        padding: 4px;
+        margin: 4px 0; /* Reduced margin */
+        padding: 3px; /* Reduced padding */
         background: rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
+        border-radius: 6px;
         width: 100%;
         box-sizing: border-box;
+        overflow: hidden;
     }
     
-    /* Number cards container - Mobile aligned */
+    /* Smaller modifier cards on mobile */
+    .mobile-game-board .modifier-cards .card {
+        width: 45px !important;
+        height: 63px !important;
+        font-size: 0.7em !important;
+    }
+    
+    /* Number cards container - Mobile aligned and compact */
     .mobile-game-board .number-cards {
         width: 100%;
         box-sizing: border-box;
         justify-content: center;
         align-items: center;
+        gap: 2px; /* Reduced gap between cards */
+        flex-wrap: nowrap;
+        overflow: hidden;
     }
     
     /* Draw pile card sizing - bigger for mobile */
@@ -1889,25 +1902,25 @@ body {
         background: rgba(0, 0, 0, 0.3);
     }
     
-    /* Visual card counter with integrated stats */
+    /* Visual card counter with integrated stats - Compact */
     .unique-counter {
-        font-size: 0.85em;
-        margin-top: 6px;
+        font-size: 0.75em; /* Smaller font */
+        margin-top: 3px; /* Less margin */
         text-align: center;
         font-weight: bold;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 10px;
+        gap: 6px; /* Smaller gap */
     }
     
-    /* Mobile stats layout around unique counter */
+    /* Mobile stats layout around unique counter - Compact */
     .mobile-total-score, .mobile-round-score {
         background: rgba(255, 255, 255, 0.2);
-        padding: 4px 8px;
-        border-radius: 8px;
+        padding: 2px 6px; /* Smaller padding */
+        border-radius: 6px;
         font-weight: bold;
-        font-size: 0.9em;
+        font-size: 0.7em; /* Smaller font */
         flex: 0 0 auto;
     }
     
