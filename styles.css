@@ -1384,17 +1384,21 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    * {
+        box-sizing: border-box;
+    }
+    
     body {
-        padding: 10px;
+        padding: 5px;
         margin: 0;
         overflow-x: hidden;
+        font-size: 14px;
     }
     
     .game-container {
         width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+        max-width: 100%;
+        display: block;
         padding: 0;
         margin: 0;
     }
@@ -1409,11 +1413,11 @@ body {
         display: block;
         background: #1e3a5f;
         color: white;
-        padding: 8px;
+        padding: 5px;
         text-align: center;
-        margin-bottom: 10px;
-        border-radius: 8px;
-        font-size: 0.9em;
+        margin: 5px 0;
+        border-radius: 5px;
+        font-size: 0.8em;
     }
     
     .mobile-status-banner .turn-indicator {
@@ -1449,39 +1453,36 @@ body {
         height: 30px;
     }
     
-    /* Mobile game board - Simple flex layout */
+    /* Mobile game board - Ultra simple */
     .mobile-game-board {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+        display: block;
         width: 100%;
-        padding: 0;
+        padding: 5px;
         margin: 0;
     }
     
-    /* Simple mobile bottom controls */
+    /* Ultra simple mobile bottom controls */
     .mobile-bottom-controls {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        display: block;
+        text-align: center;
         padding: 10px;
+        margin: 10px 0;
         width: 100%;
-        box-sizing: border-box;
-        gap: 10px;
     }
     
-    /* Simple mobile draw pile */
+    /* Ultra simple mobile draw pile */
     .mobile-draw-pile-area {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: inline-block;
+        background: #4a90a4;
+        border: 1px solid #5a9fb5;
+        border-radius: 5px;
         padding: 10px;
-        background: linear-gradient(135deg, #4a90a4 0%, #357a8a 50%, #2c6b7a 100%);
-        border: 2px solid #5a9fb5;
-        border-radius: 8px;
-        min-width: 100px;
-        min-height: 70px;
-        box-shadow: 0 2px 10px rgba(74, 144, 164, 0.3);
+        margin: 5px;
+    }
+    
+    .mobile-rules-btn, .mobile-logo {
+        display: inline-block;
+        margin: 5px;
     }
     
     .mobile-draw-pile-area .draw-pile {
@@ -1522,19 +1523,19 @@ body {
         display: none;
     }
     
-    /* Simple mobile player areas */
+    /* Ultra simple mobile player areas */
     #mobile-player, #mobile-opponent1, #mobile-opponent2, #mobile-opponent3 {
-        background: rgba(255, 255, 255, 0.1);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 8px;
-        padding: 10px;
-        margin: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 5px;
+        padding: 8px;
+        margin: 5px 0;
         width: 100%;
-        box-sizing: border-box;
+        display: block;
     }
     
     #mobile-player {
-        background: linear-gradient(135deg, #22577a 0%, #38a3a5 100%);
+        background: #22577a;
         border-color: #57cc99;
     }
     
@@ -1693,12 +1694,13 @@ body {
         flex-shrink: 0;
     }
     
-    /* Simple mobile card sizing */
+    /* Ultra simple mobile card sizing */
     .mobile-game-board .card {
-        width: 50px;
-        height: 70px;
-        font-size: 0.8em;
-        margin: 2px;
+        width: 40px;
+        height: 56px;
+        font-size: 0.7em;
+        margin: 1px;
+        display: inline-block;
     }
     
     /* Modifier cards container - Mobile aligned and compact */
