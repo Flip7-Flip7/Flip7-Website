@@ -1473,29 +1473,28 @@ body {
         height: 30px;
     }
     
-    /* Mobile game board - Compact for no scroll */
+    /* Mobile game board - Grid layout */
     .mobile-game-board {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-rows: auto auto auto auto auto;
         width: 100%;
         padding: 2px;
-        margin-top: 35px;
-        height: calc(100vh - 35px);
+        margin-top: 25px;
+        height: calc(100vh - 25px);
         overflow: hidden;
+        gap: 2px;
     }
     
-    /* Compact bottom controls */
-    .mobile-bottom-controls {
+    /* Top controls section */
+    .mobile-top-controls {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 6px;
-        margin: 3px 0;
         width: 100%;
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.05);
         border-radius: 6px;
-        backdrop-filter: blur(4px);
-        flex: 0 0 auto;
+        backdrop-filter: blur(2px);
     }
     
     /* Compact draw pile */
@@ -1528,8 +1527,121 @@ body {
     }
     
     .mobile-logo {
-        height: 18px;
+        height: 24px;
         filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    }
+    
+    /* Horizontal card layout for mobile */
+    .mobile-cards-container {
+        display: flex;
+        gap: 4px;
+        width: 100%;
+    }
+    
+    .mobile-number-cards-section {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .mobile-modifier-cards-section {
+        width: 90px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    /* Adjust card containers for horizontal layout */
+    .mobile-cards-container .number-cards {
+        margin: 0;
+        min-height: 40px;
+    }
+    
+    .mobile-cards-container .modifier-cards {
+        margin: 0;
+        min-height: 30px;
+        padding: 2px;
+    }
+    
+    .mobile-modifier-cards-section .action-buttons {
+        margin: 0;
+        padding: 2px;
+    }
+    
+    /* Drag and Drop Styles */
+    .draggable-action-card {
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(255, 215, 0, 0.6) !important;
+    }
+    
+    .drag-instruction {
+        position: absolute;
+        top: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.7em;
+        white-space: nowrap;
+        z-index: 1001;
+        animation: instructionPulse 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes instructionPulse {
+        0%, 100% { opacity: 0.8; }
+        50% { opacity: 1; }
+    }
+    
+    .valid-drop-zone {
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    
+    .valid-drop-zone.drop-zone-flip3 {
+        box-shadow: 0 0 12px rgba(255, 165, 0, 0.8) !important;
+        border: 2px solid rgba(255, 165, 0, 0.8) !important;
+        animation: dropZoneFlip3 2s ease-in-out infinite;
+    }
+    
+    .valid-drop-zone.drop-zone-freeze {
+        box-shadow: 0 0 12px rgba(96, 165, 250, 0.8) !important;
+        border: 2px solid rgba(96, 165, 250, 0.8) !important;
+        animation: dropZoneFreeze 2s ease-in-out infinite;
+    }
+    
+    @keyframes dropZoneFlip3 {
+        0%, 100% { 
+            box-shadow: 0 0 12px rgba(255, 165, 0, 0.6);
+            transform: scale(1); 
+        }
+        50% { 
+            box-shadow: 0 0 16px rgba(255, 165, 0, 1);
+            transform: scale(1.02); 
+        }
+    }
+    
+    @keyframes dropZoneFreeze {
+        0%, 100% { 
+            box-shadow: 0 0 12px rgba(96, 165, 250, 0.6);
+            transform: scale(1); 
+        }
+        50% { 
+            box-shadow: 0 0 16px rgba(96, 165, 250, 1);
+            transform: scale(1.02); 
+        }
+    }
+    
+    .valid-drop-zone::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: inherit;
+        pointer-events: none;
     }
     
     .mobile-draw-pile-area .draw-pile {
@@ -1610,40 +1722,40 @@ body {
         flex: 0 0 auto;
     }
     
-    /* Dynamic Player Height Classes - Reasonable values */
+    /* Dynamic Player Height Classes - Compact for horizontal layout */
     .mobile-player-empty {
-        height: 45px !important;
-        max-height: 45px !important;
+        height: 40px !important;
+        max-height: 40px !important;
     }
     
     .mobile-player-empty h3 {
-        font-size: 0.85em;
-        margin-bottom: 2px;
+        font-size: 0.75em;
+        margin-bottom: 1px;
     }
     
     .mobile-player-empty .unique-counter {
-        font-size: 0.65em;
-        margin-top: 2px;
+        font-size: 0.6em;
+        margin-top: 1px;
     }
     
     .mobile-player-small {
-        height: 70px !important;
-        max-height: 70px !important;
+        height: 55px !important;
+        max-height: 55px !important;
     }
     
     .mobile-player-medium {
-        height: 85px !important;
-        max-height: 85px !important;
+        height: 65px !important;
+        max-height: 65px !important;
     }
     
     .mobile-player-large {
-        height: 100px !important;
-        max-height: 100px !important;
+        height: 75px !important;
+        max-height: 75px !important;
     }
     
     .mobile-player-with-buttons {
-        height: 115px !important;
-        max-height: 115px !important;
+        height: 85px !important;
+        max-height: 85px !important;
     }
     
     /* Mobile info panel with log and scoreboard */

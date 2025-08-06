@@ -168,23 +168,60 @@ class Flip7Game {
                 // Apply dynamic height classes based on card content
                 this.applyMobilePlayerHeightClass(mobilePlayer, playerMap.desktop);
                 
-                // Modify mobile layout: integrate scores with unique counter
+                // Reorganize mobile layout with horizontal card arrangement
+                const h3 = mobilePlayer.querySelector('h3');
+                const playerStats = mobilePlayer.querySelector('.player-stats');
+                const modifierCards = mobilePlayer.querySelector('.modifier-cards');
+                const numberCards = mobilePlayer.querySelector('.number-cards');
                 const uniqueCounter = mobilePlayer.querySelector('.unique-counter');
-                const scoreValue = mobilePlayer.querySelector('.score-value');
-                const roundValue = mobilePlayer.querySelector('.round-value');
-                const uniqueCount = mobilePlayer.querySelector('.unique-count');
+                const actionButtons = mobilePlayer.querySelector('.action-buttons');
                 
-                if (uniqueCounter && scoreValue && roundValue && uniqueCount) {
-                    // Create new layout: [Total Score] [○○○○○○○] [Round Score]
-                    const totalScore = scoreValue.textContent;
-                    const roundScore = roundValue.textContent;
-                    const uniqueText = uniqueCount.innerHTML;
+                if (h3 && numberCards && modifierCards && uniqueCounter) {
+                    // Create new horizontal layout structure
+                    mobilePlayer.innerHTML = '';
                     
-                    uniqueCounter.innerHTML = `
-                        <span class="mobile-total-score">Total: ${totalScore}</span>
-                        <span class="unique-count">${uniqueText}</span>
-                        <span class="mobile-round-score">Round: ${roundScore}</span>
-                    `;
+                    // Add player name
+                    mobilePlayer.appendChild(h3);
+                    
+                    // Create horizontal cards container
+                    const cardsContainer = document.createElement('div');
+                    cardsContainer.className = 'mobile-cards-container';
+                    
+                    // Number cards section (left)
+                    const numberSection = document.createElement('div');
+                    numberSection.className = 'mobile-number-cards-section';
+                    numberSection.appendChild(numberCards);
+                    
+                    // Modifier cards section (right)
+                    const modifierSection = document.createElement('div');
+                    modifierSection.className = 'mobile-modifier-cards-section';
+                    modifierSection.appendChild(modifierCards);
+                    if (actionButtons) {
+                        modifierSection.appendChild(actionButtons);
+                    }
+                    
+                    cardsContainer.appendChild(numberSection);
+                    cardsContainer.appendChild(modifierSection);
+                    mobilePlayer.appendChild(cardsContainer);
+                    
+                    // Add unique counter with scores
+                    const scoreValue = playerStats?.querySelector('.score-value');
+                    const roundValue = playerStats?.querySelector('.round-value');
+                    const uniqueCount = uniqueCounter.querySelector('.unique-count');
+                    
+                    if (scoreValue && roundValue && uniqueCount) {
+                        const totalScore = scoreValue.textContent;
+                        const roundScore = roundValue.textContent;
+                        const uniqueText = uniqueCount.innerHTML;
+                        
+                        uniqueCounter.innerHTML = `
+                            <span class="mobile-total-score">Total: ${totalScore}</span>
+                            <span class="unique-count">${uniqueText}</span>
+                            <span class="mobile-round-score">Round: ${roundScore}</span>
+                        `;
+                    }
+                    
+                    mobilePlayer.appendChild(uniqueCounter);
                 }
             }
         });
@@ -833,6 +870,13 @@ class Flip7Game {
     }
 
     showPlayerSelection(cardOwner, actionType, onComplete = null) {
+        // For mobile, use drag and drop instead of popup
+        if (window.innerWidth <= 768 && (actionType === 'flip3' || actionType === 'freeze')) {
+            this.startActionCardDrag(cardOwner, actionType, onComplete);
+            return;
+        }
+        
+        // Desktop keeps the popup
         const promptElement = document.getElementById('action-prompt');
         const titleElement = document.getElementById('action-title');
         const descriptionElement = document.getElementById('action-description');
@@ -2188,6 +2232,149 @@ class Flip7Game {
         }
         
         console.log('🎉 Flip 7 celebration complete!');
+    }
+
+    startActionCardDrag(cardOwner, actionType, onComplete) {
+        const isMobile = window.innerWidth <= 768;
+        const animationArea = document.getElementById(isMobile ? 'mobile-card-animation-area' : 'card-animation-area');
+        const animatedCard = animationArea.querySelector('.animated-card');
+        
+        if (!animatedCard) return;
+        
+        // Add draggable attribute and styling
+        animatedCard.style.cursor = 'grab';
+        animatedCard.classList.add('draggable-action-card');
+        
+        // Store action data
+        animatedCard.dataset.actionType = actionType;
+        animatedCard.dataset.ownerId = cardOwner.id;
+        
+        // Add instruction text
+        const instruction = document.createElement('div');
+        instruction.className = 'drag-instruction';
+        instruction.textContent = actionType === 'flip3' ? 
+            'Drag to a player to make them flip 3 cards' : 
+            'Drag to a player to freeze them';
+        animationArea.appendChild(instruction);
+        
+        // Enable drag on the card
+        this.enableActionCardDrag(animatedCard, cardOwner, actionType, onComplete, instruction);
+        
+        // Highlight valid drop zones
+        this.highlightValidDropZones(cardOwner, actionType);
+    }
+    
+    enableActionCardDrag(card, cardOwner, actionType, onComplete, instruction) {
+        let isDragging = false;
+        let currentX = 0;
+        let currentY = 0;
+        let initialX = 0;
+        let initialY = 0;
+        const self = this;
+        
+        // Touch events for mobile
+        card.addEventListener('touchstart', startDrag, { passive: false });
+        card.addEventListener('touchmove', drag, { passive: false });
+        card.addEventListener('touchend', endDrag, { passive: false });
+        
+        // Mouse events for testing
+        card.addEventListener('mousedown', startDrag);
+        card.addEventListener('mousemove', drag);
+        card.addEventListener('mouseup', endDrag);
+        
+        function startDrag(e) {
+            e.preventDefault();
+            isDragging = true;
+            card.style.cursor = 'grabbing';
+            
+            const touch = e.touches ? e.touches[0] : e;
+            initialX = touch.clientX - currentX;
+            initialY = touch.clientY - currentY;
+            
+            card.style.zIndex = '1000';
+            card.style.position = 'fixed';
+        }
+        
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            
+            const touch = e.touches ? e.touches[0] : e;
+            currentX = touch.clientX - initialX;
+            currentY = touch.clientY - initialY;
+            
+            card.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.1)`;
+        }
+        
+        function endDrag(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            card.style.cursor = 'grab';
+            
+            const touch = e.changedTouches ? e.changedTouches[0] : e;
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            // Find if dropped on a valid player area
+            const playerArea = elementBelow?.closest('.mobile-game-board > div[id^="mobile-"]') || 
+                               elementBelow?.closest('.player-area');
+            
+            if (playerArea && playerArea.classList.contains('valid-drop-zone')) {
+                // Get player from the area
+                const playerId = playerArea.id.replace('mobile-', '');
+                const targetPlayer = self.players.find(p => p.id === playerId);
+                
+                if (targetPlayer) {
+                    // Execute the action
+                    self.executeActionCardDrop(cardOwner, targetPlayer, actionType, onComplete);
+                    
+                    // Clean up
+                    card.remove();
+                    instruction?.remove();
+                    self.clearDropZoneHighlights();
+                    return;
+                }
+            }
+            
+            // If not dropped on valid zone, animate back
+            card.style.transform = 'translate(0, 0) scale(1)';
+            setTimeout(() => {
+                card.style.position = '';
+                card.style.zIndex = '';
+            }, 300);
+        }
+    }
+    
+    highlightValidDropZones(cardOwner, actionType) {
+        const isMobile = window.innerWidth <= 768;
+        const validPlayers = this.players.filter(p => p.status === 'active');
+        
+        validPlayers.forEach(player => {
+            const playerArea = document.getElementById(isMobile ? `mobile-${player.id}` : player.id);
+            if (playerArea) {
+                playerArea.classList.add('valid-drop-zone');
+                playerArea.classList.add(`drop-zone-${actionType}`);
+            }
+        });
+    }
+    
+    clearDropZoneHighlights() {
+        document.querySelectorAll('.valid-drop-zone').forEach(el => {
+            el.classList.remove('valid-drop-zone', 'drop-zone-flip3', 'drop-zone-freeze');
+        });
+    }
+    
+    executeActionCardDrop(cardOwner, targetPlayer, actionType, onComplete) {
+        if (actionType === 'flip3') {
+            this.addToLog(`${cardOwner.name} forces ${targetPlayer.name} to flip 3 cards!`);
+            this.executeFlipThree(targetPlayer, onComplete);
+        } else if (actionType === 'freeze') {
+            this.addToLog(`${cardOwner.name} freezes ${targetPlayer.name}!`);
+            this.playerStay(targetPlayer);
+            
+            if (cardOwner === this.players[this.currentPlayerIndex]) {
+                this.endTurn();
+            }
+        }
     }
 }
 
