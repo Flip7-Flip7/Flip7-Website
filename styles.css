@@ -1389,10 +1389,13 @@ body {
     }
     
     body {
-        padding: 5px;
+        padding: 2px;
         margin: 0;
-        overflow-x: hidden;
-        font-size: 14px;
+        overflow: hidden;
+        font-size: 12px;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
     }
     
     .game-container {
@@ -1408,29 +1411,34 @@ body {
         display: none !important;
     }
     
-    /* Enhanced Mobile Status Banner */
+    /* Enhanced Mobile Status Banner - Fixed at top */
     .mobile-status-banner {
         display: block;
         background: linear-gradient(135deg, #1e3a5f 0%, #2a4d72 100%);
         color: white;
-        padding: 8px;
+        padding: 4px;
         text-align: center;
-        margin: 8px 0;
-        border-radius: 8px;
-        font-size: 0.85em;
+        margin: 0;
+        border-radius: 0 0 6px 6px;
+        font-size: 0.75em;
         border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 2px 6px rgba(30, 58, 95, 0.3);
+        box-shadow: 0 2px 4px rgba(30, 58, 95, 0.3);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
     }
     
     .mobile-status-banner .turn-indicator {
-        font-size: 1.1em;
+        font-size: 1em;
         font-weight: bold;
         animation: statusPulse 2s ease-in-out infinite;
     }
     
     .mobile-status-banner .game-info {
-        font-size: 0.85em;
-        margin-top: 2px;
+        font-size: 0.8em;
+        margin-top: 1px;
         opacity: 0.9;
     }
     
@@ -1455,45 +1463,49 @@ body {
         height: 30px;
     }
     
-    /* Mobile game board - Ultra simple */
+    /* Mobile game board - Compact for no scroll */
     .mobile-game-board {
-        display: block;
+        display: flex;
+        flex-direction: column;
         width: 100%;
-        padding: 5px;
-        margin: 0;
+        padding: 2px;
+        margin-top: 35px;
+        height: calc(100vh - 35px);
+        overflow: hidden;
     }
     
-    /* Enhanced mobile bottom controls */
+    /* Compact bottom controls */
     .mobile-bottom-controls {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px;
-        margin: 10px 0;
+        padding: 6px;
+        margin: 3px 0;
         width: 100%;
         background: rgba(255, 255, 255, 0.08);
-        border-radius: 8px;
+        border-radius: 6px;
         backdrop-filter: blur(4px);
+        flex: 0 0 auto;
     }
     
-    /* Enhanced mobile draw pile */
+    /* Compact draw pile */
     .mobile-draw-pile-area {
         display: inline-block;
         background: linear-gradient(145deg, #4a90a4 0%, #5a9fb5 100%);
         border: 2px solid rgba(90, 159, 181, 0.8);
-        border-radius: 8px;
-        padding: 12px;
-        margin: 5px;
-        box-shadow: 0 4px 8px rgba(74, 144, 164, 0.3);
+        border-radius: 6px;
+        padding: 8px;
+        margin: 3px;
+        box-shadow: 0 2px 4px rgba(74, 144, 164, 0.3);
         position: relative;
     }
     
     .mobile-rules-btn {
-        padding: 8px 16px;
-        font-size: 0.8em;
+        padding: 6px 12px;
+        font-size: 0.7em;
         background: rgba(255, 255, 255, 0.15);
         border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 8px;
+        border-radius: 6px;
         color: white;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -1506,8 +1518,8 @@ body {
     }
     
     .mobile-logo {
-        height: 24px;
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        height: 18px;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
     }
     
     .mobile-draw-pile-area .draw-pile {
@@ -1548,18 +1560,21 @@ body {
         display: none;
     }
     
-    /* Enhanced mobile player areas */
+    /* Compact mobile player areas */
     #mobile-player, #mobile-opponent1, #mobile-opponent2, #mobile-opponent3 {
         background: rgba(255, 255, 255, 0.12);
         border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 8px;
-        padding: 10px;
-        margin: 6px 0;
+        border-radius: 6px;
+        padding: 6px;
+        margin: 3px 0;
         width: 100%;
         display: block;
         backdrop-filter: blur(4px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
         transition: all 0.3s ease;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
     }
     
     #mobile-player {
@@ -1702,12 +1717,12 @@ body {
     }
     
     .player-area h3 {
-        font-size: 0.9em;
-        margin-bottom: 6px;
+        font-size: 0.8em;
+        margin-bottom: 4px;
         font-weight: bold;
-        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
         text-align: center;
-        letter-spacing: 0.8px;
+        letter-spacing: 0.5px;
         color: rgba(255, 255, 255, 0.95);
     }
     
@@ -1731,15 +1746,15 @@ body {
         flex-shrink: 0;
     }
     
-    /* Enhanced mobile card sizing with better proportions */
+    /* Smaller mobile cards to fit screen */
     .mobile-game-board .card {
-        width: 42px;
-        height: 58px;
-        font-size: 0.72em;
-        margin: 2px;
+        width: 36px;
+        height: 50px;
+        font-size: 0.65em;
+        margin: 1px;
         display: inline-block;
-        border-radius: 6px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         transition: all 0.2s ease;
     }
     
@@ -1783,10 +1798,10 @@ body {
         min-height: 68px;
     }
     
-    /* Draw pile card sizing - bigger for mobile */
+    /* Smaller draw pile card */
     .draw-card {
-        width: 70px;
-        height: 98px;
+        width: 50px;
+        height: 70px;
         position: relative;
         z-index: 3;
     }
@@ -1912,10 +1927,10 @@ body {
         color: rgba(255, 255, 255, 0.3);
     }
     
-    /* Enhanced action buttons - hidden by default on mobile */
+    /* Compact action buttons - hidden by default on mobile */
     .action-buttons {
-        gap: 8px;
-        margin-top: 6px;
+        gap: 4px;
+        margin-top: 3px;
         display: none; /* Hidden by default */
         justify-content: center;
     }
@@ -1926,12 +1941,12 @@ body {
     }
     
     .btn {
-        padding: 12px 24px;
-        font-size: 1em;
-        min-width: 80px;
+        padding: 6px 12px;
+        font-size: 0.8em;
+        min-width: 50px;
         font-weight: bold;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
         border: none;
     }
     
