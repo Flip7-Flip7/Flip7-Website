@@ -723,23 +723,33 @@ body {
     }
 }
 
-/* Mobile-specific card reveal animation (no 3D transforms) */
+/* Enhanced mobile card reveal animation - Captivating! */
 .animated-card.mobile-reveal {
-    animation: mobileReveal 0.8s ease-out;
+    animation: mobileRevealEnhanced 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-@keyframes mobileReveal {
+@keyframes mobileRevealEnhanced {
     0% {
-        transform: scale(0.1);
+        transform: scale(0.3) rotate(180deg);
         opacity: 0;
+        filter: brightness(2) drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
     }
-    50% {
-        transform: scale(1.5);
+    40% {
+        transform: scale(1.8) rotate(90deg);
         opacity: 1;
+        filter: brightness(1.5) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
+    }
+    70% {
+        transform: scale(1.2) rotate(0deg);
+        filter: brightness(1.2) drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+    }
+    85% {
+        transform: scale(0.95) rotate(-5deg);
     }
     100% {
-        transform: scale(1);
+        transform: scale(1) rotate(0deg);
         opacity: 1;
+        filter: brightness(1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
 }
 
@@ -1560,21 +1570,20 @@ body {
         display: none;
     }
     
-    /* Compact mobile player areas */
+    /* Compact mobile player areas - No flex expansion */
     #mobile-player, #mobile-opponent1, #mobile-opponent2, #mobile-opponent3 {
-        background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
         padding: 6px;
-        margin: 3px 0;
+        margin: 2px 0;
         width: 100%;
         display: block;
-        backdrop-filter: blur(4px);
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-        transition: all 0.3s ease;
-        flex: 1;
-        min-height: 0;
+        backdrop-filter: blur(2px);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
         overflow: hidden;
+        position: relative;
     }
     
     #mobile-player {
@@ -1601,36 +1610,40 @@ body {
         flex: 0 0 auto;
     }
     
-    /* Dynamic Player Height Classes based on card content */
+    /* Dynamic Player Height Classes - Reasonable values */
     .mobile-player-empty {
-        min-height: 30px !important;
-        max-height: 35px !important;
+        height: 45px !important;
+        max-height: 45px !important;
     }
     
     .mobile-player-empty h3 {
-        font-size: 0.9em;
+        font-size: 0.85em;
         margin-bottom: 2px;
     }
     
     .mobile-player-empty .unique-counter {
-        font-size: 0.7em;
+        font-size: 0.65em;
         margin-top: 2px;
     }
     
     .mobile-player-small {
-        min-height: 60px !important;
+        height: 70px !important;
+        max-height: 70px !important;
     }
     
     .mobile-player-medium {
-        min-height: 90px !important;
+        height: 85px !important;
+        max-height: 85px !important;
     }
     
     .mobile-player-large {
-        min-height: 120px !important;
+        height: 100px !important;
+        max-height: 100px !important;
     }
     
     .mobile-player-with-buttons {
-        min-height: 140px !important; /* Extra space for action buttons */
+        height: 115px !important;
+        max-height: 115px !important;
     }
     
     /* Mobile info panel with log and scoreboard */
@@ -1726,7 +1739,7 @@ body {
         color: rgba(255, 255, 255, 0.95);
     }
     
-    /* Dynamic card sizing classes */
+    /* Dynamic card sizing classes with smooth transitions */
     .number-cards {
         display: flex;
         gap: 4px;
@@ -1737,7 +1750,7 @@ body {
         padding: 4px;
         background: rgba(0, 0, 0, 0.2);
         border-radius: 8px;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     /* Base card styling with transitions */
@@ -1746,16 +1759,37 @@ body {
         flex-shrink: 0;
     }
     
-    /* Smaller mobile cards to fit screen */
+    /* Prominent mobile cards - The star of the show! */
     .mobile-game-board .card {
-        width: 36px;
-        height: 50px;
-        font-size: 0.65em;
-        margin: 1px;
+        width: 40px;
+        height: 55px;
+        font-size: 0.7em;
+        margin: 2px;
         display: inline-block;
-        border-radius: 5px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-        transition: all 0.2s ease;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        transform-style: preserve-3d;
+    }
+    
+    /* Card hover effect for engagement */
+    .mobile-game-board .card:not(.back) {
+        cursor: pointer;
+    }
+    
+    /* Newly added card glow effect */
+    .mobile-game-board .card.new-card {
+        animation: newCardGlow 1.5s ease-out;
+    }
+    
+    @keyframes newCardGlow {
+        0% {
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        100% {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
     }
     
     /* Enhanced modifier cards container */
@@ -1782,20 +1816,21 @@ body {
         font-size: 0.5em !important;
     }
     
-    /* Enhanced number cards container */
+    /* Smooth number cards container */
     .mobile-game-board .number-cards {
         width: 100%;
         box-sizing: border-box;
         justify-content: center;
         align-items: center;
-        gap: 3px;
+        gap: 2px;
         flex-wrap: nowrap;
         overflow: hidden;
-        background: rgba(0, 0, 0, 0.15);
-        border-radius: 8px;
-        padding: 6px;
-        margin: 4px 0;
-        min-height: 68px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 6px;
+        padding: 4px;
+        margin: 2px 0;
+        min-height: 50px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     /* Smaller draw pile card */
@@ -1842,20 +1877,20 @@ body {
         display: none; /* Hide default stats, we'll create new layout below */
     }
     
-    /* Better unique counter styling */
+    /* Subtle unique counter for mobile */
     .unique-counter {
-        font-size: 0.8em;
-        margin-top: 6px;
+        font-size: 0.65em;
+        margin-top: 3px;
         text-align: center;
-        font-weight: bold;
+        font-weight: 500;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 8px;
-        padding: 4px 8px;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 6px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        gap: 6px;
+        padding: 2px 4px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        opacity: 0.8;
     }
     
     .player-stats .total-score {
