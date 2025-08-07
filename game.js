@@ -1358,10 +1358,11 @@ class Flip7Game {
         
         const currentPlayer = this.players[this.currentPlayerIndex];
         
-        // Highlight the current player after a 1 second delay
+        // Highlight the current player immediately when their turn starts
+        this.highlightCurrentPlayer();
+        
+        // Then handle the actual turn logic with a brief delay
         setTimeout(() => {
-            this.highlightCurrentPlayer();
-            
             if (currentPlayer.isHuman) {
                 // Enable actions for human player
                 this.enablePlayerActions();
@@ -1371,7 +1372,7 @@ class Flip7Game {
                 this.showMessage(`${currentPlayer.name}'s turn...`);
                 setTimeout(() => this.takeAITurn(currentPlayer), 1000);
             }
-        }, 1000);
+        }, 100); // Much shorter delay - just to ensure UI updates properly
     }
 
     takeAITurn(player) {
