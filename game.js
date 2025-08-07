@@ -24,15 +24,12 @@ class Flip7Game {
         this.initializeEventListeners();
         this.updateDisplay();
         
-        // Show name popup automatically after DOM is ready
+        // Auto-start game immediately on page load
         setTimeout(() => {
-            console.log('Attempting to show popup...');
-            const testPopup = document.getElementById('mobile-name-popup');
-            console.log('Popup element found:', !!testPopup);
-            if (testPopup) {
-                console.log('Popup computed style:', getComputedStyle(testPopup).display);
-            }
-            this.showStartPopup();
+            console.log('Auto-starting game...');
+            this.playerName = "Player";
+            this.players[0].name = "Player";
+            this.startNewGame();
         }, 100);
     }
 
@@ -127,25 +124,7 @@ class Flip7Game {
             });
         }
         
-        // Name input form (used on all devices)
-        document.getElementById('name-input-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const nameInput = document.getElementById('player-name-input');
-            const playerName = nameInput.value.trim();
-            
-            if (playerName && playerName.length > 0) {
-                this.playerName = playerName;
-                // Update the existing player's name
-                this.players[0].name = playerName;
-                
-                // Hide the name popup
-                document.getElementById('mobile-name-popup').style.display = 'none';
-                
-                // Start the game
-                console.log('Player name submitted:', playerName);
-                this.startNewGame();
-            }
-        });
+        // Popup no longer used - game auto-starts
         
         // Desktop game message button (start game)
         const gameMessageBtn = document.getElementById('game-message');
@@ -443,8 +422,8 @@ class Flip7Game {
             this.createDeck();
         }
         
-        // Player to the left of dealer goes first
-        this.currentPlayerIndex = (this.dealerIndex + 1) % this.players.length;
+        // Human player always goes first
+        this.currentPlayerIndex = 0;
         
         this.updateDisplay();
         
@@ -461,6 +440,8 @@ class Flip7Game {
         console.log('Starting initial card dealing...');
         console.log('Deck length:', this.deck.length);
         console.log('Players:', this.players.map(p => p.name));
+        
+        // Always start dealing with human player (index 0)
         let dealIndex = 0;
         
         const dealNextCard = () => {
