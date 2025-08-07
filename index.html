@@ -124,71 +124,105 @@
         background: #f59e0b !important; /* Orange for Stay */
     }
     
-    /* STEP 8: AGGRESSIVELY hide all score displays */
-    .player-stats, 
-    .total-score, 
+    /* STEP 8: Show total scores but hide round scores */
     .round-score,
-    .mobile-total-score,
     .mobile-round-score,
-    .score-value,
-    .round-value,
-    span[class*="score"] {
-        display: none !important; /* Hide ALL score elements */
+    .round-value {
+        display: none !important; /* Hide round scores */
         visibility: hidden !important;
         opacity: 0 !important;
         height: 0 !important;
         overflow: hidden !important;
     }
     
-    /* FORCE player area layout with absolute positioning */
-    .player-area {
-        display: block !important; /* Change to block for precise control */
-        position: relative !important;
+    /* Show total scores */
+    .player-stats,
+    .total-score,
+    .score-value {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        height: auto !important;
         overflow: visible !important;
     }
     
+    /* 2x2 CSS Grid Layout for Player Areas */
+    .player-area {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important; /* Two equal columns */
+        grid-template-rows: auto auto !important; /* Two rows, auto height */
+        gap: 4px !important;
+        position: relative !important;
+        overflow: visible !important;
+        padding: 6px !important;
+    }
+    
+    /* Top Left: Player Name */
     .player-area h3 {
-        position: relative !important;
-        top: 0 !important; /* Ensure at very top */
-        font-size: 0.7em !important; /* Very small text */
-        margin: 0 !important; /* No margins */
-        padding: 1px !important; /* Minimal padding */
-        text-align: center !important;
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        font-size: 0.7em !important;
+        margin: 0 !important;
+        padding: 2px 4px !important;
+        text-align: left !important;
         font-weight: bold !important;
-        background: rgba(0, 0, 0, 0.5) !important; /* Dark background for visibility */
+        background: rgba(0, 0, 0, 0.5) !important;
         color: white !important;
-        z-index: 10 !important;
+        border-radius: 3px !important;
     }
     
-    .player-area .modifier-cards {
-        position: relative !important;
-        top: 2px !important; /* Right after name */
-        min-height: 15px !important; /* Very compact */
+    /* Top Right: Total Score */
+    .player-area .player-stats {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        text-align: right !important;
+        font-size: 0.6em !important;
         margin: 0 !important;
+        padding: 2px 4px !important;
+        background: rgba(0, 0, 0, 0.3) !important;
+        color: white !important;
+        border-radius: 3px !important;
     }
     
+    /* Bottom Left: Number Cards */
     .player-area .number-cards {
-        position: relative !important;
-        top: 2px !important; /* After modifier cards */
-        float: left !important; /* Position on left side */
-        width: 60% !important; /* Take up left portion */
-        min-height: 18px !important; /* Very compact */
+        grid-column: 1 !important;
+        grid-row: 2 !important;
+        min-height: 18px !important;
         margin: 0 !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-radius: 3px !important;
+        padding: 2px !important;
     }
     
+    /* Right Middle: Modifier Cards */
+    .player-area .modifier-cards {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+        grid-row-start: 2 !important;
+        grid-row-end: 2 !important;
+        min-height: 15px !important;
+        margin: 0 !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-radius: 3px !important;
+        padding: 2px !important;
+        align-self: start !important;
+    }
+    
+    /* Bottom Right: Unique Counter */
     .player-area .unique-counter {
-        position: relative !important;
-        top: 2px !important; /* Same level as number cards */
-        float: right !important; /* Position on right side */
-        width: 38% !important; /* Take up right portion */
-        margin: 0 !important; 
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+        align-self: end !important; /* Position at bottom of cell */
+        margin: 0 !important;
         text-align: center !important;
-        font-size: 0.6em !important; /* Very small text */
-        padding: 3px 4px !important; 
-        background: rgba(0, 0, 0, 0.8) !important; /* Darker bar */
-        border-radius: 4px !important; /* Rounded corners */
-        min-height: 12px !important; /* Minimum height for visibility */
+        font-size: 0.6em !important;
+        padding: 3px 4px !important;
+        background: rgba(0, 0, 0, 0.8) !important;
+        border-radius: 4px !important;
+        min-height: 12px !important;
         box-sizing: border-box !important;
+        margin-top: 2px !important; /* Small gap below modifier cards */
     }
     </style>
     
