@@ -169,11 +169,14 @@
     
     .player-area .unique-counter {
         position: relative !important;
-        top: 4px !important; /* After modifier cards */
+        top: 18px !important; /* Below modifier cards */
         margin: 0 !important; 
         text-align: center !important;
         font-size: 0.6em !important; /* Very small text */
-        padding: 0 !important; 
+        padding: 2px 0 !important; 
+        background: rgba(0, 0, 0, 0.6) !important; /* Dark bar */
+        width: 100% !important; /* Match modifier card width */
+        border-radius: 4px !important; /* Rounded corners */
     }
     
     .player-area .number-cards {
@@ -451,7 +454,7 @@
 
     <!-- FINAL MOBILE UNIFORM SIZING - AFTER ALL EXTERNAL STYLESHEETS -->
     <style>
-    /* FORCE HUMAN PLAYER SMALLER - ULTRA AGGRESSIVE */
+    /* HUMAN PLAYER CONTAINER - MATCH BOTS EXACTLY */
     html body .game-container .game-area .players-grid .main-player,
     html body .game-container .game-area .players-grid .player-area.main-player,
     html body .game-container .game-area .players-grid #player,
@@ -461,17 +464,16 @@
     .main-player,
     #player {
         flex: 1 !important;
-        min-height: 40px !important; /* MUCH SMALLER to force difference */
-        max-height: 40px !important; /* MUCH SMALLER to force difference */
-        height: 40px !important; /* FORCE tiny height */
-        padding: 2px !important; /* Minimal padding */
-        margin: 2px 0 !important; /* Minimal margins */
+        min-height: 80px !important; /* MATCH bots */
+        max-height: 80px !important; /* MATCH bots */
+        height: 80px !important; /* IDENTICAL to bots */
+        padding: 6px !important; /* MATCH bots */
+        margin: 4px 0 !important; /* MATCH bots */
         box-sizing: border-box !important;
         overflow: hidden !important;
-        background: lime !important; /* BRIGHT GREEN to confirm changes */
-        border: 5px solid red !important; /* BRIGHT RED border to confirm */
+        background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
+        border: 2px solid rgba(255,255,255,0.3) !important;
         border-radius: 8px !important;
-        transform: scale(0.8) !important; /* Additional shrinking */
     }
     
     /* BOT PLAYERS - IDENTICAL SIZING TO HUMAN */
