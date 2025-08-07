@@ -79,26 +79,45 @@
         border: 2px solid rgba(255,255,255,0.3) !important;
     }
     
-    /* Human player - SAME SIZE AS BOTS */
-    .main-player {
-        flex: 0.8 !important; /* SAME as bots */
-        min-height: 30px !important; /* SAME as bots */
-        max-height: 45px !important; /* SAME as bots */
-        padding: 1px !important; /* SAME as bots */
-        margin: 1px 0 !important; /* SAME as bots */
+    /* NUCLEAR HUMAN PLAYER SIZING - MAXIMUM SPECIFICITY */
+    html body .game-container .game-area .players-grid .main-player,
+    html body .game-container .game-area .players-grid .player-area.main-player,
+    html body .game-container .game-area .players-grid #player,
+    html body .game-container .game-area .players-grid div.player-area.main-player,
+    html body .game-container .game-area .players-grid div#player.main-player,
+    html body .game-container .game-area .players-grid div.main-player {
+        flex: 0.8 !important; /* EXACT SAME as bots */
+        min-height: 30px !important; /* EXACT SAME as bots */
+        max-height: 45px !important; /* EXACT SAME as bots */
+        height: 45px !important; /* FORCE exact height */
+        padding: 1px !important; /* EXACT SAME as bots */
+        margin: 1px 0 !important; /* EXACT SAME as bots */
         background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
-        border: 2px solid lime !important; /* DEBUG: Human player */
+        border: 5px solid magenta !important; /* BRIGHT DEBUG: Human player should be MAGENTA */
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        flex-shrink: 1 !important;
+        flex-grow: 0 !important;
+        flex-basis: auto !important;
     }
     
-    /* Bot players - ULTRA COMPACT mobile sizing */
-    .opponent-player {
-        flex: 0.8 !important; /* Even smaller than human */
-        min-height: 30px !important; /* Very small */
-        max-height: 45px !important; /* Very limited height */
-        padding: 1px !important; /* Absolute minimum padding */
-        margin: 1px 0 !important; /* Minimal margins */
+    /* NUCLEAR BOT PLAYER SIZING - MAXIMUM SPECIFICITY FOR COMPARISON */
+    html body .game-container .game-area .players-grid .opponent-player,
+    html body .game-container .game-area .players-grid .player-area.opponent-player,
+    html body .game-container .game-area .players-grid div.opponent-player {
+        flex: 0.8 !important; /* EXACT SAME as human */
+        min-height: 30px !important; /* EXACT SAME as human */
+        max-height: 45px !important; /* EXACT SAME as human */
+        height: 45px !important; /* FORCE exact height */
+        padding: 1px !important; /* EXACT SAME as human */
+        margin: 1px 0 !important; /* EXACT SAME as human */
         background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(74, 95, 122, 0.75) 100%) !important;
-        border: 1px solid cyan !important; /* DEBUG: Bot players */
+        border: 5px solid cyan !important; /* BRIGHT DEBUG: Bot players should be CYAN */
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        flex-shrink: 1 !important;
+        flex-grow: 0 !important;
+        flex-basis: auto !important;
     }
     
     /* STEP 7: Fix action buttons visibility at bottom */
