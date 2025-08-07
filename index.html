@@ -169,19 +169,21 @@
     
     .player-area .unique-counter {
         position: relative !important;
-        top: 18px !important; /* Below modifier cards */
+        top: 2px !important; /* Right after modifier cards */
         margin: 0 !important; 
         text-align: center !important;
         font-size: 0.6em !important; /* Very small text */
-        padding: 2px 0 !important; 
-        background: rgba(0, 0, 0, 0.6) !important; /* Dark bar */
-        width: 100% !important; /* Match modifier card width */
+        padding: 3px 0 !important; 
+        background: rgba(0, 0, 0, 0.8) !important; /* Darker bar */
+        width: 100% !important; /* Full width */
         border-radius: 4px !important; /* Rounded corners */
+        display: block !important; /* Force block display */
+        min-height: 12px !important; /* Minimum height for visibility */
     }
     
     .player-area .number-cards {
         position: relative !important;
-        top: 6px !important; /* After unique counter */
+        top: 4px !important; /* After unique counter */
         min-height: 18px !important; /* Very compact */
         margin: 0 !important;
     }
@@ -220,8 +222,8 @@
                         <span class="player-status">Waiting</span>
                     </div>
                     <div class="modifier-cards"></div>
-                    <div class="number-cards"></div>
                     <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
+                    <div class="number-cards"></div>
                 </div>
 
                 <!-- Opponent 2 (Top) -->
@@ -233,8 +235,8 @@
                         <span class="player-status">Waiting</span>
                     </div>
                     <div class="modifier-cards"></div>
-                    <div class="number-cards"></div>
                     <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
+                    <div class="number-cards"></div>
                 </div>
 
                 <!-- Opponent 3 (Right) -->
@@ -246,8 +248,8 @@
                         <span class="player-status">Waiting</span>
                     </div>
                     <div class="modifier-cards"></div>
-                    <div class="number-cards"></div>
                     <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
+                    <div class="number-cards"></div>
                 </div>
 
                 <!-- Human Player (Bottom) -->
@@ -259,11 +261,11 @@
                         <span class="player-status">Waiting</span>
                     </div>
                     <div class="modifier-cards" id="player-modifiers"></div>
-                    <div class="number-cards" id="player-numbers"></div>
                     <div class="unique-counter">
                         <span class="unique-count" id="player-unique">○○○○○○○</span>
                         <span class="flip7-bonus" id="flip7-indicator" style="display: none;">🎉 Flip 7!</span>
                     </div>
+                    <div class="number-cards" id="player-numbers"></div>
                     <div class="action-buttons">
                         <button id="hit-btn" class="btn primary" disabled>Hit</button>
                         <button id="stay-btn" class="btn secondary" disabled>Stay</button>
