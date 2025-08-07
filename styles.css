@@ -1392,69 +1392,102 @@ body {
     display: none;
 }
 
-/* Responsive Design */
+/* MICHELANGELO GOLDEN RATIO MOBILE LAYOUT */
 @media (max-width: 768px) {
-    * {
-        box-sizing: border-box;
+    /* NUCLEAR RESET - Complete mobile override */
+    *, *::before, *::after {
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
     }
     
     body {
-        padding: 2px;
-        margin: 0;
-        overflow: hidden;
-        font-size: 12px;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        font-size: 12px !important;
+        height: 100vh !important;
+        width: 100vw !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
     }
     
     .game-container {
-        width: 100%;
-        max-width: 100%;
-        display: block;
-        padding: 0;
-        margin: 0;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: none !important;
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        grid-template-columns: none !important;
+        grid-template-rows: none !important;
+        gap: 0 !important;
     }
     
-    /* Hide desktop elements on mobile */
-    .game-area, .draw-pile-column, .controls-panel {
+    /* Hide desktop elements completely */
+    .game-area, .draw-pile-column, .controls-panel, .desktop-info {
         display: none !important;
+        visibility: hidden !important;
     }
     
-    /* Enhanced Mobile Status Banner - Fixed at top */
+    /* GOLDEN RATIO STATUS BANNER - Perfect top section */
     .mobile-status-banner {
-        display: block;
-        background: linear-gradient(135deg, #1e3a5f 0%, #2a4d72 100%);
-        color: white;
-        padding: 4px;
-        text-align: center;
-        margin: 0;
-        border-radius: 0 0 6px 6px;
-        font-size: 0.75em;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 2px 4px rgba(30, 58, 95, 0.3);
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 100;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        background: linear-gradient(135deg, #1e3a5f 0%, #2a4d72 50%, #357a8a 100%) !important;
+        color: white !important;
+        padding: 0 12px !important;
+        margin: 0 !important;
+        border-radius: 0 0 8px 8px !important;
+        font-size: 0.75em !important;
+        border: none !important;
+        border-bottom: 2px solid rgba(255, 215, 0, 0.4) !important;
+        box-shadow: 0 3px 8px rgba(30, 58, 95, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100vw !important;
+        height: 25px !important;
+        z-index: 1000 !important;
+        backdrop-filter: blur(10px) !important;
     }
     
+    /* GOLDEN RATIO STATUS ELEMENTS - Perfect balance */
     .mobile-status-banner .turn-indicator {
-        font-size: 1em;
-        font-weight: bold;
-        animation: statusPulse 2s ease-in-out infinite;
+        font-size: 0.9em !important;
+        font-weight: 700 !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
+        animation: goldenStatusPulse 1.618s ease-in-out infinite alternate !important;
+        color: rgba(255, 215, 0, 0.95) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
     }
     
     .mobile-status-banner .game-info {
-        font-size: 0.8em;
-        margin-top: 1px;
-        opacity: 0.9;
+        font-size: 0.7em !important;
+        font-weight: 500 !important;
+        opacity: 0.85 !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4) !important;
     }
     
-    @keyframes statusPulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.7; }
+    @keyframes goldenStatusPulse {
+        0% { 
+            opacity: 0.9;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+        }
+        100% { 
+            opacity: 1;
+            text-shadow: 
+                0 1px 2px rgba(0, 0, 0, 0.6),
+                0 0 8px rgba(255, 215, 0, 0.4);
+        }
     }
     
     /* Controls panel only contains logo, rules, and settings */
@@ -1473,17 +1506,21 @@ body {
         height: 30px;
     }
     
-    /* Mobile game board - Vertical layout ONLY */
+    /* MICHELANGELO MOBILE BOARD - Golden Ratio Perfection */
     .mobile-game-board {
-        display: grid !important;
-        grid-template-columns: 1fr !important;
-        grid-template-rows: auto auto auto auto auto auto !important;
-        width: 100%;
-        padding: 2px;
-        margin-top: 25px;
-        height: calc(100vh - 25px);
-        overflow: hidden;
-        gap: 2px;
+        display: flex !important;
+        flex-direction: column !important;
+        position: fixed !important;
+        top: 25px !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: calc(100vh - 25px) !important;
+        overflow: hidden !important;
+        padding: 0 8px 4px 8px !important;
+        gap: 0 !important;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%) !important;
     }
     
     /* Force all mobile elements to span full width */
@@ -1492,76 +1529,126 @@ body {
         width: 100% !important;
     }
     
-    /* Controls section with draw pile and buttons - ALWAYS AT TOP */
+    /* GOLDEN RATIO CONTROLS - φ² ratio (62px) */
     .mobile-controls-section {
         display: flex !important;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-        padding: 4px;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 12px !important;
+        padding: 8px 12px !important;
         width: 100% !important;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 6px;
-        grid-row: 1 !important;
+        height: 62px !important;
+        background: linear-gradient(135deg, rgba(74, 144, 164, 0.25) 0%, rgba(53, 122, 138, 0.35) 100%) !important;
+        border: 1px solid rgba(255, 215, 0, 0.2) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        flex-shrink: 0 !important;
+        backdrop-filter: blur(8px) !important;
+        margin-top: 4px !important;
     }
     
-    /* Mobile action buttons in controls */
+    /* GOLDEN RATIO ACTION BUTTONS - Premium styling */
     .mobile-action-btn {
-        padding: 8px 16px;
-        font-size: 0.85em;
-        min-width: 60px;
-        transition: opacity 0.3s ease;
+        padding: 10px 16px !important;
+        font-size: 0.9em !important;
+        min-width: 70px !important;
+        height: 38px !important; /* φ⁻¹ ratio for perfect button proportions */
+        font-weight: bold !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        border: none !important;
+        border-radius: 8px !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        cursor: pointer !important;
+        backdrop-filter: blur(4px) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    .mobile-action-btn.primary {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: white !important;
+    }
+    
+    .mobile-action-btn.secondary {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        color: white !important;
+    }
+    
+    .mobile-action-btn:active:not(.inactive) {
+        transform: translateY(2px) scale(0.98) !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     }
     
     .mobile-action-btn.inactive {
-        opacity: 0.4;
-        pointer-events: none;
+        opacity: 0.3 !important;
+        pointer-events: none !important;
+        filter: grayscale(80%) !important;
     }
     
-    /* Bottom section for rules and logo */
+    /* GOLDEN RATIO BOTTOM - φ⁻¹ ratio (38px) */
     .mobile-bottom-section {
         display: flex !important;
-        justify-content: space-between;
-        align-items: center;
-        padding: 4px 8px;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 6px 12px !important;
         width: 100% !important;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 6px;
-        grid-row: 6 !important;
+        height: 38px !important;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.15) 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+        flex-shrink: 0 !important;
+        margin-top: auto !important;
+        backdrop-filter: blur(4px) !important;
     }
     
-    /* Compact draw pile */
+    /* GOLDEN RATIO DRAW PILE - Central focal point */
     .mobile-draw-pile-area {
-        display: inline-block;
-        background: linear-gradient(145deg, #4a90a4 0%, #5a9fb5 100%);
-        border: 2px solid rgba(90, 159, 181, 0.8);
-        border-radius: 6px;
-        padding: 8px;
-        margin: 3px;
-        box-shadow: 0 2px 4px rgba(74, 144, 164, 0.3);
-        position: relative;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 62px !important; /* φ⁻¹ ratio width */
+        height: 46px !important; /* φ⁻² ratio height for perfect proportion */
+        background: linear-gradient(135deg, #4a90a4 0%, #357a8a 50%, #2c6b7a 100%) !important;
+        border: 2px solid rgba(255, 215, 0, 0.3) !important;
+        border-radius: 10px !important;
+        padding: 4px !important;
+        margin: 0 !important;
+        box-shadow: 
+            0 6px 16px rgba(74, 144, 164, 0.4),
+            0 0 0 1px rgba(90, 159, 181, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+        position: relative !important;
+        backdrop-filter: blur(6px) !important;
+        flex-shrink: 0 !important;
     }
     
+    /* GOLDEN RATIO BOTTOM ELEMENTS */
     .mobile-rules-btn {
-        padding: 6px 12px;
-        font-size: 0.7em;
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 6px;
-        color: white;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(4px);
+        padding: 6px 12px !important;
+        font-size: 0.7em !important;
+        height: 26px !important; /* φ⁻³ ratio for perfect small button */
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 6px !important;
+        color: white !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        backdrop-filter: blur(6px) !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     }
     
-    .mobile-rules-btn:hover {
-        background: rgba(255, 255, 255, 0.25);
-        transform: translateY(-1px);
+    .mobile-rules-btn:active {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.12) 100%) !important;
+        transform: translateY(1px) scale(0.98) !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
     }
     
     .mobile-logo {
-        height: 24px;
-        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+        height: 26px !important; /* Matching φ⁻³ ratio */
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25)) !important;
+        transition: all 0.3s ease !important;
     }
     
     /* Horizontal card layout for mobile */
@@ -1684,19 +1771,26 @@ body {
         gap: 8px;
     }
     
-    /* Mobile Draw Pile Label */
+    /* GOLDEN RATIO DRAW PILE LABEL - Premium detail */
     .mobile-draw-pile-area::after {
-        content: "DRAW";
-        position: absolute;
-        bottom: 8px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 0.6em;
-        font-weight: bold;
-        color: rgba(255, 255, 255, 0.7);
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-        letter-spacing: 1px;
-        z-index: 15;
+        content: "DRAW" !important;
+        position: absolute !important;
+        bottom: 2px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        font-size: 0.5em !important;
+        font-weight: 700 !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+        text-shadow: 
+            0 1px 2px rgba(0, 0, 0, 0.6),
+            0 0 4px rgba(255, 215, 0, 0.3) !important;
+        letter-spacing: 1px !important;
+        text-transform: uppercase !important;
+        z-index: 15 !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.5) 100%) !important;
+        padding: 1px 3px !important;
+        border-radius: 3px !important;
+        backdrop-filter: blur(2px) !important;
     }
     
     .mobile-draw-pile-area .card-animation-area {
@@ -1715,40 +1809,64 @@ body {
         display: none;
     }
     
-    /* Ultra compact mobile player areas */
-    #mobile-player, #mobile-opponent1, #mobile-opponent2, #mobile-opponent3 {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 6px;
-        padding: 4px;
-        margin: 1px 0;
-        width: 100% !important;
-        display: block !important;
-        backdrop-filter: blur(2px);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
-        overflow: visible !important;
-        position: relative;
-    }
-    
-    /* Center human player - Always row 2 */
+    /* GOLDEN RATIO PLAYERS - Perfect proportions */
     #mobile-player {
-        width: 95%;
-        margin: 1px auto;
-        grid-row: 2 !important;
+        width: 100% !important;
+        height: 100px !important; /* Golden ratio: φ ratio */
+        background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
+        border: 2px solid rgba(87, 204, 153, 0.6) !important;
+        border-radius: 12px !important;
+        padding: 8px !important;
+        margin: 8px 0 4px 0 !important;
+        display: block !important;
+        backdrop-filter: blur(8px) !important;
+        box-shadow: 0 6px 16px rgba(34, 87, 122, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+        overflow: hidden !important;
+        position: relative !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     
-    /* Ensure bots are in correct rows */
-    #mobile-opponent1 {
-        grid-row: 3 !important;
+    #mobile-opponent1, #mobile-opponent2, #mobile-opponent3 {
+        width: 100% !important;
+        height: 62px !important; /* Golden ratio: φ⁻¹ ratio */
+        background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(74, 95, 122, 0.75) 100%) !important;
+        border: 1px solid rgba(74, 95, 122, 0.4) !important;
+        border-radius: 10px !important;
+        padding: 6px !important;
+        margin: 2px 0 !important;
+        display: block !important;
+        backdrop-filter: blur(6px) !important;
+        box-shadow: 0 3px 8px rgba(44, 62, 80, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        overflow: hidden !important;
+        position: relative !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     
-    #mobile-opponent2 {
-        grid-row: 4 !important;
+    /* Premium human player distinction */
+    #mobile-player {
+        box-shadow: 
+            0 8px 20px rgba(34, 87, 122, 0.4),
+            0 0 0 1px rgba(87, 204, 153, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
     }
     
-    #mobile-opponent3 {
-        grid-row: 5 !important;
+    #mobile-player.current-turn {
+        border-color: #ffd700 !important;
+        border-width: 3px !important;
+        box-shadow: 
+            0 0 20px rgba(255, 215, 0, 0.6),
+            0 8px 25px rgba(34, 87, 122, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+        animation: goldenGlow 2s ease-in-out infinite alternate !important;
+    }
+    
+    @keyframes goldenGlow {
+        0% { 
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 8px 25px rgba(34, 87, 122, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        100% { 
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 10px 30px rgba(34, 87, 122, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
     }
     
     
@@ -1770,40 +1888,35 @@ body {
         flex: 0 0 auto;
     }
     
-    /* Ultra compact player heights for visibility */
+    /* ULTRA compact player heights */
     .mobile-player-empty {
-        height: 35px !important;
-        max-height: 35px !important;
-    }
-    
-    .mobile-player-empty h3 {
-        font-size: 0.7em;
-        margin-bottom: 0;
-    }
-    
-    .mobile-player-empty .unique-counter {
-        font-size: 0.55em;
-        margin-top: 0;
+        height: auto !important;
+        min-height: 30px !important;
+        max-height: 30px !important;
     }
     
     .mobile-player-small {
-        height: 45px !important;
-        max-height: 45px !important;
+        height: auto !important;
+        min-height: 40px !important;
+        max-height: 50px !important;
     }
     
     .mobile-player-medium {
-        height: 55px !important;
-        max-height: 55px !important;
+        height: auto !important;
+        min-height: 50px !important;
+        max-height: 60px !important;
     }
     
     .mobile-player-large {
-        height: 65px !important;
-        max-height: 65px !important;
+        height: auto !important;
+        min-height: 60px !important;
+        max-height: 70px !important;
     }
     
     .mobile-player-with-buttons {
-        height: 65px !important;
-        max-height: 65px !important;
+        height: auto !important;
+        min-height: 60px !important;
+        max-height: 70px !important;
     }
     
     /* Mobile info panel with log and scoreboard */
@@ -1851,22 +1964,32 @@ body {
         background: linear-gradient(135deg, rgba(58, 82, 107, 0.8) 0%, rgba(74, 95, 122, 0.6) 100%);
     }
     
-    /* Enhanced current turn highlighting */
+    /* GOLDEN RATIO CURRENT TURN - Divine highlighting */
     .mobile-game-board .player-area.current-turn {
-        border-color: #ffd700;
-        border-width: 3px;
-        box-shadow: 0 0 16px rgba(255, 215, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-        animation: mobileTurnGlow 2s ease-in-out infinite;
-        transform: scale(1.02);
+        border-color: #ffd700 !important;
+        border-width: 3px !important;
+        box-shadow: 
+            0 0 20px rgba(255, 215, 0, 0.6),
+            0 0 8px rgba(255, 215, 0, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+        animation: goldenTurnGlow 1.618s ease-in-out infinite alternate !important; /* Golden ratio timing */
+        transform: scale(1.02) !important;
+        z-index: 10 !important;
     }
     
-    @keyframes mobileTurnGlow {
-        0%, 100% { 
-            box-shadow: 0 0 16px rgba(255, 215, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    @keyframes goldenTurnGlow {
+        0% { 
+            box-shadow: 
+                0 0 20px rgba(255, 215, 0, 0.6),
+                0 0 8px rgba(255, 215, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
             transform: scale(1.02);
         }
-        50% { 
-            box-shadow: 0 0 24px rgba(255, 215, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        100% { 
+            box-shadow: 
+                0 0 30px rgba(255, 215, 0, 0.8),
+                0 0 12px rgba(255, 215, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35);
             transform: scale(1.03);
         }
     }
@@ -1889,14 +2012,26 @@ body {
         );
     }
     
-    .player-area h3 {
-        font-size: 0.7em;
-        margin-bottom: 2px;
-        font-weight: bold;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
-        text-align: center;
-        letter-spacing: 0.3px;
-        color: rgba(255, 255, 255, 0.95);
+    /* GOLDEN RATIO PLAYER NAMES - Premium typography */
+    .mobile-game-board .player-area h3 {
+        font-size: 0.75em !important;
+        height: 16px !important; /* φ⁻⁵ ratio for perfect name height */
+        margin: 0 0 3px 0 !important;
+        padding: 0 6px !important;
+        font-weight: 700 !important;
+        text-shadow: 
+            1px 1px 2px rgba(0, 0, 0, 0.8),
+            0 0 4px rgba(0, 0, 0, 0.4) !important;
+        text-align: center !important;
+        letter-spacing: 0.5px !important;
+        color: rgba(255, 255, 255, 0.98) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-transform: uppercase !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.2) 100%) !important;
+        border-radius: 6px !important;
+        backdrop-filter: blur(2px) !important;
     }
     
     /* Dynamic card sizing classes with smooth transitions */
@@ -1952,84 +2087,105 @@ body {
         }
     }
     
-    /* Enhanced modifier cards container */
-    .modifier-cards {
-        display: flex;
-        gap: 3px;
-        flex-wrap: nowrap;
-        justify-content: center;
-        min-height: 48px;
-        margin: 4px 0;
-        padding: 4px;
-        background: rgba(0, 0, 0, 0.15);
-        border-radius: 6px;
-        width: 100%;
-        box-sizing: border-box;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+    /* GOLDEN RATIO MODIFIER CARDS - Compact elegance */
+    .mobile-game-board .modifier-cards {
+        width: 100% !important;
+        height: 32px !important; /* φ⁻² ratio for compact modifier section */
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 2px !important;
+        flex-wrap: nowrap !important;
+        overflow: hidden !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        border-radius: 6px !important;
+        padding: 4px !important;
+        margin: 2px 0 !important;
+        box-sizing: border-box !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        backdrop-filter: blur(2px) !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.08) !important;
     }
     
-    /* Tiny modifier cards on mobile */
+    /* GOLDEN RATIO TINY MODIFIERS - Perfectly scaled */
     .mobile-game-board .modifier-cards .card {
-        width: 20px !important;
-        height: 28px !important;
-        font-size: 0.4em !important;
+        width: 20px !important; /* φ⁻³ ratio for tiny cards */
+        height: 28px !important; /* 20 × 1.4 for perfect tiny proportion */
+        font-size: 0.45em !important;
+        border-radius: 4px !important;
+        box-shadow: 
+            0 2px 4px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+        backdrop-filter: blur(1px) !important;
     }
     
-    /* Smooth number cards container */
+    /* GOLDEN RATIO NUMBER CARDS - Perfect proportions */
     .mobile-game-board .number-cards {
-        width: 100%;
-        box-sizing: border-box;
-        justify-content: center;
-        align-items: center;
-        gap: 2px;
-        flex-wrap: nowrap;
-        overflow: hidden;
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 6px;
-        padding: 4px;
-        margin: 2px 0;
-        min-height: 50px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 100% !important;
+        height: 48px !important; /* Fixed φ⁻¹ container height for 7-card perfection */
+        box-sizing: border-box !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 2px !important;
+        flex-wrap: nowrap !important;
+        overflow: hidden !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.15) 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 8px !important;
+        padding: 6px !important;
+        margin: 3px 0 !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        backdrop-filter: blur(2px) !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1) !important;
     }
     
-    /* Compact draw pile card */
-    .draw-card {
-        width: 45px;
-        height: 63px;
-        position: relative;
-        z-index: 3;
+    /* GOLDEN RATIO DRAW CARD - Central piece */
+    .mobile-draw-pile-area .draw-card {
+        width: 38px !important; /* φ⁻¹ ratio for compact perfection */
+        height: 52px !important; /* φ⁻¹ × 1.375 ratio */
+        position: relative !important;
+        z-index: 3 !important;
+        border-radius: 6px !important;
+        box-shadow: 
+            0 4px 12px rgba(250, 112, 154, 0.4),
+            0 2px 4px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(2px) !important;
     }
     
-    /* Mobile Card Stack Effect - Good size for bottom layout */
+    /* GOLDEN RATIO CARD STACK - Premium depth effect */
     .mobile-draw-pile-area .draw-pile::before {
-        content: "";
-        position: absolute;
-        width: 55px;
-        height: 77px;
-        background-image: url('images/Flip7CardBack.png');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        border-radius: 6px;
-        transform: translate(-1px, -1px);
-        z-index: 1;
-        box-shadow: 0 2px 6px rgba(250, 112, 154, 0.4);
+        content: "" !important;
+        position: absolute !important;
+        width: 38px !important;
+        height: 52px !important;
+        background-image: url('images/Flip7CardBack.png') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        border-radius: 6px !important;
+        transform: translate(-1px, -1px) !important;
+        z-index: 1 !important;
+        box-shadow: 0 3px 8px rgba(250, 112, 154, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+        backdrop-filter: blur(1px) !important;
     }
     
     .mobile-draw-pile-area .draw-pile::after {
-        content: "";
-        position: absolute;
-        width: 55px;
-        height: 77px;
-        background-image: url('images/Flip7CardBack.png');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        border-radius: 6px;
-        transform: translate(-2px, -2px);
-        z-index: 0;
-        box-shadow: 0 1px 3px rgba(250, 112, 154, 0.3);
+        content: "" !important;
+        position: absolute !important;
+        width: 38px !important;
+        height: 52px !important;
+        background-image: url('images/Flip7CardBack.png') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        border-radius: 6px !important;
+        transform: translate(-2px, -2px) !important;
+        z-index: 0 !important;
+        box-shadow: 0 2px 6px rgba(250, 112, 154, 0.2) !important;
+        opacity: 0.8 !important;
     }
     
     /* Enhanced player stats - moved below cards */
@@ -2078,30 +2234,47 @@ body {
         background: rgba(0, 0, 0, 0.3);
     }
     
-    /* Visual card counter with integrated stats - Compact */
-    .unique-counter {
-        font-size: 0.75em; /* Smaller font */
-        margin-top: 3px; /* Less margin */
-        text-align: center;
-        font-weight: bold;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 6px; /* Smaller gap */
+    /* GOLDEN RATIO STATS BAR - Integrated perfection */
+    .mobile-game-board .unique-counter {
+        width: 100% !important;
+        height: 20px !important; /* φ⁻´ ratio for ultra-compact stats */
+        font-size: 0.65em !important;
+        margin: 2px 0 !important;
+        text-align: center !important;
+        font-weight: 600 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 6px !important;
+        padding: 2px 6px !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.25) 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.04) !important;
+        border-radius: 6px !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02), 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+        backdrop-filter: blur(1px) !important;
+        transition: all 0.3s ease !important;
     }
     
-    /* Mobile stats layout around unique counter - Compact */
+    /* GOLDEN RATIO MOBILE STATS - Compact brilliance */
     .mobile-total-score, .mobile-round-score {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 2px 6px; /* Smaller padding */
-        border-radius: 6px;
-        font-weight: bold;
-        font-size: 0.7em; /* Smaller font */
-        flex: 0 0 auto;
+        height: 16px !important; /* φ⁻⁵ ratio for tiny stat boxes */
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        padding: 1px 4px !important;
+        border-radius: 4px !important;
+        font-weight: 700 !important;
+        font-size: 0.65em !important;
+        flex: 0 0 auto !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 1px 1px rgba(0, 0, 0, 0.05) !important;
+        transition: all 0.2s ease !important;
     }
     
     .mobile-round-score {
-        background: rgba(34, 197, 94, 0.3);
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(34, 197, 94, 0.15) 100%) !important;
+        border-color: rgba(34, 197, 94, 0.2) !important;
     }
     
     .unique-count {
