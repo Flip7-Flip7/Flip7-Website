@@ -35,6 +35,8 @@
         flex-direction: column !important;
         padding: 8px !important;
         gap: 6px !important;
+        /* DEBUG: Temporary border to see full layout area */
+        border: 2px solid lime !important;
     }
     
     .mobile-bottom-section {
@@ -44,6 +46,8 @@
         background: rgba(255, 255, 255, 0.2) !important;
         border-radius: 12px !important;
         margin-top: auto !important;
+        /* DEBUG: Verify bottom section is at bottom */
+        border: 2px solid yellow !important;
     }
     
     .mobile-controls-section {
@@ -54,6 +58,19 @@
         background: rgba(74, 144, 164, 0.3) !important;
         border-radius: 12px !important;
         flex-shrink: 0 !important;
+    }
+    
+    /* CRITICAL: Middle container must expand to fill space */
+    .mobile-players-container {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 !important; /* EXPAND to fill space between top and bottom */
+        gap: 6px !important;
+        padding: 4px 0 !important;
+        overflow: hidden !important;
+        min-height: 0 !important;
+        /* DEBUG: Verify middle section expands properly */
+        border: 2px solid cyan !important;
     }
     
     #mobile-hit-btn, #mobile-stay-btn {
@@ -67,6 +84,27 @@
     
     #mobile-hit-btn { background: #10b981 !important; }
     #mobile-stay-btn { background: #f59e0b !important; }
+    
+    /* Player areas within the flexible container */
+    #mobile-player {
+        flex: 1.6 !important; /* Human player gets more space */
+        min-height: 100px !important;
+        background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
+        border: 2px solid rgba(87, 204, 153, 0.6) !important;
+        border-radius: 12px !important;
+        padding: 8px !important;
+        margin: 2px 0 !important;
+    }
+    
+    #mobile-opponent1, #mobile-opponent2, #mobile-opponent3 {
+        flex: 1 !important; /* Equal space for bots */
+        min-height: 80px !important;
+        background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(74, 95, 122, 0.75) 100%) !important;
+        border: 1px solid rgba(74, 95, 122, 0.4) !important;
+        border-radius: 10px !important;
+        padding: 6px !important;
+        margin: 2px 0 !important;
+    }
     </style>
     
     <link rel="stylesheet" href="styles.css?v=4.0&t=20250807nuclear">
