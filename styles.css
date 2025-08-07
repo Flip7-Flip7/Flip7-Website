@@ -1487,9 +1487,19 @@ body {
     margin-left: 20px;
 }
 
-/* Hide mobile elements on desktop */
+/* Show mobile elements on mobile, hide on desktop */
 .mobile-game-board, .mobile-info-panel, .mobile-status-banner {
     display: none;
+}
+
+/* Force mobile layout visibility on mobile screens */
+@media (max-width: 1024px) {
+    .mobile-game-board, .mobile-status-banner {
+        display: flex !important;
+    }
+    .mobile-info-panel {
+        display: block !important;
+    }
 }
 
 /* MICHELANGELO GOLDEN RATIO MOBILE LAYOUT */

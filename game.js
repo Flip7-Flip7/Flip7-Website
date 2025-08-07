@@ -94,6 +94,10 @@ class Flip7Game {
         document.getElementById('new-game-btn').addEventListener('click', () => this.startNewGame());
         document.getElementById('hit-btn').addEventListener('click', () => this.playerHit());
         document.getElementById('stay-btn').addEventListener('click', () => this.playerStay());
+        
+        // Add mobile button event listeners
+        document.getElementById('mobile-hit-btn').addEventListener('click', () => this.playerHit());
+        document.getElementById('mobile-stay-btn').addEventListener('click', () => this.playerStay());
         document.getElementById('rules-btn').addEventListener('click', () => this.showRules());
         document.getElementById('close-rules').addEventListener('click', () => this.hideRules());
         
@@ -1745,8 +1749,8 @@ class Flip7Game {
             
             // Show and enable mobile buttons
             const mobilePlayer = document.getElementById('mobile-player');
-            const mobileHitBtn = document.querySelector('#mobile-player #hit-btn');
-            const mobileStayBtn = document.querySelector('#mobile-player #stay-btn');
+            const mobileHitBtn = document.getElementById('mobile-hit-btn');
+            const mobileStayBtn = document.getElementById('mobile-stay-btn');
             if (mobilePlayer) mobilePlayer.classList.add('show-buttons');
             if (mobileHitBtn) mobileHitBtn.disabled = false;
             if (mobileStayBtn) mobileStayBtn.disabled = player.numberCards.length === 0;
@@ -1756,8 +1760,8 @@ class Flip7Game {
             document.getElementById('stay-btn').disabled = true;
             
             const mobilePlayer = document.getElementById('mobile-player');
-            const mobileHitBtn = document.querySelector('#mobile-player #hit-btn');
-            const mobileStayBtn = document.querySelector('#mobile-player #stay-btn');
+            const mobileHitBtn = document.getElementById('mobile-hit-btn');
+            const mobileStayBtn = document.getElementById('mobile-stay-btn');
             if (mobilePlayer) mobilePlayer.classList.remove('show-buttons');
             if (mobileHitBtn) mobileHitBtn.disabled = true;
             if (mobileStayBtn) mobileStayBtn.disabled = true;
@@ -1771,8 +1775,8 @@ class Flip7Game {
         
         // Hide and disable mobile buttons
         const mobilePlayer = document.getElementById('mobile-player');
-        const mobileHitBtn = document.querySelector('#mobile-player #hit-btn');
-        const mobileStayBtn = document.querySelector('#mobile-player #stay-btn');
+        const mobileHitBtn = document.getElementById('mobile-hit-btn');
+        const mobileStayBtn = document.getElementById('mobile-stay-btn');
         if (mobilePlayer) mobilePlayer.classList.remove('show-buttons');
         if (mobileHitBtn) mobileHitBtn.disabled = true;
         if (mobileStayBtn) mobileStayBtn.disabled = true;
