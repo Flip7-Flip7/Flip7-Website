@@ -1504,7 +1504,7 @@ body {
     body {
         padding: 0 !important;
         margin: 0 !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         font-size: 12px !important;
         height: 100vh !important;
         width: 100vw !important;
@@ -1617,7 +1617,7 @@ body {
         bottom: 0 !important;
         width: 100vw !important;
         height: calc(100vh - 25px) !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         padding: 0 8px 4px 8px !important;
         gap: 0 !important;
         background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%) !important;
@@ -1912,7 +1912,7 @@ body {
     /* GOLDEN RATIO PLAYERS - Perfect proportions */
     #mobile-player {
         width: 100% !important;
-        height: 100px !important; /* Golden ratio: φ ratio */
+        height: 120px !important; /* Increased to ensure all cards + UI elements fit */
         background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
         border: 2px solid rgba(87, 204, 153, 0.6) !important;
         border-radius: 12px !important;
@@ -1921,14 +1921,14 @@ body {
         display: block !important;
         backdrop-filter: blur(8px) !important;
         box-shadow: 0 6px 16px rgba(34, 87, 122, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         position: relative !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     
     #mobile-opponent1, #mobile-opponent2, #mobile-opponent3 {
         width: 100% !important;
-        height: 62px !important; /* Golden ratio: φ⁻¹ ratio */
+        height: 95px !important; /* Increased to ensure all cards + UI elements fit */
         background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(74, 95, 122, 0.75) 100%) !important;
         border: 1px solid rgba(74, 95, 122, 0.4) !important;
         border-radius: 10px !important;
@@ -1937,7 +1937,7 @@ body {
         display: block !important;
         backdrop-filter: blur(6px) !important;
         box-shadow: 0 3px 8px rgba(44, 62, 80, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         position: relative !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
@@ -2190,18 +2190,18 @@ body {
     /* GOLDEN RATIO MODIFIER CARDS - Compact elegance */
     .mobile-game-board .modifier-cards {
         width: 100% !important;
-        height: 32px !important; /* φ⁻² ratio for compact modifier section */
+        height: 30px !important; /* More compact for space efficiency */
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
         gap: 2px !important;
         flex-wrap: nowrap !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         background: linear-gradient(135deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.20) 100%) !important;
         border: 1px solid rgba(255, 255, 255, 0.06) !important;
         border-radius: 6px !important;
-        padding: 4px !important;
-        margin: 2px 0 !important;
+        padding: 3px !important;
+        margin: 1px 0 !important;
         box-sizing: border-box !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         backdrop-filter: blur(2px) !important;
@@ -2223,19 +2223,19 @@ body {
     /* GOLDEN RATIO NUMBER CARDS - Perfect proportions */
     .mobile-game-board .number-cards {
         width: 100% !important;
-        height: 48px !important; /* Fixed φ⁻¹ container height for 7-card perfection */
+        height: 46px !important; /* Optimized for 7-card visibility */
         box-sizing: border-box !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
         gap: 2px !important;
         flex-wrap: nowrap !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         background: linear-gradient(135deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.15) 100%) !important;
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-radius: 8px !important;
-        padding: 6px !important;
-        margin: 3px 0 !important;
+        padding: 4px !important;
+        margin: 1px 0 !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         backdrop-filter: blur(2px) !important;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1) !important;
@@ -2337,7 +2337,7 @@ body {
     /* GOLDEN RATIO STATS BAR - Integrated perfection */
     .mobile-game-board .unique-counter {
         width: 100% !important;
-        height: 20px !important; /* φ⁻´ ratio for ultra-compact stats */
+        height: 18px !important; /* Ultra-compact stats for space efficiency */
         font-size: 0.65em !important;
         margin: 2px 0 !important;
         text-align: center !important;
