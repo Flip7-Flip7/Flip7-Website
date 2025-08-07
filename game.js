@@ -108,6 +108,17 @@ class Flip7Game {
             mobileRulesBtn.addEventListener('click', () => this.showRules());
         }
         
+        // Mobile start button
+        const mobileStartBtn = document.getElementById('mobile-start-btn');
+        if (mobileStartBtn) {
+            mobileStartBtn.addEventListener('click', () => {
+                this.playerName = "Player";
+                this.players[0].name = "Player";
+                this.startNewGame();
+                mobileStartBtn.style.display = 'none';
+            });
+        }
+        
         // Name input form (used on all devices)
         document.getElementById('name-input-form').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -2077,7 +2088,13 @@ class Flip7Game {
         const namePopup = document.getElementById('mobile-name-popup');
         
         // Show name input popup on all devices
-        if (namePopup) namePopup.style.display = 'flex';
+        if (namePopup) {
+            namePopup.style.display = 'flex';
+        } else {
+            // Fallback: start game directly if popup not found
+            console.error('Name popup not found, starting game directly');
+            this.startNewGame();
+        }
         if (gameMessage) gameMessage.style.display = 'none';
         
         // Focus the input field for better UX
