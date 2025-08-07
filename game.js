@@ -1844,6 +1844,14 @@ class Flip7Game {
             container.classList.remove('dealer');
         }
         
+        // Update player name with total score
+        const nameElement = container.querySelector('h3');
+        if (nameElement) {
+            // Calculate display score: for busted players show only totalScore, for others show totalScore + roundScore
+            const displayScore = player.status === 'busted' ? player.totalScore : (player.totalScore + player.roundScore);
+            nameElement.textContent = `${player.name} - ${displayScore} pts`;
+        }
+        
         // Update scores
         const scoreElements = container.querySelectorAll('.score-value');
         if (scoreElements[0]) scoreElements[0].textContent = player.totalScore;
