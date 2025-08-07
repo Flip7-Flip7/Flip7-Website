@@ -167,25 +167,28 @@
         margin: 0 !important;
     }
     
+    .player-area .number-cards {
+        position: relative !important;
+        top: 2px !important; /* After modifier cards */
+        float: left !important; /* Position on left side */
+        width: 60% !important; /* Take up left portion */
+        min-height: 18px !important; /* Very compact */
+        margin: 0 !important;
+    }
+    
     .player-area .unique-counter {
         position: relative !important;
-        top: 2px !important; /* Right after modifier cards */
+        top: 2px !important; /* Same level as number cards */
+        float: right !important; /* Position on right side */
+        width: 38% !important; /* Take up right portion */
         margin: 0 !important; 
         text-align: center !important;
         font-size: 0.6em !important; /* Very small text */
-        padding: 3px 0 !important; 
+        padding: 3px 4px !important; 
         background: rgba(0, 0, 0, 0.8) !important; /* Darker bar */
-        width: 100% !important; /* Full width */
         border-radius: 4px !important; /* Rounded corners */
-        display: block !important; /* Force block display */
         min-height: 12px !important; /* Minimum height for visibility */
-    }
-    
-    .player-area .number-cards {
-        position: relative !important;
-        top: 4px !important; /* After unique counter */
-        min-height: 18px !important; /* Very compact */
-        margin: 0 !important;
+        box-sizing: border-box !important;
     }
     </style>
     
@@ -222,8 +225,8 @@
                         <span class="player-status">Waiting</span>
                     </div>
                     <div class="modifier-cards"></div>
-                    <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
                     <div class="number-cards"></div>
+                    <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
                 </div>
 
                 <!-- Opponent 2 (Top) -->
@@ -235,8 +238,8 @@
                         <span class="player-status">Waiting</span>
                     </div>
                     <div class="modifier-cards"></div>
-                    <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
                     <div class="number-cards"></div>
+                    <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
                 </div>
 
                 <!-- Opponent 3 (Right) -->
@@ -248,8 +251,8 @@
                         <span class="player-status">Waiting</span>
                     </div>
                     <div class="modifier-cards"></div>
-                    <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
                     <div class="number-cards"></div>
+                    <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
                 </div>
 
                 <!-- Human Player (Bottom) -->
@@ -261,11 +264,11 @@
                         <span class="player-status">Waiting</span>
                     </div>
                     <div class="modifier-cards" id="player-modifiers"></div>
+                    <div class="number-cards" id="player-numbers"></div>
                     <div class="unique-counter">
                         <span class="unique-count" id="player-unique">○○○○○○○</span>
                         <span class="flip7-bonus" id="flip7-indicator" style="display: none;">🎉 Flip 7!</span>
                     </div>
-                    <div class="number-cards" id="player-numbers"></div>
                     <div class="action-buttons">
                         <button id="hit-btn" class="btn primary" disabled>Hit</button>
                         <button id="stay-btn" class="btn secondary" disabled>Stay</button>
@@ -456,7 +459,7 @@
 
     <!-- FINAL MOBILE UNIFORM SIZING - AFTER ALL EXTERNAL STYLESHEETS -->
     <style>
-    /* HUMAN PLAYER CONTAINER - MATCH BOTS EXACTLY */
+    /* HUMAN PLAYER CONTAINER - NATURAL HEIGHT */
     html body .game-container .game-area .players-grid .main-player,
     html body .game-container .game-area .players-grid .player-area.main-player,
     html body .game-container .game-area .players-grid #player,
@@ -466,31 +469,31 @@
     .main-player,
     #player {
         flex: 1 !important;
-        min-height: 80px !important; /* MATCH bots */
-        max-height: 80px !important; /* MATCH bots */
-        height: 80px !important; /* IDENTICAL to bots */
-        padding: 6px !important; /* MATCH bots */
-        margin: 4px 0 !important; /* MATCH bots */
+        min-height: auto !important; /* Natural sizing */
+        max-height: none !important; /* No height limit */
+        height: auto !important; /* Natural height */
+        padding: 6px !important;
+        margin: 4px 0 !important;
         box-sizing: border-box !important;
-        overflow: hidden !important;
+        overflow: visible !important; /* Don't clip content */
         background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
         border: 2px solid rgba(255,255,255,0.3) !important;
         border-radius: 8px !important;
     }
     
-    /* BOT PLAYERS - IDENTICAL SIZING TO HUMAN */
+    /* BOT PLAYERS - NATURAL HEIGHT */
     html body .game-container .game-area .players-grid .opponent-player,
     html body .game-container .game-area .players-grid .player-area.opponent-player,
     html body .game-container .game-area .players-grid div.opponent-player,
     .opponent-player {
-        flex: 1 !important; /* IDENTICAL to human */
-        min-height: 80px !important; /* IDENTICAL to human */
-        max-height: 80px !important; /* IDENTICAL to human */
-        height: 80px !important; /* FORCE IDENTICAL height */
-        padding: 6px !important; /* IDENTICAL padding */
-        margin: 4px 0 !important; /* IDENTICAL margins */
+        flex: 1 !important;
+        min-height: auto !important; /* Natural sizing */
+        max-height: none !important; /* No height limit */
+        height: auto !important; /* Natural height */
+        padding: 6px !important;
+        margin: 4px 0 !important;
         box-sizing: border-box !important;
-        overflow: hidden !important;
+        overflow: visible !important; /* Don't clip content */
         background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(74, 95, 122, 0.75) 100%) !important;
         border: 2px solid rgba(255,255,255,0.3) !important;
         border-radius: 8px !important;
