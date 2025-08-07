@@ -24,8 +24,10 @@ class Flip7Game {
         this.initializeEventListeners();
         this.updateDisplay();
         
-        // Show appropriate start popup based on device type
-        this.showStartPopup();
+        // Show name popup automatically after DOM is ready
+        setTimeout(() => {
+            this.showStartPopup();
+        }, 100);
     }
 
     initializePlayers() {
@@ -2087,25 +2089,45 @@ class Flip7Game {
     showStartPopup() {
         const gameMessage = document.getElementById('game-message');
         const namePopup = document.getElementById('mobile-name-popup');
+        const mobileStartBtn = document.getElementById('mobile-start-btn');
+        
+        // Hide any fallback start buttons
+        if (gameMessage) gameMessage.style.display = 'none';
+        if (mobileStartBtn) mobileStartBtn.style.display = 'none';
         
         // Show name input popup on all devices
         if (namePopup) {
+            console.log('Showing name popup');
             namePopup.style.display = 'flex';
+            
+            // Focus the input field for better UX
+            setTimeout(() => {
+                const nameInput = document.getElementById('player-name-input');
+                if (nameInput) {
+                    nameInput.focus();
+                    nameInput.select(); // Select any existing text
+                }
+            }, 200); // Slightly longer delay to ensure popup is visible
         } else {
-            // Fallback: start game directly if popup not found
-            console.error('Name popup not found, starting game directly');
-            this.startNewGame();
+            console.error('Name popup not found in DOM');
+            // Try again after a short delay in case DOM isn't ready
+            setTimeout(() => {
+                const retryPopup = document.getElementById('mobile-name-popup');
+                if (retryPopup) {
+                    console.log('Retry successful - showing name popup');
+                    retryPopup.style.display = 'flex';
+                    setTimeout(() => {
+                        const nameInput = document.getElementById('player-name-input');
+                        if (nameInput) {
+                            nameInput.focus();
+                            nameInput.select();
+                        }
+                    }, 200);
+                } else {
+                    console.error('Name popup still not found after retry');
+                }
+            }, 500);
         }
-        if (gameMessage) gameMessage.style.display = 'none';
-        
-        // Focus the input field for better UX
-        setTimeout(() => {
-            const nameInput = document.getElementById('player-name-input');
-            if (nameInput) {
-                nameInput.focus();
-                nameInput.select(); // Select any existing text
-            }
-        }, 100);
     }
     
     hideStartPopups() {
