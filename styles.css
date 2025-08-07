@@ -1493,7 +1493,7 @@ body {
 }
 
 /* MICHELANGELO GOLDEN RATIO MOBILE LAYOUT */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     /* NUCLEAR RESET - Complete mobile override */
     *, *::before, *::after {
         margin: 0 !important;
@@ -1511,6 +1511,14 @@ body {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* Force clean slate - remove any lingering desktop styles */
+    * {
+        box-sizing: border-box !important;
     }
     
     .game-container {
@@ -1526,12 +1534,34 @@ body {
         grid-template-columns: none !important;
         grid-template-rows: none !important;
         gap: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        overflow: hidden !important;
     }
     
-    /* Hide desktop elements completely */
+    /* Hide desktop elements completely - NUCLEAR OVERRIDE */
     .game-area, .draw-pile-column, .controls-panel, .desktop-info {
         display: none !important;
         visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        left: -9999px !important;
+        top: -9999px !important;
+        width: 0 !important;
+        height: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* Force remove any background colors from desktop layout */
+    .game-container > *:not(.mobile-game-board):not(.mobile-status-banner):not(.mobile-info-panel) {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        display: none !important;
     }
     
     /* GOLDEN RATIO STATUS BANNER - Perfect top section */
