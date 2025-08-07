@@ -26,6 +26,12 @@ class Flip7Game {
         
         // Show name popup automatically after DOM is ready
         setTimeout(() => {
+            console.log('Attempting to show popup...');
+            const testPopup = document.getElementById('mobile-name-popup');
+            console.log('Popup element found:', !!testPopup);
+            if (testPopup) {
+                console.log('Popup computed style:', getComputedStyle(testPopup).display);
+            }
             this.showStartPopup();
         }, 100);
     }
@@ -2099,6 +2105,19 @@ class Flip7Game {
         if (namePopup) {
             console.log('Showing name popup');
             namePopup.style.display = 'flex';
+            namePopup.style.position = 'fixed';
+            namePopup.style.top = '0';
+            namePopup.style.left = '0';
+            namePopup.style.width = '100vw';
+            namePopup.style.height = '100vh';
+            namePopup.style.zIndex = '99999';
+            namePopup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            
+            console.log('Popup styles set:', {
+                display: namePopup.style.display,
+                zIndex: namePopup.style.zIndex,
+                position: namePopup.style.position
+            });
             
             // Focus the input field for better UX
             setTimeout(() => {
