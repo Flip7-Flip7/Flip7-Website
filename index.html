@@ -52,7 +52,6 @@
         padding: 0 !important;
         margin: 0 !important;
         grid-template-rows: none !important;
-        border: 3px solid red !important; /* DEBUG: Should see red border */
     }
     
     /* STEP 5: Transform desktop players-grid into mobile stack */
@@ -64,7 +63,6 @@
         width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
-        border: 3px solid blue !important; /* DEBUG: Should see blue border */
         overflow: hidden !important;
     }
     
@@ -79,51 +77,6 @@
         border: 2px solid rgba(255,255,255,0.3) !important;
     }
     
-    /* ULTRA NUCLEAR HUMAN PLAYER - OVERRIDE EVERYTHING */
-    html body .game-container .game-area .players-grid .main-player,
-    html body .game-container .game-area .players-grid .player-area.main-player,
-    html body .game-container .game-area .players-grid #player,
-    html body .game-container .game-area .players-grid div.player-area.main-player,
-    html body .game-container .game-area .players-grid div#player.main-player,
-    html body .game-container .game-area .players-grid div.main-player,
-    .main-player,
-    #player {
-        flex: 0.8 !important;
-        min-height: 30px !important; 
-        max-height: 30px !important; /* MAKE SMALLER THAN BOTS TO TEST */
-        height: 30px !important; /* EXACT SMALLER HEIGHT */
-        padding: 1px !important;
-        margin: 1px 0 !important;
-        background: red !important; /* BRIGHT RED TO CONFIRM CHANGES */
-        border: 10px solid magenta !important; /* HUGE MAGENTA BORDER */
-        box-sizing: border-box !important;
-        overflow: hidden !important;
-        flex-shrink: 0 !important;
-        flex-grow: 0 !important;
-        flex-basis: 30px !important;
-        line-height: 1 !important;
-        font-size: 10px !important;
-        transform: scale(0.8) !important; /* FORCE VISUAL SHRINK */
-    }
-    
-    /* NUCLEAR BOT PLAYER SIZING - MAXIMUM SPECIFICITY FOR COMPARISON */
-    html body .game-container .game-area .players-grid .opponent-player,
-    html body .game-container .game-area .players-grid .player-area.opponent-player,
-    html body .game-container .game-area .players-grid div.opponent-player {
-        flex: 0.8 !important; /* EXACT SAME as human */
-        min-height: 30px !important; /* EXACT SAME as human */
-        max-height: 45px !important; /* EXACT SAME as human */
-        height: 45px !important; /* FORCE exact height */
-        padding: 1px !important; /* EXACT SAME as human */
-        margin: 1px 0 !important; /* EXACT SAME as human */
-        background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(74, 95, 122, 0.75) 100%) !important;
-        border: 5px solid cyan !important; /* BRIGHT DEBUG: Bot players should be CYAN */
-        box-sizing: border-box !important;
-        overflow: hidden !important;
-        flex-shrink: 1 !important;
-        flex-grow: 0 !important;
-        flex-basis: auto !important;
-    }
     
     /* STEP 7: Fix action buttons visibility at bottom */
     .action-buttons {
@@ -137,7 +90,6 @@
         padding: 15px !important; /* Larger touch area */
         background: rgba(0, 0, 0, 0.9) !important; /* More opaque */
         border-radius: 15px !important;
-        border: 4px solid yellow !important; /* DEBUG: Should see yellow border */
         z-index: 9999 !important; /* Higher z-index */
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important; /* Shadow for visibility */
     }
@@ -198,7 +150,6 @@
         font-weight: bold !important;
         background: rgba(0, 0, 0, 0.5) !important; /* Dark background for visibility */
         color: white !important;
-        border: 1px solid white !important; /* DEBUG: White border for names */
         z-index: 10 !important;
     }
     
@@ -216,7 +167,6 @@
         text-align: center !important;
         font-size: 0.6em !important; /* Very small text */
         padding: 0 !important; 
-        border: 1px solid orange !important; /* DEBUG: Orange border for dots */
     }
     
     .player-area .number-cards {
