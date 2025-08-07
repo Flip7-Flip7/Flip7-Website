@@ -542,9 +542,9 @@ body {
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
 }
 
-/* GOLDEN RATIO NAME POPUP - Premium welcome experience */
+/* GOLDEN RATIO NAME POPUP - DISABLED - Premium welcome experience */
 .mobile-name-popup {
-    display: none;
+    display: none !important;
     position: fixed;
     top: 0;
     left: 0;

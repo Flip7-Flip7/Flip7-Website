@@ -126,10 +126,14 @@ class Flip7Game {
         
         // Popup no longer used - game auto-starts
         
-        // Desktop game message button (start game)
+        // Desktop game message button (start game directly)
         const gameMessageBtn = document.getElementById('game-message');
         if (gameMessageBtn) {
-            gameMessageBtn.addEventListener('click', () => this.showStartPopup());
+            gameMessageBtn.addEventListener('click', () => {
+                this.playerName = "Player";
+                this.players[0].name = "Player";
+                this.startNewGame();
+            });
         }
         
         document.getElementById('win-points').addEventListener('change', (e) => {
@@ -1486,10 +1490,12 @@ class Flip7Game {
         // Re-enable points setting after game ends
         document.getElementById('win-points').disabled = false;
         
-        // Show pre-game controls again
-        this.showStartPopup();
+        // Show start button for new game
         const gameMessage = document.getElementById('game-message');
-        if (gameMessage) gameMessage.textContent = 'Start New Game';
+        if (gameMessage) {
+            gameMessage.textContent = 'Start New Game';
+            gameMessage.style.display = 'block';
+        }
         document.getElementById('pre-game-controls').style.display = 'flex';
         
         this.addToLog(`🎉 ${winner.name} wins with ${winner.totalScore} points!`);
