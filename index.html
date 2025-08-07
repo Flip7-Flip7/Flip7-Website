@@ -79,26 +79,31 @@
         border: 2px solid rgba(255,255,255,0.3) !important;
     }
     
-    /* NUCLEAR HUMAN PLAYER SIZING - MAXIMUM SPECIFICITY */
+    /* ULTRA NUCLEAR HUMAN PLAYER - OVERRIDE EVERYTHING */
     html body .game-container .game-area .players-grid .main-player,
     html body .game-container .game-area .players-grid .player-area.main-player,
     html body .game-container .game-area .players-grid #player,
     html body .game-container .game-area .players-grid div.player-area.main-player,
     html body .game-container .game-area .players-grid div#player.main-player,
-    html body .game-container .game-area .players-grid div.main-player {
-        flex: 0.8 !important; /* EXACT SAME as bots */
-        min-height: 30px !important; /* EXACT SAME as bots */
-        max-height: 45px !important; /* EXACT SAME as bots */
-        height: 45px !important; /* FORCE exact height */
-        padding: 1px !important; /* EXACT SAME as bots */
-        margin: 1px 0 !important; /* EXACT SAME as bots */
-        background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
-        border: 5px solid magenta !important; /* BRIGHT DEBUG: Human player should be MAGENTA */
+    html body .game-container .game-area .players-grid div.main-player,
+    .main-player,
+    #player {
+        flex: 0.8 !important;
+        min-height: 30px !important; 
+        max-height: 30px !important; /* MAKE SMALLER THAN BOTS TO TEST */
+        height: 30px !important; /* EXACT SMALLER HEIGHT */
+        padding: 1px !important;
+        margin: 1px 0 !important;
+        background: red !important; /* BRIGHT RED TO CONFIRM CHANGES */
+        border: 10px solid magenta !important; /* HUGE MAGENTA BORDER */
         box-sizing: border-box !important;
         overflow: hidden !important;
-        flex-shrink: 1 !important;
+        flex-shrink: 0 !important;
         flex-grow: 0 !important;
-        flex-basis: auto !important;
+        flex-basis: 30px !important;
+        line-height: 1 !important;
+        font-size: 10px !important;
+        transform: scale(0.8) !important; /* FORCE VISUAL SHRINK */
     }
     
     /* NUCLEAR BOT PLAYER SIZING - MAXIMUM SPECIFICITY FOR COMPARISON */
