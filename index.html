@@ -129,10 +129,10 @@
 
         <!-- Mobile Game Board (hidden on desktop, shown on mobile) -->
         <div class="mobile-game-board">
-            <!-- Top Controls Section -->
-            <div class="mobile-top-controls">
-                <!-- Rules Button -->
-                <button class="mobile-rules-btn" id="mobile-rules-btn">Rules</button>
+            <!-- Controls Section (Draw Pile + Hit/Stay) -->
+            <div class="mobile-controls-section">
+                <!-- Hit Button -->
+                <button id="mobile-hit-btn" class="btn primary mobile-action-btn">Hit</button>
                 
                 <!-- Draw Pile -->
                 <div class="mobile-draw-pile-area">
@@ -148,16 +148,16 @@
                     </div>
                 </div>
                 
-                <!-- Logo -->
-                <img src="images/FLIP7_LOGO_LOCK_UP_transparent.png" alt="Flip 7" class="mobile-logo">
+                <!-- Stay Button -->
+                <button id="mobile-stay-btn" class="btn secondary mobile-action-btn">Stay</button>
             </div>
 
-            <!-- Human Player -->
+            <!-- Human Player (Top) -->
             <div id="mobile-player">
                 <!-- Will be populated by JavaScript -->
             </div>
 
-            <!-- Bot Players -->
+            <!-- Bot Players (Middle) -->
             <div id="mobile-opponent1">
                 <!-- Will be populated by JavaScript -->
             </div>
@@ -166,6 +166,12 @@
             </div>
             <div id="mobile-opponent3">
                 <!-- Will be populated by JavaScript -->
+            </div>
+
+            <!-- Bottom Section (Rules + Logo) -->
+            <div class="mobile-bottom-section">
+                <button class="mobile-rules-btn" id="mobile-rules-btn">Rules</button>
+                <img src="images/FLIP7_LOGO_LOCK_UP_transparent.png" alt="Flip 7" class="mobile-logo">
             </div>
 
         </div>

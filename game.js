@@ -92,6 +92,22 @@ class Flip7Game {
         document.getElementById('rules-btn').addEventListener('click', () => this.showRules());
         document.getElementById('close-rules').addEventListener('click', () => this.hideRules());
         
+        // Mobile action buttons in controls section
+        const mobileHitBtn = document.getElementById('mobile-hit-btn');
+        const mobileStayBtn = document.getElementById('mobile-stay-btn');
+        if (mobileHitBtn) {
+            mobileHitBtn.addEventListener('click', () => this.playerHit());
+        }
+        if (mobileStayBtn) {
+            mobileStayBtn.addEventListener('click', () => this.playerStay());
+        }
+        
+        // Mobile rules button
+        const mobileRulesBtn = document.getElementById('mobile-rules-btn');
+        if (mobileRulesBtn) {
+            mobileRulesBtn.addEventListener('click', () => this.showRules());
+        }
+        
         // Name input form (used on all devices)
         document.getElementById('name-input-form').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -226,16 +242,8 @@ class Flip7Game {
             }
         });
         
-        // Reattach event listeners to mobile buttons
-        const mobileHitBtn = document.querySelector('#mobile-player #hit-btn');
-        const mobileStayBtn = document.querySelector('#mobile-player #stay-btn');
-        
-        if (mobileHitBtn) {
-            mobileHitBtn.addEventListener('click', () => this.playerHit());
-        }
-        if (mobileStayBtn) {
-            mobileStayBtn.addEventListener('click', () => this.playerStay());
-        }
+        // Mobile buttons are now in the controls section
+        // Event listeners are attached once in setupEventListeners()
         
         // Update mobile cards remaining counter
         const desktopCardsRemaining = document.getElementById('cards-remaining');
@@ -1780,6 +1788,26 @@ class Flip7Game {
         }
         if (mobileCardsRemainingElement) {
             mobileCardsRemainingElement.textContent = this.deck.length;
+        }
+        
+        // Update mobile button states
+        const mobileHitBtn = document.getElementById('mobile-hit-btn');
+        const mobileStayBtn = document.getElementById('mobile-stay-btn');
+        const humanPlayer = this.players[0];
+        const isHumanTurn = this.gameActive && this.currentPlayerIndex === 0 && humanPlayer.status === 'active';
+        
+        if (mobileHitBtn && mobileStayBtn) {
+            if (isHumanTurn) {
+                mobileHitBtn.classList.remove('inactive');
+                mobileStayBtn.classList.remove('inactive');
+                mobileHitBtn.disabled = false;
+                mobileStayBtn.disabled = false;
+            } else {
+                mobileHitBtn.classList.add('inactive');
+                mobileStayBtn.classList.add('inactive');
+                mobileHitBtn.disabled = true;
+                mobileStayBtn.disabled = true;
+            }
         }
         
         // Update each player's display

@@ -1476,7 +1476,7 @@ body {
     /* Mobile game board - Grid layout */
     .mobile-game-board {
         display: grid;
-        grid-template-rows: auto auto auto auto auto;
+        grid-template-rows: auto auto auto auto auto auto;
         width: 100%;
         padding: 2px;
         margin-top: 25px;
@@ -1485,16 +1485,40 @@ body {
         gap: 2px;
     }
     
-    /* Top controls section */
-    .mobile-top-controls {
+    /* Controls section with draw pile and buttons */
+    .mobile-controls-section {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        padding: 4px;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 6px;
+    }
+    
+    /* Mobile action buttons in controls */
+    .mobile-action-btn {
+        padding: 8px 16px;
+        font-size: 0.85em;
+        min-width: 60px;
+        transition: opacity 0.3s ease;
+    }
+    
+    .mobile-action-btn.inactive {
+        opacity: 0.4;
+        pointer-events: none;
+    }
+    
+    /* Bottom section for rules and logo */
+    .mobile-bottom-section {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 6px;
+        padding: 4px 8px;
         width: 100%;
         background: rgba(255, 255, 255, 0.05);
         border-radius: 6px;
-        backdrop-filter: blur(2px);
     }
     
     /* Compact draw pile */
@@ -1682,13 +1706,13 @@ body {
         display: none;
     }
     
-    /* Compact mobile player areas - No flex expansion */
+    /* Ultra compact mobile player areas */
     #mobile-player, #mobile-opponent1, #mobile-opponent2, #mobile-opponent3 {
         background: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        padding: 6px;
-        margin: 2px 0;
+        border-radius: 6px;
+        padding: 4px;
+        margin: 1px 0;
         width: 100%;
         display: block;
         backdrop-filter: blur(2px);
@@ -1696,6 +1720,12 @@ body {
         transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
         overflow: hidden;
         position: relative;
+    }
+    
+    /* Center human player */
+    #mobile-player {
+        width: 95%;
+        margin: 1px auto;
     }
     
     #mobile-player {
@@ -1722,40 +1752,40 @@ body {
         flex: 0 0 auto;
     }
     
-    /* Dynamic Player Height Classes - Compact for horizontal layout */
+    /* Ultra compact player heights for visibility */
     .mobile-player-empty {
-        height: 40px !important;
-        max-height: 40px !important;
+        height: 35px !important;
+        max-height: 35px !important;
     }
     
     .mobile-player-empty h3 {
-        font-size: 0.75em;
-        margin-bottom: 1px;
+        font-size: 0.7em;
+        margin-bottom: 0;
     }
     
     .mobile-player-empty .unique-counter {
-        font-size: 0.6em;
-        margin-top: 1px;
+        font-size: 0.55em;
+        margin-top: 0;
     }
     
     .mobile-player-small {
+        height: 45px !important;
+        max-height: 45px !important;
+    }
+    
+    .mobile-player-medium {
         height: 55px !important;
         max-height: 55px !important;
     }
     
-    .mobile-player-medium {
+    .mobile-player-large {
         height: 65px !important;
         max-height: 65px !important;
     }
     
-    .mobile-player-large {
-        height: 75px !important;
-        max-height: 75px !important;
-    }
-    
     .mobile-player-with-buttons {
-        height: 85px !important;
-        max-height: 85px !important;
+        height: 65px !important;
+        max-height: 65px !important;
     }
     
     /* Mobile info panel with log and scoreboard */
@@ -1842,12 +1872,12 @@ body {
     }
     
     .player-area h3 {
-        font-size: 0.8em;
-        margin-bottom: 4px;
+        font-size: 0.7em;
+        margin-bottom: 2px;
         font-weight: bold;
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
         text-align: center;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
         color: rgba(255, 255, 255, 0.95);
     }
     
@@ -1871,15 +1901,15 @@ body {
         flex-shrink: 0;
     }
     
-    /* Prominent mobile cards - The star of the show! */
+    /* Smaller mobile cards for full visibility */
     .mobile-game-board .card {
-        width: 40px;
-        height: 55px;
-        font-size: 0.7em;
-        margin: 2px;
+        width: 32px;
+        height: 44px;
+        font-size: 0.6em;
+        margin: 1px;
         display: inline-block;
-        border-radius: 6px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        border-radius: 5px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         transform-style: preserve-3d;
@@ -1921,11 +1951,11 @@ body {
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
-    /* MUCH smaller modifier cards on mobile */
+    /* Tiny modifier cards on mobile */
     .mobile-game-board .modifier-cards .card {
-        width: 28px !important;
-        height: 39px !important;
-        font-size: 0.5em !important;
+        width: 20px !important;
+        height: 28px !important;
+        font-size: 0.4em !important;
     }
     
     /* Smooth number cards container */
@@ -1945,10 +1975,10 @@ body {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
-    /* Smaller draw pile card */
+    /* Compact draw pile card */
     .draw-card {
-        width: 50px;
-        height: 70px;
+        width: 45px;
+        height: 63px;
         position: relative;
         z-index: 3;
     }
@@ -2074,12 +2104,9 @@ body {
         color: rgba(255, 255, 255, 0.3);
     }
     
-    /* Compact action buttons - hidden by default on mobile */
-    .action-buttons {
-        gap: 4px;
-        margin-top: 3px;
-        display: none; /* Hidden by default */
-        justify-content: center;
+    /* Hide individual action buttons on mobile (moved to controls) */
+    .mobile-game-board .action-buttons {
+        display: none !important;
     }
     
     /* Show buttons only when it's human player's turn */
