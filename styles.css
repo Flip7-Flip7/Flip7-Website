@@ -1487,29 +1487,27 @@ body {
     margin-left: 20px;
 }
 
-/* Show mobile elements on mobile, hide on desktop */
-.mobile-game-board, .mobile-info-panel, .mobile-status-banner {
-    display: none;
+/* NUCLEAR APPROACH: Mobile layout is DEFAULT - always visible */
+.mobile-game-board, .mobile-status-banner {
+    display: flex !important;
+}
+.mobile-info-panel {
+    display: block !important;
 }
 
-/* Force mobile layout visibility on mobile screens */
-@media (max-width: 1024px) {
-    .mobile-game-board, .mobile-status-banner {
-        display: flex !important;
-    }
-    .mobile-info-panel {
-        display: block !important;
-    }
+/* NUCLEAR: Hide desktop elements ALWAYS */
+.game-area, .draw-pile-column, .controls-panel, .desktop-info {
+    display: none !important;
+    visibility: hidden !important;
 }
 
-/* MICHELANGELO GOLDEN RATIO MOBILE LAYOUT */
-@media (max-width: 1024px) {
-    /* NUCLEAR RESET - Complete mobile override */
-    *, *::before, *::after {
-        margin: 0 !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
-    }
+/* NUCLEAR MOBILE LAYOUT - NO MEDIA QUERIES, ALWAYS ACTIVE */
+/* Complete mobile override for ALL screen sizes */
+*, *::before, *::after {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
     
     body {
         padding: 0 !important;
@@ -2749,4 +2747,3 @@ body {
         height: 62px;
         font-size: 0.85em;
     }
-}
