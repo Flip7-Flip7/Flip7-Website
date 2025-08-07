@@ -195,25 +195,24 @@
         padding: 2px !important;
     }
     
-    /* Right Middle: Modifier Cards */
+    /* Right Middle: Modifier Cards - Determines right column height */
     .player-area .modifier-cards {
         grid-column: 2 !important;
         grid-row: 2 !important;
-        grid-row-start: 2 !important;
-        grid-row-end: 2 !important;
         min-height: 15px !important;
         margin: 0 !important;
         background: rgba(255, 255, 255, 0.1) !important;
         border-radius: 3px !important;
         padding: 2px !important;
-        align-self: start !important;
     }
     
-    /* Bottom Right: Unique Counter */
+    /* Bottom Right: Unique Counter - Positioned below modifier cards in right column */
     .player-area .unique-counter {
-        grid-column: 2 !important;
-        grid-row: 2 !important;
-        align-self: end !important; /* Position at bottom of cell */
+        position: absolute !important; /* Overlay, doesn't affect grid height */
+        top: auto !important;
+        bottom: 2px !important; /* Position at bottom of container */
+        right: 2px !important; /* Right side of container */
+        width: calc(50% - 8px) !important; /* Match right column width */
         margin: 0 !important;
         text-align: center !important;
         font-size: 0.6em !important;
@@ -222,7 +221,6 @@
         border-radius: 4px !important;
         min-height: 12px !important;
         box-sizing: border-box !important;
-        margin-top: 2px !important; /* Small gap below modifier cards */
     }
     </style>
     
