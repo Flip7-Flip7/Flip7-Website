@@ -1726,6 +1726,17 @@ body {
         flex: 0 0 auto !important;
     }
     
+    /* MOBILE PLAYERS CONTAINER - Flexible middle section */
+    .mobile-players-container {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 !important; /* Take up remaining space between top controls and bottom section */
+        gap: 6px !important;
+        padding: 4px 0 !important;
+        overflow: hidden !important;
+        min-height: 0 !important; /* Allow flex shrinking */
+    }
+
     /* GOLDEN RATIO DRAW PILE - Central focal point */
     .mobile-draw-pile-area {
         display: flex !important;
@@ -1933,16 +1944,19 @@ body {
         display: none;
     }
     
-    /* GOLDEN RATIO PLAYERS - Perfect proportions */
+    /* GOLDEN RATIO PLAYERS - Perfect proportions with flexible heights */
     #mobile-player {
         width: 100% !important;
-        height: 140px !important; /* Increased further to prevent card cutoff */
+        flex: 1.6 !important; /* Human player gets more space (golden ratio) */
+        min-height: 120px !important; /* Minimum to ensure card visibility */
+        max-height: 180px !important; /* Maximum to prevent oversizing on large screens */
         background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
         border: 2px solid rgba(87, 204, 153, 0.6) !important;
         border-radius: 12px !important;
         padding: 10px !important;
-        margin: 8px 0 4px 0 !important;
-        display: block !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
         backdrop-filter: blur(8px) !important;
         box-shadow: 0 6px 16px rgba(34, 87, 122, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
         overflow: visible !important;
@@ -1952,13 +1966,16 @@ body {
     
     #mobile-opponent1, #mobile-opponent2, #mobile-opponent3 {
         width: 100% !important;
-        height: 110px !important; /* Increased further to prevent card cutoff */
+        flex: 1 !important; /* Equal flexible sizing */
+        min-height: 90px !important; /* Minimum to ensure card visibility */
+        max-height: 130px !important; /* Maximum to prevent oversizing */
         background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(74, 95, 122, 0.75) 100%) !important;
         border: 1px solid rgba(74, 95, 122, 0.4) !important;
         border-radius: 10px !important;
         padding: 8px !important;
-        margin: 2px 0 !important;
-        display: block !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
         backdrop-filter: blur(6px) !important;
         box-shadow: 0 3px 8px rgba(44, 62, 80, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
         overflow: visible !important;
@@ -2139,7 +2156,8 @@ body {
     /* GOLDEN RATIO PLAYER NAMES - Premium typography */
     .mobile-game-board .player-area h3 {
         font-size: 0.75em !important;
-        height: 16px !important; /* φ⁻⁵ ratio for perfect name height */
+        min-height: 16px !important; /* Minimum height for name visibility */
+        flex: 0 0 auto !important; /* Don't grow/shrink */
         margin: 0 0 3px 0 !important;
         padding: 0 6px !important;
         font-weight: 700 !important;
@@ -2214,7 +2232,8 @@ body {
     /* GOLDEN RATIO MODIFIER CARDS - Compact elegance */
     .mobile-game-board .modifier-cards {
         width: 100% !important;
-        height: 34px !important; /* Increased for full modifier card visibility */
+        min-height: 34px !important; /* Minimum height for modifier card visibility */
+        flex: 0 0 auto !important; /* Don't grow/shrink */
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
@@ -2247,7 +2266,8 @@ body {
     /* GOLDEN RATIO NUMBER CARDS - Perfect proportions */
     .mobile-game-board .number-cards {
         width: 100% !important;
-        height: 50px !important; /* Increased for full card visibility */
+        min-height: 50px !important; /* Minimum height for card visibility */
+        flex: 1 !important; /* Take up remaining space within player container */
         box-sizing: border-box !important;
         display: flex !important;
         justify-content: center !important;
@@ -2361,7 +2381,8 @@ body {
     /* GOLDEN RATIO STATS BAR - Integrated perfection */
     .mobile-game-board .unique-counter {
         width: 100% !important;
-        height: 18px !important; /* Ultra-compact stats for space efficiency */
+        min-height: 18px !important; /* Minimum height for stats */
+        flex: 0 0 auto !important; /* Don't grow/shrink */
         font-size: 0.65em !important;
         margin: 2px 0 !important;
         text-align: center !important;
