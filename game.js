@@ -139,11 +139,12 @@ class Flip7Game {
             }
         });
         
-        // Mobile rules button
-        const mobileRulesBtn = document.getElementById('mobile-rules-btn');
-        if (mobileRulesBtn) {
-            mobileRulesBtn.addEventListener('click', () => this.showRules());
+        // Desktop game message button (start game)
+        const gameMessageBtn = document.getElementById('game-message');
+        if (gameMessageBtn) {
+            gameMessageBtn.addEventListener('click', () => this.showStartPopup());
         }
+        
         document.getElementById('win-points').addEventListener('change', (e) => {
             if (!this.gameActive) {
                 this.winningScore = parseInt(e.target.value);

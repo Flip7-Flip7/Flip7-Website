@@ -542,7 +542,7 @@ body {
     box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
 }
 
-/* Name popup for all devices */
+/* GOLDEN RATIO NAME POPUP - Premium welcome experience */
 .mobile-name-popup {
     display: none;
     position: fixed;
@@ -550,65 +550,165 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    backdrop-filter: blur(8px);
-    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px) !important;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(30, 58, 95, 0.6) 100%) !important;
     align-items: center;
     justify-content: center;
     z-index: 9999;
+    animation: popupFadeIn 0.618s cubic-bezier(0.4, 0, 0.2, 1) !important; /* Golden ratio timing */
+}
+
+@keyframes popupFadeIn {
+    0% {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+    100% {
+        opacity: 1;
+        backdrop-filter: blur(12px);
+    }
 }
 
 .name-popup-content {
-    background: rgba(30, 60, 114, 0.98);
-    border-radius: 20px;
-    padding: 30px;
-    border: 3px solid rgba(255, 215, 0, 0.8);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    background: linear-gradient(135deg, #1e3a5f 0%, #2a4d72 50%, #357a8a 100%) !important;
+    border-radius: 20px !important;
+    padding: 40px !important; /* Golden ratio: 40px ≈ φ² × 15px */
+    border: 3px solid rgba(255, 215, 0, 0.8) !important;
+    box-shadow: 
+        0 25px 80px rgba(0, 0, 0, 0.6),
+        0 10px 30px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 0 0 1px rgba(255, 215, 0, 0.3) !important;
     text-align: center;
-    min-width: 280px;
+    min-width: 320px !important; /* Golden ratio: 320px ≈ 200px × φ */
+    max-width: 400px !important;
+    backdrop-filter: blur(20px) !important;
+    animation: popupSlideIn 0.618s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transform-origin: center !important;
+}
+
+@keyframes popupSlideIn {
+    0% {
+        transform: scale(0.8) translateY(-50px);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
 }
 
 .name-popup-content h2 {
-    color: #ffffff;
-    font-size: 1.4em;
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    color: #ffffff !important;
+    font-size: 1.6em !important; /* Golden ratio: 1.6em ≈ φ */
+    font-weight: 700 !important;
+    margin-bottom: 25px !important; /* Golden ratio: 25px ≈ 15px × φ */
+    text-shadow: 
+        2px 2px 4px rgba(0, 0, 0, 0.6),
+        0 0 8px rgba(255, 215, 0, 0.3) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
 }
 
 #player-name-input {
-    width: 100%;
-    padding: 12px 16px;
-    font-size: 1.1em;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    margin-bottom: 20px;
-    text-align: center;
-    box-sizing: border-box;
+    width: 100% !important;
+    height: 50px !important; /* Golden ratio height */
+    padding: 0 20px !important;
+    font-size: 1.2em !important;
+    font-weight: 500 !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%) !important;
+    color: #2c3e50 !important;
+    margin-bottom: 25px !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
 }
 
 #player-name-input:focus {
-    outline: none;
-    border-color: rgba(255, 215, 0, 0.8);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    outline: none !important;
+    border-color: rgba(255, 215, 0, 0.9) !important;
+    box-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.4),
+        0 4px 15px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 100%) !important;
+}
+
+#player-name-input::placeholder {
+    color: rgba(44, 62, 80, 0.6) !important;
+    font-style: italic !important;
 }
 
 .name-submit-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 24px;
-    font-size: 1.1em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    width: 100%;
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 15px 30px !important; /* Golden ratio padding */
+    font-size: 1.1em !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    width: 100% !important;
+    height: 50px !important; /* Matching input height for harmony */
+    box-shadow: 
+        0 6px 20px rgba(16, 185, 129, 0.4),
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    position: relative !important;
+    overflow: hidden !important;
 }
 
 .name-submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 
+        0 8px 25px rgba(16, 185, 129, 0.6),
+        0 4px 12px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%) !important;
+}
+
+.name-submit-btn:active {
+    transform: translateY(-1px) scale(0.98) !important;
+    box-shadow: 
+        0 4px 15px rgba(16, 185, 129, 0.5),
+        0 2px 6px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Golden ratio mobile adjustments */
+@media (max-width: 768px) {
+    .name-popup-content {
+        margin: 0 20px !important;
+        min-width: 280px !important;
+        max-width: calc(100vw - 40px) !important;
+        padding: 32px !important; /* Reduced for mobile */
+    }
+    
+    .name-popup-content h2 {
+        font-size: 1.4em !important;
+        margin-bottom: 20px !important;
+    }
+    
+    #player-name-input {
+        height: 45px !important;
+        font-size: 1.1em !important;
+        margin-bottom: 20px !important;
+    }
+    
+    .name-submit-btn {
+        height: 45px !important;
+        padding: 12px 24px !important;
+        font-size: 1em !important;
+    }
 }
 
 /* Action Card Prompt */
@@ -2515,6 +2615,11 @@ body {
     /* Hide desktop start button on mobile */
     .desktop-start-btn {
         display: none;
+    }
+    
+    /* Hide mobile start button when name popup should show */
+    .mobile-start-btn {
+        display: none !important;
     }
     
     
