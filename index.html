@@ -451,7 +451,7 @@
 
     <!-- FINAL MOBILE UNIFORM SIZING - AFTER ALL EXTERNAL STYLESHEETS -->
     <style>
-    /* UNIFORM PLAYER CONTAINER SIZING - HUMAN AND BOTS IDENTICAL */
+    /* HUMAN PLAYER CONTAINER SIZING - SHORTER HEIGHT */
     html body .game-container .game-area .players-grid .main-player,
     html body .game-container .game-area .players-grid .player-area.main-player,
     html body .game-container .game-area .players-grid #player,
@@ -460,12 +460,12 @@
     html body .game-container .game-area .players-grid div.main-player,
     .main-player,
     #player {
-        flex: 1 !important; /* IDENTICAL flex as bots */
-        min-height: 80px !important; /* IDENTICAL to bots */
-        max-height: 80px !important; /* IDENTICAL to bots */
-        height: 80px !important; /* FORCE IDENTICAL height */
-        padding: 6px !important; /* IDENTICAL padding */
-        margin: 4px 0 !important; /* IDENTICAL margins */
+        flex: 1 !important; /* SAME flex as bots */
+        min-height: 60px !important; /* SHORTER than bots */
+        max-height: 60px !important; /* SHORTER than bots */
+        height: 60px !important; /* SHORTER height */
+        padding: 4px !important; /* Less padding */
+        margin: 3px 0 !important; /* Slightly less margins */
         box-sizing: border-box !important;
         overflow: hidden !important;
         background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
