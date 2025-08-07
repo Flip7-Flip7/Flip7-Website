@@ -492,12 +492,9 @@
         </div>
     </div>
 
-    <!-- EXTREME DEBUG: Force all elements to have visible borders -->
+    <!-- FINAL MOBILE UNIFORM SIZING - AFTER ALL EXTERNAL STYLESHEETS -->
     <style>
-    /* ULTIMATE OVERRIDE - AFTER ALL EXTERNAL STYLESHEETS */
-    * { border: 1px solid yellow !important; } /* Everything gets yellow border */
-    
-    /* EXTREME NUCLEAR HUMAN PLAYER - FINAL OVERRIDE */
+    /* UNIFORM PLAYER CONTAINER SIZING - HUMAN AND BOTS IDENTICAL */
     html body .game-container .game-area .players-grid .main-player,
     html body .game-container .game-area .players-grid .player-area.main-player,
     html body .game-container .game-area .players-grid #player,
@@ -506,19 +503,35 @@
     html body .game-container .game-area .players-grid div.main-player,
     .main-player,
     #player {
-        background: lime !important; /* BRIGHT GREEN TO CONFIRM OVERRIDE */
-        border: 15px solid red !important; /* MASSIVE RED BORDER */
-        height: 20px !important; /* ULTRA TINY HEIGHT */
-        width: 50% !important; /* HALF WIDTH OF CONTAINER */
-        transform: scale(0.5) !important; /* SHRINK TO HALF SIZE */
-        z-index: 9999 !important;
+        flex: 1 !important; /* IDENTICAL flex as bots */
+        min-height: 80px !important; /* IDENTICAL to bots */
+        max-height: 80px !important; /* IDENTICAL to bots */
+        height: 80px !important; /* FORCE IDENTICAL height */
+        padding: 6px !important; /* IDENTICAL padding */
+        margin: 4px 0 !important; /* IDENTICAL margins */
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
+        border: 2px solid rgba(255,255,255,0.3) !important;
+        border-radius: 8px !important;
     }
     
-    /* BOT PLAYERS FOR COMPARISON */
+    /* BOT PLAYERS - IDENTICAL SIZING TO HUMAN */
+    html body .game-container .game-area .players-grid .opponent-player,
+    html body .game-container .game-area .players-grid .player-area.opponent-player,
+    html body .game-container .game-area .players-grid div.opponent-player,
     .opponent-player {
-        background: blue !important; /* BLUE BACKGROUND */
-        border: 15px solid orange !important; /* ORANGE BORDER */
-        height: 60px !important; /* TALLER THAN HUMAN */
+        flex: 1 !important; /* IDENTICAL to human */
+        min-height: 80px !important; /* IDENTICAL to human */
+        max-height: 80px !important; /* IDENTICAL to human */
+        height: 80px !important; /* FORCE IDENTICAL height */
+        padding: 6px !important; /* IDENTICAL padding */
+        margin: 4px 0 !important; /* IDENTICAL margins */
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(74, 95, 122, 0.75) 100%) !important;
+        border: 2px solid rgba(255,255,255,0.3) !important;
+        border-radius: 8px !important;
     }
     </style>
 
