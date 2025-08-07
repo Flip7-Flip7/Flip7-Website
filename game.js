@@ -113,16 +113,7 @@ class Flip7Game {
             mobileRulesBtn.addEventListener('click', () => this.showRules());
         }
         
-        // Mobile start button
-        const mobileStartBtn = document.getElementById('mobile-start-btn');
-        if (mobileStartBtn) {
-            mobileStartBtn.addEventListener('click', () => {
-                this.playerName = "Player";
-                this.players[0].name = "Player";
-                this.startNewGame();
-                mobileStartBtn.style.display = 'none';
-            });
-        }
+        // Mobile start button removed - game auto-starts
         
         // Popup no longer used - game auto-starts
         
@@ -2091,11 +2082,9 @@ class Flip7Game {
     showStartPopup() {
         const gameMessage = document.getElementById('game-message');
         const namePopup = document.getElementById('mobile-name-popup');
-        const mobileStartBtn = document.getElementById('mobile-start-btn');
         
         // Hide any fallback start buttons
         if (gameMessage) gameMessage.style.display = 'none';
-        if (mobileStartBtn) mobileStartBtn.style.display = 'none';
         
         // Show name input popup on all devices
         if (namePopup) {

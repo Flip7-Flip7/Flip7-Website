@@ -1617,8 +1617,8 @@ body {
         bottom: 0 !important;
         width: 100vw !important;
         height: calc(100vh - 25px) !important;
-        overflow: visible !important;
-        padding: 0 8px 4px 8px !important;
+        overflow: hidden !important;
+        padding: 0 8px 8px 8px !important;
         gap: 0 !important;
         background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%) !important;
     }
@@ -1699,7 +1699,10 @@ body {
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
         flex-shrink: 0 !important;
         margin-top: auto !important;
+        margin-bottom: 8px !important;
         backdrop-filter: blur(4px) !important;
+        position: relative !important;
+        z-index: 10 !important;
     }
     
     /* GOLDEN RATIO DRAW PILE - Central focal point */
@@ -2617,10 +2620,7 @@ body {
         display: none;
     }
     
-    /* Hide mobile start button when name popup should show */
-    .mobile-start-btn {
-        display: none !important;
-    }
+    /* Mobile start button removed from HTML */
     
     
     .game-message:hover:not(:disabled) {
