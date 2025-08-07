@@ -127,10 +127,43 @@
         background: #f59e0b !important; /* Orange for Stay */
     }
     
-    /* Clear any remaining mobile-specific styles that aren't needed */
+    /* STEP 8: Clean up mobile player layout */
+    .player-stats {
+        display: none !important; /* Hide total/round scores */
+    }
+    
+    /* Reorder player elements using flexbox order */
+    .player-area {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .player-area h3 {
+        order: 1 !important; /* Player name at top */
+    }
+    
+    .player-area .modifier-cards {
+        order: 2 !important; /* Modifier cards second */
+    }
+    
+    .player-area .unique-counter {
+        order: 3 !important; /* Dots third (under modifier cards) */
+        margin: 4px 0 !important;
+        text-align: center !important;
+        font-size: 0.8em !important;
+        border: 1px solid orange !important; /* DEBUG: Orange border for dots */
+    }
+    
+    .player-area .number-cards {
+        order: 4 !important; /* Number cards last */
+    }
+    
+    .player-area .action-buttons {
+        order: 5 !important; /* Action buttons (though they're fixed positioned) */
+    }
     </style>
     
-    <link rel="stylesheet" href="styles.css?v=5.0&t=hijack">
+    <link rel="stylesheet" href="styles.css?v=6.0&t=cleanup">
 </head>
 <body>
     <div class="game-container">
