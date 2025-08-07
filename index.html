@@ -79,23 +79,23 @@
         border: 2px solid rgba(255,255,255,0.3) !important;
     }
     
-    /* Human player - COMPACT mobile sizing */
+    /* Human player - ULTRA COMPACT mobile sizing */
     .main-player {
-        flex: 1.5 !important; /* Reduced from 2 */
-        min-height: 60px !important; /* Compact height */
-        max-height: 100px !important; /* Limit max height */
-        padding: 4px !important; /* Tighter padding */
-        margin: 2px 0 !important; /* Tighter margins */
+        flex: 1.2 !important; /* Even smaller */
+        min-height: 40px !important; /* Much smaller */
+        max-height: 60px !important; /* Very limited height */
+        padding: 2px !important; /* Minimal padding */
+        margin: 1px 0 !important; /* Minimal margins */
         background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
         border: 2px solid lime !important; /* DEBUG: Human player */
     }
     
-    /* Bot players - COMPACT mobile sizing */
+    /* Bot players - ULTRA COMPACT mobile sizing */
     .opponent-player {
-        flex: 1 !important;
-        min-height: 45px !important; /* Very compact for bots */
-        max-height: 70px !important; /* Limit max height */
-        padding: 3px !important; /* Minimal padding */
+        flex: 0.8 !important; /* Even smaller than human */
+        min-height: 30px !important; /* Very small */
+        max-height: 45px !important; /* Very limited height */
+        padding: 1px !important; /* Absolute minimum padding */
         margin: 1px 0 !important; /* Minimal margins */
         background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(74, 95, 122, 0.75) 100%) !important;
         border: 1px solid cyan !important; /* DEBUG: Bot players */
@@ -157,50 +157,53 @@
         overflow: hidden !important;
     }
     
-    /* Reorder player elements using flexbox order */
+    /* FORCE player area layout with absolute positioning */
     .player-area {
-        display: flex !important;
-        flex-direction: column !important;
+        display: block !important; /* Change to block for precise control */
+        position: relative !important;
+        overflow: visible !important;
     }
     
     .player-area h3 {
-        order: 1 !important; /* Player name at top */
-        font-size: 0.9em !important; /* Compact text */
-        margin: 0 0 2px 0 !important; /* Tight margins */
-        padding: 2px !important; /* Minimal padding */
+        position: relative !important;
+        top: 0 !important; /* Ensure at very top */
+        font-size: 0.7em !important; /* Very small text */
+        margin: 0 !important; /* No margins */
+        padding: 1px !important; /* Minimal padding */
         text-align: center !important;
         font-weight: bold !important;
+        background: rgba(0, 0, 0, 0.5) !important; /* Dark background for visibility */
+        color: white !important;
         border: 1px solid white !important; /* DEBUG: White border for names */
+        z-index: 10 !important;
     }
     
     .player-area .modifier-cards {
-        order: 2 !important; /* Modifier cards second */
-        min-height: 20px !important; /* Compact */
-        margin: 1px 0 !important;
+        position: relative !important;
+        top: 2px !important; /* Right after name */
+        min-height: 15px !important; /* Very compact */
+        margin: 0 !important;
     }
     
     .player-area .unique-counter {
-        order: 3 !important; /* Dots third (under modifier cards) */
-        margin: 2px 0 !important; /* Tighter margins */
+        position: relative !important;
+        top: 4px !important; /* After modifier cards */
+        margin: 0 !important; 
         text-align: center !important;
-        font-size: 0.7em !important; /* Smaller text */
-        padding: 1px !important; /* Minimal padding */
+        font-size: 0.6em !important; /* Very small text */
+        padding: 0 !important; 
         border: 1px solid orange !important; /* DEBUG: Orange border for dots */
     }
     
     .player-area .number-cards {
-        order: 4 !important; /* Number cards last */
-        flex: 1 !important; /* Take remaining space */
-        min-height: 25px !important; /* Compact */
-        margin: 1px 0 !important;
-    }
-    
-    .player-area .action-buttons {
-        order: 5 !important; /* Action buttons (though they're fixed positioned) */
+        position: relative !important;
+        top: 6px !important; /* After unique counter */
+        min-height: 18px !important; /* Very compact */
+        margin: 0 !important;
     }
     </style>
     
-    <link rel="stylesheet" href="styles.css?v=8.0&t=critical&mobile=fixed">
+    <link rel="stylesheet" href="styles.css?v=9.0&t=ultracompact&names=above">
 </head>
 <body>
     <div class="game-container">
