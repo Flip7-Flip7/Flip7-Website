@@ -17,6 +17,9 @@ class Flip7Game {
         // Flag to prevent mobile sync during bust animations
         this.isBustAnimating = false;
         
+        // Flag to prevent multiple rapid button clicks
+        this.isProcessingPlayerAction = false;
+        
         // Store custom player name (defaults to "You")
         this.playerName = "You";
         
@@ -467,7 +470,7 @@ class Flip7Game {
                     if (this.players[this.currentPlayerIndex].isHuman) {
                         this.enablePlayerActions();
                     } else {
-                        setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 1000);
+                        setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 1200); // Standardized timing
                     }
                 }, 1000);
                 return;
@@ -505,7 +508,7 @@ class Flip7Game {
                         if (this.players[this.currentPlayerIndex].isHuman) {
                             this.enablePlayerActions();
                         } else {
-                            setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 1000);
+                            setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 1200); // Standardized timing
                         }
                     }, 1000);
                 }
@@ -525,7 +528,7 @@ class Flip7Game {
                     // Check if we need to continue dealing or if the round ended
                     if (dealIndex < this.players.length && this.gameActive) {
                         console.log(`Dealing to next player: ${this.players[dealIndex].name}`);
-                        setTimeout(dealNextCard, 800);
+                        setTimeout(dealNextCard, 1200);
                     } else if (dealIndex >= this.players.length && this.gameActive) {
                         // All cards dealt, start normal gameplay
                         console.log('All initial cards dealt, starting gameplay');
@@ -550,7 +553,7 @@ class Flip7Game {
                             if (this.players[this.currentPlayerIndex].isHuman) {
                                 this.enablePlayerActions();
                             } else {
-                                setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 1000);
+                                setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 1200); // Standardized timing
                             }
                         }, 1000);
                     }
@@ -571,7 +574,10 @@ class Flip7Game {
     }
     
     handleInitialCardDraw(player, card, onActionComplete = null) {
-        console.log(`${player.name} drew initial card:`, card);
+        console.log(`INITIAL CARD DEAL: ${player.name} drew initial card:`, card);
+        if (player.isHuman) {
+            console.log('HUMAN PLAYER received initial card - should wait for Hit/Stay decision');
+        }
         if (card.type === 'number') {
             player.numberCards.push(card);
             player.uniqueNumbers.add(card.value);
@@ -626,21 +632,27 @@ class Flip7Game {
         if (card.type === 'number') {
             // Check for bust
             if (player.uniqueNumbers.has(card.value) && !isInitialDeal) {
-                // Add the duplicate card to hand and sort by numeric value
-                player.numberCards.push(card);
-                // Sort all number cards in numerical order (0-12)
-                player.numberCards.sort((a, b) => a.value - b.value);
-                
                 if (player.hasSecondChance) {
+                    // Add the duplicate card temporarily for Second Chance processing
+                    player.numberCards.push(card);
+                    player.numberCards.sort((a, b) => a.value - b.value);
                     this.activateSecondChance(player, card);
                     return { endTurn: false, busted: false };
                 } else {
-                    // Set bust status BEFORE updating display so duplicate highlighting works
+                    // DON'T add the duplicate card to the permanent hand
+                    // Just store it temporarily for bust animation
+                    const bustCard = card;
+                    
+                    // Set bust status BEFORE updating display
                     player.status = 'busted';
                     player.roundScore = 0;
                     
                     // Set bust animation flag to prevent mobile sync during entire bust sequence
                     this.isBustAnimating = true;
+                    
+                    // Temporarily add the card just for display purposes during bust animation
+                    player.numberCards.push(bustCard);
+                    player.numberCards.sort((a, b) => a.value - b.value);
                     
                     // Update display to show duplicate card in hand with highlighting
                     this.updateDisplay();
@@ -648,6 +660,11 @@ class Flip7Game {
                     // Brief pause to let player see the duplicates, then animate bust
                     setTimeout(() => {
                         this.addToLog(`${player.name} busted with duplicate ${card.value}!`);
+                        // Remove the temporary bust card before animating
+                        const bustCardIndex = player.numberCards.findIndex(c => c === bustCard);
+                        if (bustCardIndex !== -1) {
+                            player.numberCards.splice(bustCardIndex, 1);
+                        }
                         this.animateBust(player);
                     }, 300);
                     
@@ -943,9 +960,9 @@ class Flip7Game {
             
             // Call the completion callback (which will move to next turn)
             if (onComplete) {
-                setTimeout(onComplete, 1000);
+                setTimeout(onComplete, 1200); // Standardized timing
             } else {
-                setTimeout(() => this.nextTurn(), 1000);
+                setTimeout(() => this.nextTurn(), 1200); // Standardized timing
             }
         });
     }
@@ -974,7 +991,7 @@ class Flip7Game {
                 console.log(`Flip Three completed, cardsFlipped: ${cardsFlipped}, calling callback: ${!!onComplete}`);
                 this.isProcessingFlip3 = false;
                 if (onComplete) {
-                    setTimeout(onComplete, 1000);
+                    setTimeout(onComplete, 1200); // Standardized timing
                 } else {
                     this.checkForRoundEnd();
                 }
@@ -1000,7 +1017,7 @@ class Flip7Game {
                     console.log('Player busted or achieved Flip 7, ending sequence');
                     this.isProcessingFlip3 = false;
                     if (onComplete) {
-                        setTimeout(onComplete, 1000);
+                        setTimeout(onComplete, 1200); // Standardized timing
                     } else {
                         this.checkForRoundEnd();
                     }
@@ -1010,11 +1027,11 @@ class Flip7Game {
                 } else {
                     // All 3 cards flipped successfully, now process any queued actions
                     if (pendingActions.length > 0) {
-                        setTimeout(processNextCard, 1000);
+                        setTimeout(processNextCard, 1200); // Standardized timing
                     } else {
                         this.isProcessingFlip3 = false;
                         if (onComplete) {
-                            setTimeout(onComplete, 1000);
+                            setTimeout(onComplete, 1200); // Standardized timing
                         } else {
                             this.checkForRoundEnd();
                         }
@@ -1239,25 +1256,37 @@ class Flip7Game {
         // If we're still in initial dealing phase, don't start next turn
         // The dealing sequence will handle continuation
         if (this.gameActive && !this.isInitialDealing) {
-            setTimeout(() => this.nextTurn(), 1000);
+            setTimeout(() => this.nextTurn(), 1200); // Standardized timing
         }
     }
 
     playerHit() {
         const player = this.players[0];
-        if (player.status !== 'active') return;
+        if (player.status !== 'active') {
+            console.log('PlayerHit blocked: player status is', player.status);
+            return;
+        }
         
+        // Prevent multiple rapid clicks
+        if (this.isProcessingPlayerAction) {
+            console.log('PlayerHit blocked: already processing player action');
+            return;
+        }
+        
+        this.isProcessingPlayerAction = true;
+        console.log('HUMAN PLAYER HIT - dealing additional card');
         const card = this.drawCard();
         this.displayCard(card, 'player');
         
         this.disablePlayerActions();
         
-        // Wait for card animation to complete before handling card logic
+        // Wait for card animation to complete before handling card logic (standardized timing)
         setTimeout(() => {
             const result = this.handleCardDraw(player, card, false, false);
             
             // If busted, handleCardDraw already handled everything - exit early
             if (result.busted) {
+                this.isProcessingPlayerAction = false; // Reset flag
                 return; // Don't call updateDisplay() again or nextTurn()
             }
             
@@ -1266,20 +1295,31 @@ class Flip7Game {
                 // Action card will handle the turn flow
                 setTimeout(() => {
                     this.updateDisplay();
-                }, 800);
+                    this.isProcessingPlayerAction = false; // Reset flag
+                }, 1200); // Standardized timing
             } else {
                 // Normal flow: move to next turn after animation
                 setTimeout(() => {
                     this.updateDisplay();
                     this.nextTurn();
-                }, 800);
+                    this.isProcessingPlayerAction = false; // Reset flag
+                }, 1200); // Standardized timing
             }
-        }, 1000);
+        }, 1200); // Standardized card animation duration
     }
 
     playerStay() {
         const player = this.players[0];
         if (player.status !== 'active' || player.numberCards.length === 0) return;
+        
+        // Prevent multiple rapid clicks
+        if (this.isProcessingPlayerAction) {
+            console.log('PlayerStay blocked: already processing player action');
+            return;
+        }
+        
+        this.isProcessingPlayerAction = true;
+        console.log('HUMAN PLAYER STAY - ending turn');
         
         player.status = 'stayed';
         this.calculateRoundScore(player);
@@ -1289,7 +1329,10 @@ class Flip7Game {
         this.disablePlayerActions();
         
         // Move to next player immediately
-        this.nextTurn();
+        setTimeout(() => {
+            this.nextTurn();
+            this.isProcessingPlayerAction = false; // Reset flag
+        }, 500); // Brief delay for visual feedback
     }
 
     calculateRoundScore(player) {
@@ -1365,7 +1408,7 @@ class Flip7Game {
             } else {
                 // AI turn
                 this.showMessage(`${currentPlayer.name}'s turn...`);
-                setTimeout(() => this.takeAITurn(currentPlayer), 1000);
+                setTimeout(() => this.takeAITurn(currentPlayer), 1200); // Standardized timing
             }
         }, 100); // Much shorter delay - just to ensure UI updates properly
     }
@@ -1419,7 +1462,7 @@ class Flip7Game {
         
         this.addToLog(`${player.name} hits and gets ${card.display}`);
         
-        // Wait for card animation to complete before handling card logic
+        // Wait for card animation to complete before handling card logic (standardized timing)
         setTimeout(() => {
             const result = this.handleCardDraw(player, card, false, false);
             
@@ -1433,15 +1476,15 @@ class Flip7Game {
                 // Action card will handle the turn flow
                 setTimeout(() => {
                     this.updateDisplay();
-                }, 800);
+                }, 1200); // Standardized timing
             } else {
                 // Normal flow: move to next turn after animation
                 setTimeout(() => {
                     this.updateDisplay();
                     this.nextTurn();
-                }, 800);
+                }, 1200); // Standardized timing
             }
-        }, 1000);
+        }, 1200); // Standardized card animation duration
     }
 
     aiStay(player) {
@@ -1742,7 +1785,8 @@ class Flip7Game {
 
     enablePlayerActions() {
         const player = this.players[0];
-        if (player.status === 'active') {
+        if (player.status === 'active' && !this.isProcessingPlayerAction) {
+            console.log('ENABLING player actions - human player can now Hit/Stay');
             // Enable desktop buttons
             document.getElementById('hit-btn').disabled = false;
             document.getElementById('stay-btn').disabled = player.numberCards.length === 0;
@@ -1769,6 +1813,7 @@ class Flip7Game {
     }
 
     disablePlayerActions() {
+        console.log('DISABLING player actions - preventing clicks during animation');
         // Disable desktop buttons
         document.getElementById('hit-btn').disabled = true;
         document.getElementById('stay-btn').disabled = true;
