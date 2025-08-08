@@ -1493,18 +1493,21 @@ class Flip7Game {
         // Highlight the current player immediately when their turn starts
         this.highlightCurrentPlayer();
         
-        // Then handle the actual turn logic with a brief delay
+        // Then handle the actual turn logic with a longer delay for better visual flow
         setTimeout(() => {
             if (currentPlayer.isHuman) {
                 // Enable actions for human player
                 this.enablePlayerActions();
                 this.showMessage(`Your turn!`);
             } else {
-                // AI turn
+                // AI turn - show message first
                 this.showMessage(`${currentPlayer.name}'s turn...`);
-                setTimeout(() => this.takeAITurn(currentPlayer), 1200); // Standardized timing
+                // Extra delay for mobile to ensure turn highlight is clearly visible before card flip
+                const isMobile = window.innerWidth <= 1024;
+                const aiDelay = isMobile ? 2000 : 1500; // Longer delay on mobile
+                setTimeout(() => this.takeAITurn(currentPlayer), aiDelay);
             }
-        }, 100); // Much shorter delay - just to ensure UI updates properly
+        }, 800); // Increased delay to let users register the turn highlight
     }
 
     takeAITurn(player) {
