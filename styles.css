@@ -2396,7 +2396,7 @@ body {
         background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
         border: 2px solid rgba(87, 204, 153, 0.6) !important;
         border-radius: 12px !important;
-        padding: 10px !important;
+        padding: 6px !important; /* Reduced padding for more card space */
         margin: 0 !important;
         display: flex !important;
         flex-direction: column !important;
@@ -2415,7 +2415,7 @@ body {
         background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(74, 95, 122, 0.75) 100%) !important;
         border: 1px solid rgba(74, 95, 122, 0.4) !important;
         border-radius: 10px !important;
-        padding: 8px !important;
+        padding: 4px !important; /* Reduced padding for more card space */
         margin: 0 !important;
         display: flex !important;
         flex-direction: column !important;
@@ -2692,57 +2692,57 @@ body {
         flex-shrink: 0;
     }
     
-    /* Dynamic mobile card sizing based on card count */
+    /* Dynamic mobile card sizing based on card count - MAXIMIZED */
     /* Base size for fewer cards (largest) */
     .mobile-game-board .cards-1 .card,
     .mobile-game-board .cards-2 .card {
-        width: 55px;
-        height: 77px;
+        width: 65px;
+        height: 91px;
         font-size: 0.9em;
-        margin: 1px;
+        margin: 0px; /* Removed margins for maximum space */
     }
     
     .mobile-game-board .cards-3 .card {
-        width: 52px;
-        height: 73px;
+        width: 60px;
+        height: 84px;
         font-size: 0.85em;
-        margin: 1px;
+        margin: 0px;
     }
     
     .mobile-game-board .cards-4 .card {
-        width: 48px;
-        height: 67px;
+        width: 56px;
+        height: 78px;
         font-size: 0.8em;
-        margin: 1px;
+        margin: 0px;
     }
     
     .mobile-game-board .cards-5 .card {
-        width: 44px;
-        height: 62px;
+        width: 52px;
+        height: 73px;
         font-size: 0.75em;
-        margin: 1px;
+        margin: 0px;
     }
     
     .mobile-game-board .cards-6 .card {
-        width: 40px;
-        height: 56px;
+        width: 48px;
+        height: 67px;
         font-size: 0.7em;
-        margin: 1px;
+        margin: 0px;
     }
     
     .mobile-game-board .cards-7 .card {
-        width: 36px;
-        height: 50px;
+        width: 44px;
+        height: 62px;
         font-size: 0.65em;
-        margin: 1px;
+        margin: 0px;
     }
     
     /* For 8+ cards, use smaller sizes */
     .mobile-game-board .player-cards .card {
-        width: 32px;
-        height: 45px;
+        width: 40px;
+        height: 56px;
         font-size: 0.6em;
-        margin: 1px;
+        margin: 0px; /* Removed margins for maximum space */
         display: inline-block;
         border-radius: 4px;
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
@@ -2801,14 +2801,14 @@ body {
         display: flex !important;
         justify-content: flex-start !important;
         align-items: center !important;
-        gap: 1px !important;
+        gap: 0px !important; /* Removed gap for tighter card packing */
         flex-wrap: nowrap !important;
         overflow-x: auto !important;
         overflow-y: hidden !important;
         background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.15) 100%) !important;
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-radius: 4px !important;
-        padding: 2px !important;
+        padding: 0px !important; /* Removed padding for maximum card space */
         margin: 1px 0 !important;
         box-sizing: border-box !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
