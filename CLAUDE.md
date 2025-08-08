@@ -11,6 +11,19 @@ Flip 7 is a web-based card game where players collect number cards (0-12) withou
 - **images/** - Card images and game assets
 
 ## Development Workflow
+# Lint and style
+# Check for issues and fix automatically
+python -m ruff check src/ tests/ --fix
+python -m ruff format src/ tests/
+
+# Typecheck (only done for src/)
+python -m mypy src/
+
+# Run all tests
+python -m pytest tests/
+
+# Run specific test file
+python -m pytest tests/test_client.py
 
 ### Local Testing
 ```bash

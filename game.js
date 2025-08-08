@@ -258,6 +258,8 @@ class Flip7Game {
                 }
             }
         });
+
+        
         
         // Mobile buttons are now in the controls section
         // Event listeners are attached once in setupEventListeners()
@@ -414,18 +416,12 @@ class Flip7Game {
             
             // Clear all visual cards from DOM
             const isMainPlayer = player.id === 'player';
-            const numberContainer = isMainPlayer 
-                ? document.getElementById('player-numbers')
-                : container.querySelector('.number-cards');
-            const modifierContainer = isMainPlayer
-                ? document.getElementById('player-modifiers')
-                : container.querySelector('.modifier-cards');
+            const cardContainer = isMainPlayer 
+                ? document.getElementById('player-cards')
+                : container.querySelector('.player-cards');
                 
-            if (numberContainer) {
-                numberContainer.innerHTML = '';
-            }
-            if (modifierContainer) {
-                modifierContainer.innerHTML = '';
+            if (cardContainer) {
+                cardContainer.innerHTML = '';
             }
         });
         
@@ -1159,11 +1155,11 @@ class Flip7Game {
     animateFreezeTransfer(cardOwner, targetPlayer, onComplete) {
         // Find the freeze card in the card owner's hand
         const ownerContainer = document.getElementById(cardOwner.id);
-        const ownerModifierContainer = cardOwner.isHuman 
-            ? document.getElementById('player-modifiers')
-            : ownerContainer.querySelector('.modifier-cards');
+        const ownerCardContainer = cardOwner.isHuman 
+            ? document.getElementById('player-cards')
+            : ownerContainer.querySelector('.player-cards');
         
-        const freezeCard = Array.from(ownerModifierContainer.children).find(card => 
+        const freezeCard = Array.from(ownerCardContainer.children).find(card => 
             card.dataset.cardValue === 'freeze'
         );
         
@@ -1225,28 +1221,25 @@ class Flip7Game {
     }
 
     animateSecondChanceActivation(player, duplicateCard) {
-        // Get the correct containers for this player
+        // Get the unified card container for this player
         const playerContainer = document.getElementById(player.id);
-        const modifierContainer = player.isHuman 
-            ? document.getElementById('player-modifiers')
-            : playerContainer.querySelector('.modifier-cards');
-        const numberContainer = player.isHuman
-            ? document.getElementById('player-numbers')
-            : playerContainer.querySelector('.number-cards');
+        const cardContainer = player.isHuman 
+            ? document.getElementById('player-cards')
+            : playerContainer.querySelector('.player-cards');
             
-        if (!modifierContainer || !numberContainer) {
-            // Fallback if containers not found
+        if (!cardContainer) {
+            // Fallback if container not found
             this.removeSecondChanceCards(player, duplicateCard);
             return;
         }
         
         // Find the Second Chance card element
-        const secondChanceCard = Array.from(modifierContainer.children).find(card => 
+        const secondChanceCard = Array.from(cardContainer.children).find(card => 
             card.dataset.cardValue === 'second_chance'
         );
         
         // Find the duplicate number card element (it should be the last one added)
-        const duplicateCardElements = Array.from(numberContainer.children).filter(card =>
+        const duplicateCardElements = Array.from(cardContainer.children).filter(card =>
             card.dataset.cardValue == duplicateCard.value.toString()
         );
         // Get the last one (the duplicate that was just added)
@@ -1800,27 +1793,25 @@ class Flip7Game {
     }
 
     getTargetCardContainer(playerId, cardType) {
+        // Always return the unified card container regardless of card type
         if (playerId === 'player') {
-            return document.getElementById(cardType === 'number' ? 'player-numbers' : 'player-modifiers');
+            return document.getElementById('player-cards');
         } else {
-            const container = document.getElementById(playerId);
-            return container ? container.querySelector(`.${cardType === 'number' ? 'number-cards' : 'modifier-cards'}`) : null;
+            // For opponents, use direct ID references to their card containers
+            return document.getElementById(`${playerId}-cards`);
         }
     }
 
     addCardToPlayerHand(card, playerId) {
-        // Adding card to hand
-        const cardsContainer = this.getTargetCardContainer(playerId, card.type);
-        // Cards container found
-        
-        if (cardsContainer) {
-            const cardElement = this.createCardElement(card);
-            cardElement.dataset.cardValue = card.value;
-            cardElement.dataset.cardType = card.type;
-            cardsContainer.appendChild(cardElement);
-            // Card added to hand successfully
-        } else {
-            console.error(`No card container found for ${playerId}, card type: ${card.type}`);
+        // With unified container, we need to re-render the entire hand in sorted order
+        const player = this.players.find(p => p.id === playerId);
+        if (player) {
+            const cardContainer = this.getTargetCardContainer(playerId, card.type);
+            if (cardContainer) {
+                this.renderPlayerCards(player, cardContainer);
+            } else {
+                console.error(`No card container found for ${playerId}`);
+            }
         }
     }
 
@@ -2030,85 +2021,14 @@ class Flip7Game {
             uniqueElement.innerHTML = `<span class="card-dots">${this.createCardDots(count)}</span>`;
         }
         
-        // Clear and redraw cards only when starting a new round
-        const numberContainer = isMainPlayer 
-            ? document.getElementById('player-numbers')
-            : container.querySelector('.number-cards');
-        const modifierContainer = isMainPlayer
-            ? document.getElementById('player-modifiers')
-            : container.querySelector('.modifier-cards');
+        // Get unified card container
+        const cardContainer = isMainPlayer 
+            ? document.getElementById('player-cards')
+            : container.querySelector('.player-cards');
             
-        // Only redraw if we're resetting (new round) and not during initial dealing
-        if (player.numberCards.length === 0 && numberContainer && !this.isInitialDealing) {
-            numberContainer.innerHTML = '';
-        }
-        if (player.modifierCards.length === 0 && player.actionCards.length === 0 && modifierContainer && !this.isInitialDealing) {
-            modifierContainer.innerHTML = '';
-        }
-        
-        // Ensure all cards from player data are displayed in DOM
-        if (numberContainer) {
-            const existingCards = Array.from(numberContainer.children);
-            
-            // Always sort and redraw cards if the counts don't match or if we need to sort
-            if (existingCards.length !== player.numberCards.length || player.numberCards.length > 0) {
-                // Clear and redraw all cards in sorted order
-                numberContainer.innerHTML = '';
-                
-                // For busted players, preserve card order to keep duplicates together
-                // For active players, sort numerically
-                let cardsToDisplay;
-                if (player.status === 'busted') {
-                    // Keep original order to show duplicates next to each other
-                    cardsToDisplay = [...player.numberCards];
-                } else {
-                    // Sort number cards in numerical order (0-12) - smaller numbers on left, bigger on right
-                    cardsToDisplay = [...player.numberCards].sort((a, b) => a.value - b.value);
-                }
-                
-                cardsToDisplay.forEach((card, index) => {
-                    const cardElement = this.createCardElement(card);
-                    cardElement.dataset.cardValue = card.value;
-                    cardElement.dataset.cardType = card.type;
-                    
-                    // Add special styling for duplicate cards in busted hands
-                    if (player.status === 'busted') {
-                        // Find if this card value appears elsewhere in the hand
-                        const duplicateIndices = cardsToDisplay
-                            .map((c, i) => c.value === card.value ? i : -1)
-                            .filter(i => i !== -1);
-                        
-                        if (duplicateIndices.length > 1) {
-                            cardElement.classList.add('duplicate-card');
-                        }
-                    }
-                    
-                    numberContainer.appendChild(cardElement);
-                });
-                
-                // Update card count class for dynamic sizing (both mobile and desktop)
-                const cardCount = player.numberCards.length;
-                const mobileSizeClass = `cards-${Math.min(cardCount, 7)}`;
-                const desktopSizeClass = `desktop-cards-${Math.min(cardCount, 7)}`;
-                numberContainer.className = `number-cards ${mobileSizeClass} ${desktopSizeClass}`;
-            }
-        }
-        
-        if (modifierContainer) {
-            const existingCards = Array.from(modifierContainer.children);
-            const totalPlayerCards = [...player.modifierCards, ...player.actionCards];
-            
-            // Only add cards if we have fewer DOM elements than player cards
-            if (existingCards.length < totalPlayerCards.length) {
-                // Clear and redraw all cards to avoid duplicates
-                modifierContainer.innerHTML = '';
-                totalPlayerCards.forEach(card => {
-                    const cardElement = this.createCardElement(card);
-                    cardElement.dataset.cardValue = card.value;
-                    cardElement.dataset.cardType = card.type;
-                    modifierContainer.appendChild(cardElement);
-                });
-            }
+        // Render all cards in sorted order using unified container
+        if (cardContainer) {
+            this.renderPlayerCards(player, cardContainer);
         }
 
         // Show Flip 7 indicator
@@ -2119,6 +2039,65 @@ class Flip7Game {
             const flip7Indicator = document.getElementById('flip7-indicator');
             if (flip7Indicator) flip7Indicator.style.display = 'none';
         }
+    }
+
+    renderPlayerCards(player, container) {
+        // Clear container
+        container.innerHTML = '';
+        
+        // Collect all cards
+        const allCards = [];
+        
+        // Add number cards (sorted numerically)
+        const numberCards = player.status === 'busted' 
+            ? [...player.numberCards] // Keep original order for busted players to show duplicates together
+            : [...player.numberCards].sort((a, b) => a.value - b.value);
+        allCards.push(...numberCards);
+        
+        // Add modifier cards (sorted by value: +2, +4, +6, +8, +10, x2)
+        const sortedModifiers = [...player.modifierCards].sort((a, b) => {
+            const order = { '+2': 1, '+4': 2, '+6': 3, '+8': 4, '+10': 5, 'x2': 6 };
+            return (order[a.value] || 999) - (order[b.value] || 999);
+        });
+        allCards.push(...sortedModifiers);
+        
+        // Add Second Chance at the end
+        if (player.hasSecondChance) {
+            allCards.push({
+                type: 'action',
+                value: 'second_chance',
+                display: 'Second Chance'
+            });
+        }
+        
+        // Render all cards
+        allCards.forEach((card, index) => {
+            const cardElement = this.createCardElement(card);
+            cardElement.dataset.cardValue = card.value;
+            cardElement.dataset.cardType = card.type;
+            
+            // Add special styling for duplicate cards in busted hands
+            if (player.status === 'busted' && card.type === 'number') {
+                const duplicateCount = player.numberCards.filter(c => c.value === card.value).length;
+                if (duplicateCount > 1) {
+                    cardElement.classList.add('duplicate-card');
+                }
+            }
+            
+            container.appendChild(cardElement);
+        });
+        
+        // Update dynamic card sizing class - extended for mobile optimization
+        const cardCount = allCards.length;
+        let mobileSizeClass;
+        if (cardCount <= 7) {
+            mobileSizeClass = `cards-${cardCount}`;
+        } else {
+            // For 8+ cards, don't use specific class (will use default smaller size)
+            mobileSizeClass = '';
+        }
+        const desktopSizeClass = `desktop-cards-${Math.min(cardCount, 7)}`;
+        container.className = `player-cards ${mobileSizeClass} ${desktopSizeClass}`.trim();
     }
 
     getStatusText(status) {
@@ -2336,8 +2315,8 @@ class Flip7Game {
     }
     
     animateCardWave(player) {
-        const playerContainer = document.getElementById(player.id);
-        const numberCards = playerContainer.querySelectorAll('.number-cards .card');
+        const cardContainer = this.getTargetCardContainer(player.id, 'number');
+        const numberCards = cardContainer ? cardContainer.querySelectorAll('.card[data-card-type="number"]') : [];
         
         // Clone and animate each card
         numberCards.forEach((card, index) => {
@@ -2370,9 +2349,8 @@ class Flip7Game {
         
         // Hide original cards during animation
         setTimeout(() => {
-            const numberContainer = playerContainer.querySelector('.number-cards');
-            if (numberContainer) {
-                numberContainer.style.opacity = '0.3';
+            if (cardContainer) {
+                cardContainer.style.opacity = '0.3';
             }
         }, 200);
     }
@@ -2458,10 +2436,9 @@ class Flip7Game {
         glitterContainer.innerHTML = '';
         
         // Restore original cards opacity
-        const playerContainer = document.getElementById('player');
-        const numberContainer = playerContainer.querySelector('.number-cards');
-        if (numberContainer) {
-            numberContainer.style.opacity = '1';
+        const cardContainer = this.getTargetCardContainer('player', 'number');
+        if (cardContainer) {
+            cardContainer.style.opacity = '1';
         }
         
         // Flip 7 celebration complete

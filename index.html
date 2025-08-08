@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0">
     <title>Flip 7 - Online Card Game</title>
     
-    <link rel="stylesheet" href="styles.css?v=12.0&t=20250808-mobile">
+    <link rel="stylesheet" href="styles.css?v=17.0&t=20250808-beautiful-mobile">
     
 </head>
 <body>
@@ -33,55 +33,7 @@
         <div class="game-area">
             <!-- Players Grid -->
             <div class="players-grid" style="position: relative;">
-                <!-- Opponent 1 (Left) -->
-                <div class="player-area opponent-player opponent-left" id="opponent1">
-                    <div class="player-header">
-                        <span class="round-score"><span class="round-value">0</span></span>
-                        <h3>AI Bot 1</h3>
-                        <span class="total-score"><span class="score-value">0</span></span>
-                    </div>
-                    <div class="player-stats">
-                        <span class="player-status">Waiting</span>
-                    </div>
-                    <div class="modifier-cards">
-                        <div class="card">+2</div>
-                    </div>
-                    <div class="number-cards">
-                        <div class="card"><span>5</span></div>
-                        <div class="card"><span>7</span></div>
-                        <div class="card"><span>K</span></div>
-                    </div>
-                </div>
-
-                <!-- Opponent 2 (Top) -->
-                <div class="player-area opponent-player opponent-top" id="opponent2">
-                    <div class="player-header">
-                        <span class="round-score"><span class="round-value">0</span></span>
-                        <h3>AI Bot 2</h3>
-                        <span class="total-score"><span class="score-value">0</span></span>
-                    </div>
-                    <div class="player-stats">
-                        <span class="player-status">Waiting</span>
-                    </div>
-                    <div class="modifier-cards"></div>
-                    <div class="number-cards"></div>
-                </div>
-
-                <!-- Opponent 3 (Right) -->
-                <div class="player-area opponent-player opponent-right" id="opponent3">
-                    <div class="player-header">
-                        <span class="round-score"><span class="round-value">0</span></span>
-                        <h3>AI Bot 3</h3>
-                        <span class="total-score"><span class="score-value">0</span></span>
-                    </div>
-                    <div class="player-stats">
-                        <span class="player-status">Waiting</span>
-                    </div>
-                    <div class="modifier-cards"></div>
-                    <div class="number-cards"></div>
-                </div>
-
-                <!-- Human Player (Bottom) -->
+                <!-- Human Player (Top) -->
                 <div class="player-area main-player" id="player">
                     <div class="player-header">
                         <span class="round-score"><span class="round-value">0</span></span>
@@ -91,12 +43,50 @@
                     <div class="player-stats">
                         <span class="player-status">Waiting</span>
                     </div>
-                    <div class="modifier-cards" id="player-modifiers"></div>
-                    <div class="number-cards" id="player-numbers"></div>
+                    <div class="player-cards" id="player-cards"></div>
                     <div class="action-buttons">
                         <button id="hit-btn" class="btn primary" disabled>Hit</button>
                         <button id="stay-btn" class="btn secondary" disabled>Stay</button>
                     </div>
+                </div>
+
+                <!-- Opponent 1 -->
+                <div class="player-area opponent-player" id="opponent1">
+                    <div class="player-header">
+                        <span class="round-score"><span class="round-value">0</span></span>
+                        <h3>AI Bot 1</h3>
+                        <span class="total-score"><span class="score-value">0</span></span>
+                    </div>
+                    <div class="player-stats">
+                        <span class="player-status">Waiting</span>
+                    </div>
+                    <div class="player-cards" id="opponent1-cards"></div>
+                </div>
+
+                <!-- Opponent 2 -->
+                <div class="player-area opponent-player" id="opponent2">
+                    <div class="player-header">
+                        <span class="round-score"><span class="round-value">0</span></span>
+                        <h3>AI Bot 2</h3>
+                        <span class="total-score"><span class="score-value">0</span></span>
+                    </div>
+                    <div class="player-stats">
+                        <span class="player-status">Waiting</span>
+                    </div>
+                    <div class="player-cards" id="opponent2-cards"></div>
+                </div>
+
+                <!-- Opponent 3 -->
+                <div class="player-area opponent-player" id="opponent3">
+                    <div class="player-header">
+                        <span class="round-score"><span class="round-value">0</span></span>
+                        <h3>AI Bot 3</h3>
+                        <span class="total-score"><span class="score-value">0</span></span>
+                    </div>
+                    <div class="player-stats">
+                        <span class="player-status">Waiting</span>
+                    </div>
+                    <div class="player-cards" id="opponent3-cards"></div>
                 </div>
             </div>
         </div>
@@ -301,6 +291,6 @@
     </div>
 
 
-    <script src="game.js?v=5.0&t=20250808-autostart"></script>
+    <script src="game.js?v=7.0&t=20250808-mobile-sizing"></script>
 </body>
 </html>
