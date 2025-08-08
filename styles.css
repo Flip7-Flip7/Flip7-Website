@@ -26,6 +26,89 @@ body {
     position: relative;
 }
 
+/* Mobile responsive layout */
+@media (max-width: 768px) {
+    .game-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+        gap: 10px;
+        padding: 10px;
+        max-width: none;
+    }
+    
+    .draw-pile-column {
+        order: 1;
+        padding: 10px;
+    }
+    
+    .game-area {
+        order: 2;
+    }
+    
+    .controls-panel {
+        order: 3;
+        padding: 10px;
+    }
+    
+    .players-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, auto);
+        gap: 8px;
+        min-height: auto;
+        padding: 10px;
+    }
+    
+    .main-player {
+        grid-column: 1;
+        grid-row: 1;
+        order: 1;
+    }
+    
+    .opponent-left,
+    .opponent-top, 
+    .opponent-right {
+        grid-column: 1;
+        order: 2;
+    }
+    
+    .opponent-left {
+        grid-row: 2;
+    }
+    
+    .opponent-top {
+        grid-row: 3;
+    }
+    
+    .opponent-right {
+        grid-row: 4;
+    }
+    
+    /* Mobile card sizing */
+    .card {
+        width: 45px;
+        height: 60px;
+        font-size: 0.8em;
+        margin: 2px;
+    }
+    
+    .modifier-cards, .number-cards {
+        gap: 2px;
+        min-height: 65px;
+        padding: 2px;
+    }
+    
+    .action-buttons {
+        gap: 6px;
+        margin-top: 4px;
+    }
+    
+    .btn {
+        padding: 6px 16px;
+        font-size: 0.8em;
+        min-width: 70px;
+    }
+}
+
 /* Card Animation Area - Positioned over Draw Pile */
 .card-animation-area {
     position: absolute;
@@ -126,6 +209,42 @@ body {
     color: #FFD700;
     font-size: 1.1em;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Player Header (3-column layout) */
+.player-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.player-header h3 {
+    margin: 0;
+    text-align: center;
+    color: #FFD700;
+    font-size: 1.1em;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    grid-column: 2;
+}
+
+.player-header .round-score {
+    text-align: left;
+    font-size: 0.9em;
+    font-weight: bold;
+    color: #4ade80;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    grid-column: 1;
+}
+
+.player-header .total-score {
+    text-align: right;
+    font-size: 0.9em;
+    font-weight: bold;
+    color: #fbbf24;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    grid-column: 3;
 }
 
 .player-stats {
@@ -323,6 +442,7 @@ body {
     text-align: center;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
+
 
 /* Main Player (Top Left) */
 .main-player {
@@ -687,6 +807,173 @@ body {
         height: 45px !important;
         padding: 12px 24px !important;
         font-size: 1em !important;
+    }
+}
+
+/* Special Action Card Modal */
+.special-action-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.special-action-content {
+    position: relative;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2a4d72 50%, #357a8a 100%);
+    border-radius: 20px;
+    padding: 30px;
+    border: 3px solid rgba(255, 215, 0, 0.8);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6);
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    text-align: center;
+    color: white;
+}
+
+.special-action-content h3 {
+    color: #FFD700;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.special-action-content p {
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 20px;
+    font-size: 1em;
+}
+
+.special-action-card-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.special-action-card {
+    cursor: grab;
+    transition: all 0.3s ease;
+    transform-origin: center;
+    position: relative;
+    z-index: 10;
+}
+
+.special-action-card:hover {
+    transform: scale(1.1) translateY(-5px);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+}
+
+.special-action-card.dragging {
+    cursor: grabbing;
+    opacity: 0.8;
+    transform: scale(1.2);
+    z-index: 100;
+    pointer-events: none;
+}
+
+.special-action-players {
+    margin-top: 20px;
+}
+
+.special-action-players h4 {
+    color: #FFD700;
+    font-size: 1.1em;
+    margin-bottom: 15px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.special-action-player-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    justify-content: center;
+}
+
+.special-action-player {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.special-action-player:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 215, 0, 0.6);
+}
+
+.special-action-player.valid-drop-target {
+    border: 3px dashed #FFD700 !important;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 215, 0, 0.1) 100%) !important;
+    animation: modalDropZoneGlow 1.5s ease-in-out infinite alternate;
+}
+
+.special-action-player.drop-target-flip3 {
+    border-color: #4facfe !important;
+    background: linear-gradient(135deg, rgba(79, 172, 254, 0.2) 0%, rgba(79, 172, 254, 0.1) 100%) !important;
+}
+
+.special-action-player.drop-target-freeze {
+    border-color: #60a5fa !important;
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(96, 165, 250, 0.1) 100%) !important;
+}
+
+@keyframes modalDropZoneGlow {
+    0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+    100% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.8); }
+}
+
+.special-action-player-name {
+    font-weight: bold;
+    font-size: 1em;
+    color: #FFD700;
+    margin-bottom: 5px;
+}
+
+.special-action-player-score {
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .special-action-content {
+        margin: 20px;
+        padding: 20px;
+        max-width: calc(100vw - 40px);
+    }
+    
+    .special-action-player-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .special-action-player {
+        padding: 12px;
+        min-height: 60px;
     }
 }
 
@@ -1468,67 +1755,18 @@ body {
 
 /* NUCLEAR APPROACH: Mobile layout is DEFAULT - always visible */
 .mobile-game-board, .mobile-status-banner {
-    display: flex !important;
+    display: none !important;
 }
 .mobile-info-panel {
-    display: block !important;
-}
-
-/* NUCLEAR: Hide desktop elements ALWAYS */
-.game-area, .draw-pile-column, .controls-panel, .desktop-info {
     display: none !important;
-    visibility: hidden !important;
 }
 
-/* NUCLEAR MOBILE LAYOUT - NO MEDIA QUERIES, ALWAYS ACTIVE */
-/* Complete mobile override for ALL screen sizes */
-*, *::before, *::after {
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-}
-    
-    body {
-        padding: 0 !important;
-        margin: 0 !important;
-        overflow: visible !important;
-        font-size: 12px !important;
-        height: 100vh !important;
-        width: 100vw !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
-    
-    /* Force clean slate - remove any lingering desktop styles */
-    * {
-        box-sizing: border-box !important;
-    }
-    
-    .game-container {
-        width: 100vw !important;
-        height: 100vh !important;
-        max-width: none !important;
-        display: block !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        grid-template-columns: none !important;
-        grid-template-rows: none !important;
-        gap: 0 !important;
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        overflow: hidden !important;
-    }
+/* Desktop elements should be visible */
+
+/* Removed nuclear mobile override - now using responsive CSS instead */
     
     /* Hide desktop elements completely - NUCLEAR OVERRIDE */
-    .game-area, .draw-pile-column, .controls-panel, .desktop-info {
+    /* .game-area, .draw-pile-column, .controls-panel, .desktop-info {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
@@ -1541,15 +1779,15 @@ body {
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
-    }
+    } */
     
     /* Force remove any background colors from desktop layout */
-    .game-container > *:not(.mobile-game-board):not(.mobile-status-banner):not(.mobile-info-panel) {
+    /* .game-container > *:not(.mobile-game-board):not(.mobile-status-banner):not(.mobile-info-panel) {
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
         display: none !important;
-    }
+    } */
     
     /* GOLDEN RATIO STATUS BANNER - Perfect top section */
     .mobile-status-banner {
@@ -1625,7 +1863,7 @@ body {
     
     /* MICHELANGELO MOBILE BOARD - Golden Ratio Perfection */
     .mobile-game-board {
-        display: flex !important;
+        display: none !important;
         flex-direction: column !important;
         position: fixed !important;
         top: 25px !important;
@@ -1736,11 +1974,76 @@ body {
         z-index: 10 !important;
     }
     
-    /* Hit/Stay buttons in bottom section */
+    /* Hit/Stay buttons in bottom section - Glass-morphism styling */
     .mobile-bottom-section .mobile-action-btn {
-        height: 40px !important;
-        min-width: 80px !important;
-        flex: 0 0 auto !important;
+        height: 55px !important;
+        min-width: 120px !important;
+        flex: 1 !important;
+        padding: 18px 25px !important;
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 16px !important;
+        color: white !important;
+        cursor: pointer !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1.5px !important;
+        position: relative !important;
+        overflow: hidden !important;
+        transition: all 0.3s ease !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37) !important;
+    }
+
+    /* Hit button - Teal to emerald gradient */
+    .mobile-bottom-section .mobile-action-btn.primary {
+        background: linear-gradient(135deg, 
+            rgba(20, 184, 166, 0.8) 0%, 
+            rgba(16, 185, 129, 0.8) 100%) !important;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    }
+
+    /* Stay button - Deep blue to purple gradient */
+    .mobile-bottom-section .mobile-action-btn.secondary {
+        background: linear-gradient(135deg, 
+            rgba(59, 130, 246, 0.8) 0%, 
+            rgba(147, 51, 234, 0.8) 100%) !important;
+        box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    }
+
+    /* Button Interactive States */
+    .mobile-bottom-section .mobile-action-btn:hover:not(:disabled) {
+        transform: translateY(-2px) scale(1.02) !important;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
+    }
+
+    .mobile-bottom-section .mobile-action-btn.secondary:hover:not(:disabled) {
+        box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4) !important;
+    }
+
+    .mobile-bottom-section .mobile-action-btn:active:not(:disabled) {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3),
+                    inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .mobile-bottom-section .mobile-action-btn.secondary:active:not(:disabled) {
+        box-shadow: 0 2px 8px rgba(147, 51, 234, 0.3),
+                    inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Disabled state */
+    .mobile-bottom-section .mobile-action-btn:disabled {
+        opacity: 0.4 !important;
+        filter: grayscale(50%) !important;
+        cursor: not-allowed !important;
+        transform: none !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
     }
     
     /* MOBILE PLAYERS CONTAINER - Flexible middle section */
@@ -2170,7 +2473,60 @@ body {
         );
     }
     
-    /* GOLDEN RATIO PLAYER NAMES - Premium typography */
+    /* Mobile Player Header (3-column layout) */
+    .mobile-game-board .player-header {
+        display: grid !important;
+        grid-template-columns: 1fr auto 1fr !important;
+        align-items: center !important;
+        gap: 4px !important;
+        margin-bottom: 4px !important;
+        min-height: 20px !important;
+    }
+
+    .mobile-game-board .player-header h3 {
+        font-size: 0.7em !important;
+        min-height: 16px !important;
+        flex: none !important;
+        margin: 0 !important;
+        padding: 0 4px !important;
+        font-weight: 700 !important;
+        text-shadow: 
+            1px 1px 2px rgba(0, 0, 0, 0.8),
+            0 0 4px rgba(0, 0, 0, 0.4) !important;
+        text-align: center !important;
+        letter-spacing: 0.3px !important;
+        color: rgba(255, 215, 0, 0.98) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-transform: uppercase !important;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.2) 100%) !important;
+        border-radius: 4px !important;
+        backdrop-filter: blur(2px) !important;
+        grid-column: 2 !important;
+    }
+
+    .mobile-game-board .player-header .round-score {
+        font-size: 0.65em !important;
+        font-weight: 600 !important;
+        color: #4ade80 !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+        text-align: left !important;
+        grid-column: 1 !important;
+        padding: 0 2px !important;
+    }
+
+    .mobile-game-board .player-header .total-score {
+        font-size: 0.65em !important;
+        font-weight: 600 !important;
+        color: #fbbf24 !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+        text-align: right !important;
+        grid-column: 3 !important;
+        padding: 0 2px !important;
+    }
+
+    /* GOLDEN RATIO PLAYER NAMES - Premium typography (fallback for old structure) */
     .mobile-game-board .player-area h3 {
         font-size: 0.75em !important;
         min-height: 16px !important; /* Minimum height for name visibility */
@@ -2636,6 +2992,60 @@ body {
     .game-message:hover:not(:disabled) {
         transform: translateX(-50%) translateY(-50%) scale(1.05);
     }
+}
+
+/* DESKTOP LAYOUT - Make elements visible */
+.player-area {
+    background: linear-gradient(135deg, rgba(44, 62, 80, 0.9) 0%, rgba(74, 95, 122, 0.8) 100%) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 8px !important;
+    padding: 15px !important;
+    margin: 10px !important;
+    min-height: 120px !important;
+    color: white !important;
+}
+
+.player-area h3 {
+    color: white !important;
+    font-size: 1.2em !important;
+    margin-bottom: 8px !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+}
+
+.player-area .player-stats {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 0.9em !important;
+    margin-bottom: 10px !important;
+}
+
+.player-area .number-cards,
+.player-area .modifier-cards {
+    min-height: 60px !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 4px !important;
+    padding: 8px !important;
+    margin: 4px 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.players-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100% !important;
+    padding: 20px !important;
+}
+
+.game-area {
+    display: block !important;
+    width: 100% !important;
+    padding: 20px !important;
+}
+
+/* Human player special styling */
+.main-player {
+    background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
+    border-color: #57cc99 !important;
 }
 
 /* Desktop Dynamic Card Sizing */

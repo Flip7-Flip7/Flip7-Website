@@ -25,11 +25,20 @@ class Flip7Game {
         
         this.initializePlayers();
         this.initializeEventListeners();
-        this.updateDisplay();
         
-        // Auto-start game immediately - no delay needed
-        this.players[0].name = "Player";
-        this.startNewGame();
+        // Auto-start game after DOM is fully ready
+        setTimeout(() => {
+            this.players[0].name = "Player";
+            this.updateDisplay(); // Update display only after DOM is ready
+            this.startNewGame();
+            
+            // Force visual indication that game started
+            const statusElements = document.querySelectorAll('.player-status');
+            statusElements.forEach(el => {
+                el.textContent = 'Game Active';
+                el.style.color = 'lime';
+            });
+        }, 200);
         
         // Add visual confirmation game started
         setTimeout(() => {
@@ -582,15 +591,11 @@ class Flip7Game {
             player.modifierCards.push(card);
             return false;
         } else if (card.type === 'action') {
-            // Handle action cards immediately on initial deal
-            if (card.value === 'freeze') {
-                this.handleActionCard(player, card);
-                return true;
-            } else if (card.value === 'flip3') {
-                // Pass the callback for Flip Three to ensure it completes before continuing
-                // For initial deal, bots always target themselves
-                this.handleFlipThree(player, onActionComplete, true);
-                return true;
+            // Special handling for Flip3 and Freeze - show modal popup immediately
+            if (card.value === 'flip3' || card.value === 'freeze') {
+                this.addToLog(`${player.name} drew ${card.display} during initial deal! Must use immediately.`);
+                this.showSpecialActionModal(card, player);
+                return true; // Action card interrupts dealing flow
             } else if (card.value === 'second_chance') {
                 if (!player.hasSecondChance) {
                     player.hasSecondChance = true;
@@ -604,6 +609,247 @@ class Flip7Game {
         }
         return false;
     }
+
+
+    showSpecialActionModal(card, player) {
+        // For bots, execute AI logic immediately
+        if (!player.isHuman) {
+            this.executeBotSpecialAction(card, player);
+            return;
+        }
+        
+        // For human players, show modal with drag & drop
+        const modal = document.getElementById('special-action-modal');
+        const titleElement = document.getElementById('special-action-title');
+        const descriptionElement = document.getElementById('special-action-description');
+        const cardElement = document.getElementById('special-action-card');
+        const playerGrid = document.getElementById('special-action-player-grid');
+        
+        // Set modal content
+        if (card.value === 'flip3') {
+            titleElement.textContent = 'Flip Three Card';
+            descriptionElement.textContent = 'Drag the card to any player to make them draw 3 cards';
+        } else if (card.value === 'freeze') {
+            titleElement.textContent = 'Freeze Card';
+            descriptionElement.textContent = 'Drag the card to any player to freeze them';
+        }
+        
+        // Setup the draggable card
+        this.setupModalCard(cardElement, card, player);
+        
+        // Setup player drop zones
+        this.setupModalPlayerGrid(playerGrid, card);
+        
+        // Show modal
+        modal.style.display = 'flex';
+    }
+    
+    executeBotSpecialAction(card, player) {
+        let targetPlayer;
+        
+        if (card.value === 'freeze') {
+            // Bot AI for Freeze: Target the point leader
+            targetPlayer = this.getPointLeader();
+            this.addToLog(`${player.name} uses Freeze on ${targetPlayer.name} (point leader)!`);
+        } else if (card.value === 'flip3') {
+            // Bot AI for Flip3: Target self if < 3 cards, otherwise random other player
+            const botCardCount = player.numberCards.length;
+            if (botCardCount < 3) {
+                targetPlayer = player; // Target self
+                this.addToLog(`${player.name} uses Flip3 on themselves (has ${botCardCount} cards)!`);
+            } else {
+                // Target random other active player
+                const otherActivePlayers = this.players.filter(p => 
+                    p.status === 'active' && p.id !== player.id
+                );
+                if (otherActivePlayers.length > 0) {
+                    targetPlayer = otherActivePlayers[Math.floor(Math.random() * otherActivePlayers.length)];
+                    this.addToLog(`${player.name} uses Flip3 on ${targetPlayer.name}!`);
+                } else {
+                    targetPlayer = player; // Fallback to self
+                    this.addToLog(`${player.name} uses Flip3 on themselves (no other active players)!`);
+                }
+            }
+        }
+        
+        // Execute the action
+        this.executeSpecialAction(card, player, targetPlayer);
+    }
+    
+    getPointLeader() {
+        // Find player(s) with highest total score
+        const maxScore = Math.max(...this.players.map(p => p.totalScore));
+        const leaders = this.players.filter(p => p.totalScore === maxScore && p.status === 'active');
+        
+        // If multiple leaders, choose randomly among them
+        return leaders[Math.floor(Math.random() * leaders.length)];
+    }
+    
+    setupModalCard(cardElement, card, player) {
+        // Clear previous card
+        cardElement.innerHTML = '';
+        cardElement.className = 'card special-action-card';
+        
+        // Set card appearance
+        if (card.value === 'flip3') {
+            cardElement.classList.add('action');
+            cardElement.textContent = 'Flip 3';
+        } else if (card.value === 'freeze') {
+            cardElement.classList.add('action');
+            cardElement.textContent = 'Freeze';
+        }
+        
+        // Use card image if available
+        if (this.hasCardImage(card)) {
+            const imageName = this.getCardImageName(card);
+            cardElement.style.backgroundImage = `url('images/cards/${imageName}')`;
+            cardElement.style.backgroundSize = 'cover';
+            cardElement.style.backgroundPosition = 'center';
+            cardElement.classList.add('custom-image');
+            cardElement.textContent = ''; // Remove text when using image
+        }
+        
+        // Setup drag functionality
+        this.setupModalCardDrag(cardElement, card, player);
+    }
+    
+    setupModalCardDrag(cardElement, card, player) {
+        cardElement.draggable = true;
+        
+        cardElement.addEventListener('dragstart', (e) => {
+            cardElement.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                cardValue: card.value,
+                cardType: card.type,
+                drawnBy: player.id
+            }));
+            
+            // Highlight modal drop zones
+            this.highlightModalDropZones(card.value);
+        });
+        
+        cardElement.addEventListener('dragend', (e) => {
+            cardElement.classList.remove('dragging');
+            this.clearModalDropZoneHighlights();
+        });
+    }
+    
+    setupModalPlayerGrid(playerGrid, card) {
+        playerGrid.innerHTML = '';
+        
+        // Add all active players as drop zones
+        this.players.forEach(player => {
+            if (player.status === 'active') {
+                const playerElement = document.createElement('div');
+                playerElement.className = 'special-action-player';
+                playerElement.dataset.playerId = player.id;
+                
+                // Player info
+                const nameElement = document.createElement('div');
+                nameElement.className = 'special-action-player-name';
+                nameElement.textContent = player.name;
+                
+                const scoreElement = document.createElement('div');
+                scoreElement.className = 'special-action-player-score';
+                scoreElement.textContent = `Total: ${player.totalScore} | Round: ${player.roundScore}`;
+                
+                playerElement.appendChild(nameElement);
+                playerElement.appendChild(scoreElement);
+                
+                // Setup drop functionality
+                this.setupModalPlayerDrop(playerElement, player, card);
+                
+                playerGrid.appendChild(playerElement);
+            }
+        });
+    }
+    
+    setupModalPlayerDrop(playerElement, targetPlayer, card) {
+        playerElement.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+        
+        playerElement.addEventListener('drop', (e) => {
+            e.preventDefault();
+            
+            try {
+                const dropData = JSON.parse(e.dataTransfer.getData('text/plain'));
+                const drawnByPlayer = this.players.find(p => p.id === dropData.drawnBy);
+                
+                // Hide modal
+                document.getElementById('special-action-modal').style.display = 'none';
+                
+                // Execute the action
+                this.executeSpecialAction(card, drawnByPlayer, targetPlayer);
+                
+            } catch (error) {
+                console.error('Error processing modal drop:', error);
+            }
+            
+            this.clearModalDropZoneHighlights();
+        });
+    }
+    
+    highlightModalDropZones(actionType) {
+        document.querySelectorAll('.special-action-player').forEach(playerElement => {
+            playerElement.classList.add('valid-drop-target');
+            if (actionType === 'flip3') {
+                playerElement.classList.add('drop-target-flip3');
+            } else if (actionType === 'freeze') {
+                playerElement.classList.add('drop-target-freeze');
+            }
+        });
+    }
+    
+    clearModalDropZoneHighlights() {
+        document.querySelectorAll('.special-action-player').forEach(playerElement => {
+            playerElement.classList.remove('valid-drop-target', 'drop-target-flip3', 'drop-target-freeze');
+        });
+    }
+    
+    executeSpecialAction(card, drawnByPlayer, targetPlayer) {
+        if (card.value === 'flip3') {
+            this.executeFlipThree(drawnByPlayer, targetPlayer, () => {
+                // After Flip3 completes, continue game flow
+                this.updateDisplay();
+                this.continueAfterSpecialAction();
+            });
+        } else if (card.value === 'freeze') {
+            targetPlayer.isFrozen = true;
+            targetPlayer.status = 'frozen';
+            
+            // If it's the current player's turn and they got frozen, end their turn
+            if (this.players[this.currentPlayerIndex] === targetPlayer && this.gameActive) {
+                this.updateDisplay();
+                this.endTurn();
+            } else {
+                this.updateDisplay();
+                this.continueAfterSpecialAction();
+            }
+        }
+        
+        // Add card to discard pile
+        this.discardPile.push({
+            type: 'action',
+            value: card.value,
+            display: card.value === 'flip3' ? 'Flip Three' : 'Freeze'
+        });
+    }
+    
+    continueAfterSpecialAction() {
+        // Continue the game flow after special action is completed
+        // This handles resuming turns or continuing initial deal
+        if (this.isInitialDealing) {
+            // Continue initial dealing
+            setTimeout(() => {
+                // The dealing will continue from where it left off
+            }, 1000);
+        } else {
+            // Continue with current turn or move to next turn
+            // The turn system will handle this automatically
+        }
+    }
+
 
     drawCard() {
         if (this.deck.length === 0) {
@@ -685,19 +931,27 @@ class Flip7Game {
         } else if (card.type === 'modifier') {
             player.modifierCards.push(card);
         } else if (card.type === 'action') {
-            // During Flip 3, defer action cards to be processed later
-            if (duringFlip3 && (card.value === 'flip3' || card.value === 'freeze')) {
-                return { 
-                    endTurn: false, 
-                    busted: false, 
-                    actionToQueue: {
-                        type: card.value,
-                        owner: player,
-                        target: player // Default to self, will be handled by action logic
-                    }
-                };
+            // Special handling for Flip3 and Freeze - show modal popup immediately
+            if (card.value === 'flip3' || card.value === 'freeze') {
+                // During Flip 3, defer to queue as before
+                if (duringFlip3) {
+                    return { 
+                        endTurn: false, 
+                        busted: false, 
+                        actionToQueue: {
+                            type: card.value,
+                            owner: player,
+                            target: player // Default to self, will be handled by action logic
+                        }
+                    };
+                } else {
+                    // Show modal popup for immediate action
+                    this.addToLog(`${player.name} drew ${card.display}! Must use immediately.`);
+                    this.showSpecialActionModal(card, player);
+                    return { endTurn: false, busted: false, waitingForModal: true };
+                }
             } else {
-                // Handle action cards normally and return whether turn should end
+                // Handle other action cards (like Second Chance) normally
                 const actionEndsTurn = this.handleActionCard(player, card);
                 return { endTurn: actionEndsTurn, busted: false };
             }
@@ -707,17 +961,9 @@ class Flip7Game {
     }
 
     handleActionCard(player, card) {
+        // This function now only handles Second Chance cards
+        // Flip3 and Freeze are handled by the modal system in handleCardDraw
         switch (card.value) {
-            case 'freeze':
-                this.handleFreeze(player);
-                // Turn always ends - Freeze logic will handle nextTurn() call
-                return true;
-                
-            case 'flip3':
-                this.handleFlipThree(player);
-                // Turn always ends - Flip3 logic will handle nextTurn() call
-                return true;
-                
             case 'second_chance':
                 if (!player.hasSecondChance) {
                     player.hasSecondChance = true;
@@ -731,63 +977,7 @@ class Flip7Game {
         return false;
     }
 
-    handleFreeze(cardOwner, onComplete = null) {
-        // Default callback to move to next turn if none provided
-        const defaultCallback = () => this.nextTurn();
-        const callback = onComplete || defaultCallback;
-        
-        if (cardOwner.isHuman) {
-            // Show player selection UI for human player
-            this.showPlayerSelection(cardOwner, 'freeze', callback);
-        } else {
-            // AI chooses target - NEVER freeze themselves unless they're the only active player
-            const activeOpponents = this.players.filter(p => p.status === 'active' && p.id !== cardOwner.id);
-            let targetPlayer;
-            
-            if (activeOpponents.length === 0) {
-                // Only freeze self if they're the only active player left
-                targetPlayer = cardOwner;
-                this.addToLog(`${cardOwner.name} must freeze themselves - no other active players!`);
-            } else {
-                // Always choose a random opponent
-                targetPlayer = activeOpponents[Math.floor(Math.random() * activeOpponents.length)];
-            }
-            
-            this.executeFreeze(cardOwner, targetPlayer, callback);
-        }
-    }
 
-    handleFlipThree(cardOwner, onComplete = null, isInitialDeal = false) {
-        // Default callback to move to next turn if none provided
-        const defaultCallback = () => this.nextTurn();
-        const callback = onComplete || defaultCallback;
-        
-        if (cardOwner.isHuman) {
-            // Show player selection UI for human player
-            this.showPlayerSelection(cardOwner, 'flip3', callback);
-        } else {
-            let targetPlayer;
-            
-            if (isInitialDeal) {
-                // During initial deal, bots ALWAYS target themselves
-                targetPlayer = cardOwner;
-                this.addToLog(`${cardOwner.name} uses Flip Three on themselves during initial deal.`);
-            } else {
-                // Regular gameplay: AI chooses target (80% chance self, 20% chance random other active player)
-                const activePlayersExcludingSelf = this.players.filter(p => p.status === 'active' && p.id !== cardOwner.id);
-                
-                if (Math.random() < 0.8 || activePlayersExcludingSelf.length === 0) {
-                    // Choose self
-                    targetPlayer = cardOwner;
-                } else {
-                    // Choose random other active player
-                    targetPlayer = activePlayersExcludingSelf[Math.floor(Math.random() * activePlayersExcludingSelf.length)];
-                }
-            }
-            
-            this.executeFlipThree(cardOwner, targetPlayer, callback);
-        }
-    }
     
     handleDuplicateSecondChance(player, card) {
         // Find all active players who don't have Second Chance
@@ -886,78 +1076,7 @@ class Flip7Game {
         }, 100);
     }
 
-    showPlayerSelection(cardOwner, actionType, onComplete = null) {
-        // For mobile, use drag and drop instead of popup
-        if (window.innerWidth <= 768 && (actionType === 'flip3' || actionType === 'freeze')) {
-            this.startActionCardDrag(cardOwner, actionType, onComplete);
-            return;
-        }
-        
-        // Desktop keeps the popup
-        const promptElement = document.getElementById('action-prompt');
-        const titleElement = document.getElementById('action-title');
-        const descriptionElement = document.getElementById('action-description');
-        const buttonsElement = document.getElementById('action-buttons');
-        
-        if (actionType === 'flip3') {
-            titleElement.textContent = 'Flip Three';
-            descriptionElement.textContent = 'Choose a player to flip 3 cards:';
-        } else if (actionType === 'freeze') {
-            titleElement.textContent = 'Freeze';
-            descriptionElement.textContent = 'Choose a player to freeze (they must stay):';
-        }
-        
-        // Clear previous buttons
-        buttonsElement.innerHTML = '';
-        
-        // Create buttons for each active player
-        this.players.filter(p => p.status === 'active').forEach(player => {
-            const button = document.createElement('button');
-            button.className = 'btn secondary';
-            button.textContent = player.name;
-            button.onclick = () => {
-                promptElement.style.display = 'none';
-                if (actionType === 'flip3') {
-                    this.executeFlipThree(cardOwner, player, onComplete);
-                } else if (actionType === 'freeze') {
-                    this.executeFreeze(cardOwner, player, onComplete);
-                }
-            };
-            buttonsElement.appendChild(button);
-        });
-        
-        promptElement.style.display = 'block';
-    }
 
-    executeFreeze(cardOwner, targetPlayer, onComplete = null) {
-        this.addToLog(`${cardOwner.name} plays Freeze on ${targetPlayer.name}!`);
-        
-        // Animate freeze card transfer
-        this.animateFreezeTransfer(cardOwner, targetPlayer, () => {
-            // Apply freeze effect after animation
-            targetPlayer.status = 'frozen';
-            this.calculateRoundScore(targetPlayer);
-            
-            if (targetPlayer.isHuman) {
-                this.addToLog(`You are frozen and must stay! Other players continue.`);
-                this.showMessage(`You are frozen! Watch the other players finish the round.`);
-                this.disablePlayerActions();
-            } else {
-                this.addToLog(`${targetPlayer.name} is frozen and must stay!`);
-            }
-            
-            // Add visual freeze indicator
-            this.addFrozenIndicator(targetPlayer);
-            this.updateDisplay();
-            
-            // Call the completion callback (which will move to next turn)
-            if (onComplete) {
-                setTimeout(onComplete, 1200); // Standardized timing
-            } else {
-                setTimeout(() => this.nextTurn(), 1200); // Standardized timing
-            }
-        });
-    }
 
     executeFlipThree(cardOwner, targetPlayer, onComplete = null) {
         this.addToLog(`${cardOwner.name} plays Flip Three on ${targetPlayer.name}!`);
@@ -1399,6 +1518,13 @@ class Flip7Game {
         // AI should be more aggressive early and cautious later
         const uniqueCount = player.uniqueNumbers.size;
         const currentScore = player.roundScore;
+        
+        // PRIORITY: If bot has Second Chance, keep hitting until they lose it
+        if (player.hasSecondChance) {
+            this.addToLog(`${player.name} has Second Chance - playing aggressively!`);
+            this.aiHit(player);
+            return;
+        }
         
         // Always hit if round score is less than 20 points
         if (currentScore < 20) {
@@ -1861,19 +1987,28 @@ class Flip7Game {
             container.classList.remove('dealer');
         }
         
-        // Update player name with total score
+        // Update player name (remove score from name)
         const nameElement = container.querySelector('h3');
         if (nameElement) {
-            // Calculate display score: for busted players show only totalScore, for others show totalScore + roundScore
-            const displayScore = player.status === 'busted' ? player.totalScore : (player.totalScore + player.roundScore);
-            nameElement.textContent = `${player.name} - ${displayScore} pts`;
+            nameElement.textContent = player.name;
         }
         
-        // Update scores
-        const scoreElements = container.querySelectorAll('.score-value');
+        // Update scores in new header structure
+        const roundScoreElement = container.querySelector('.player-header .round-value');
+        if (roundScoreElement) {
+            roundScoreElement.textContent = player.roundScore;
+        }
+        
+        const totalScoreElement = container.querySelector('.player-header .score-value');
+        if (totalScoreElement) {
+            totalScoreElement.textContent = player.totalScore;
+        }
+        
+        // Update legacy score elements (fallback for old structure)
+        const scoreElements = container.querySelectorAll('.player-stats .score-value');
         if (scoreElements[0]) scoreElements[0].textContent = player.totalScore;
         
-        const roundElements = container.querySelectorAll('.round-value');
+        const roundElements = container.querySelectorAll('.player-stats .round-value');
         if (roundElements[0]) roundElements[0].textContent = player.roundScore;
         
         // Update status
@@ -1978,9 +2113,11 @@ class Flip7Game {
 
         // Show Flip 7 indicator
         if (isMainPlayer && player.uniqueNumbers.size === 7) {
-            document.getElementById('flip7-indicator').style.display = 'inline';
+            const flip7Indicator = document.getElementById('flip7-indicator');
+            if (flip7Indicator) flip7Indicator.style.display = 'inline';
         } else if (isMainPlayer) {
-            document.getElementById('flip7-indicator').style.display = 'none';
+            const flip7Indicator = document.getElementById('flip7-indicator');
+            if (flip7Indicator) flip7Indicator.style.display = 'none';
         }
     }
 
@@ -2009,17 +2146,19 @@ class Flip7Game {
     }
 
     processQueuedAction(actionData, onComplete) {
-        // Processing queued action
-        switch (actionData.type) {
-            case 'flip3':
-                // Execute the queued Flip 3
-                this.executeFlipThree(actionData.owner, actionData.target, onComplete);
-                break;
-            case 'freeze':
-                this.executeFreeze(actionData.owner, actionData.target, onComplete);
-                break;
-            default:
-                if (onComplete) onComplete();
+        // Processing queued action - these should now go through the modal system
+        // This function is kept for any legacy queued actions during Flip3 sequences
+        if (actionData.type === 'flip3' || actionData.type === 'freeze') {
+            // Create a card object and trigger the modal system
+            const card = { 
+                type: 'action', 
+                value: actionData.type, 
+                display: actionData.type === 'flip3' ? 'Flip Three' : 'Freeze' 
+            };
+            this.executeSpecialAction(card, actionData.owner, actionData.target);
+            if (onComplete) setTimeout(onComplete, 500);
+        } else {
+            if (onComplete) onComplete();
         }
     }
 
@@ -2328,148 +2467,7 @@ class Flip7Game {
         // Flip 7 celebration complete
     }
 
-    startActionCardDrag(cardOwner, actionType, onComplete) {
-        const isMobile = window.innerWidth <= 768;
-        const animationArea = document.getElementById(isMobile ? 'mobile-card-animation-area' : 'card-animation-area');
-        const animatedCard = animationArea.querySelector('.animated-card');
-        
-        if (!animatedCard) return;
-        
-        // Add draggable attribute and styling
-        animatedCard.style.cursor = 'grab';
-        animatedCard.classList.add('draggable-action-card');
-        
-        // Store action data
-        animatedCard.dataset.actionType = actionType;
-        animatedCard.dataset.ownerId = cardOwner.id;
-        
-        // Add instruction text
-        const instruction = document.createElement('div');
-        instruction.className = 'drag-instruction';
-        instruction.textContent = actionType === 'flip3' ? 
-            'Drag to a player to make them flip 3 cards' : 
-            'Drag to a player to freeze them';
-        animationArea.appendChild(instruction);
-        
-        // Enable drag on the card
-        this.enableActionCardDrag(animatedCard, cardOwner, actionType, onComplete, instruction);
-        
-        // Highlight valid drop zones
-        this.highlightValidDropZones(cardOwner, actionType);
-    }
     
-    enableActionCardDrag(card, cardOwner, actionType, onComplete, instruction) {
-        let isDragging = false;
-        let currentX = 0;
-        let currentY = 0;
-        let initialX = 0;
-        let initialY = 0;
-        const self = this;
-        
-        // Touch events for mobile
-        card.addEventListener('touchstart', startDrag, { passive: false });
-        card.addEventListener('touchmove', drag, { passive: false });
-        card.addEventListener('touchend', endDrag, { passive: false });
-        
-        // Mouse events for testing
-        card.addEventListener('mousedown', startDrag);
-        card.addEventListener('mousemove', drag);
-        card.addEventListener('mouseup', endDrag);
-        
-        function startDrag(e) {
-            e.preventDefault();
-            isDragging = true;
-            card.style.cursor = 'grabbing';
-            
-            const touch = e.touches ? e.touches[0] : e;
-            initialX = touch.clientX - currentX;
-            initialY = touch.clientY - currentY;
-            
-            card.style.zIndex = '1000';
-            card.style.position = 'fixed';
-        }
-        
-        function drag(e) {
-            if (!isDragging) return;
-            e.preventDefault();
-            
-            const touch = e.touches ? e.touches[0] : e;
-            currentX = touch.clientX - initialX;
-            currentY = touch.clientY - initialY;
-            
-            card.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.1)`;
-        }
-        
-        function endDrag(e) {
-            if (!isDragging) return;
-            isDragging = false;
-            card.style.cursor = 'grab';
-            
-            const touch = e.changedTouches ? e.changedTouches[0] : e;
-            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-            
-            // Find if dropped on a valid player area
-            const playerArea = elementBelow?.closest('.mobile-game-board > div[id^="mobile-"]') || 
-                               elementBelow?.closest('.player-area');
-            
-            if (playerArea && playerArea.classList.contains('valid-drop-zone')) {
-                // Get player from the area
-                const playerId = playerArea.id.replace('mobile-', '');
-                const targetPlayer = self.players.find(p => p.id === playerId);
-                
-                if (targetPlayer) {
-                    // Execute the action
-                    self.executeActionCardDrop(cardOwner, targetPlayer, actionType, onComplete);
-                    
-                    // Clean up
-                    card.remove();
-                    instruction?.remove();
-                    self.clearDropZoneHighlights();
-                    return;
-                }
-            }
-            
-            // If not dropped on valid zone, animate back
-            card.style.transform = 'translate(0, 0) scale(1)';
-            setTimeout(() => {
-                card.style.position = '';
-                card.style.zIndex = '';
-            }, 300);
-        }
-    }
-    
-    highlightValidDropZones(cardOwner, actionType) {
-        const isMobile = window.innerWidth <= 768;
-        const validPlayers = this.players.filter(p => p.status === 'active');
-        
-        validPlayers.forEach(player => {
-            const playerArea = document.getElementById(isMobile ? `mobile-${player.id}` : player.id);
-            if (playerArea) {
-                playerArea.classList.add('valid-drop-zone');
-                playerArea.classList.add(`drop-zone-${actionType}`);
-            }
-        });
-    }
-    
-    clearDropZoneHighlights() {
-        document.querySelectorAll('.valid-drop-zone').forEach(el => {
-            el.classList.remove('valid-drop-zone', 'drop-zone-flip3', 'drop-zone-freeze');
-        });
-    }
-    
-    executeActionCardDrop(cardOwner, targetPlayer, actionType, onComplete) {
-        if (actionType === 'flip3') {
-            this.addToLog(`${cardOwner.name} forces ${targetPlayer.name} to flip 3 cards!`);
-            this.executeFlipThree(targetPlayer, onComplete);
-        } else if (actionType === 'freeze') {
-            this.addToLog(`${cardOwner.name} freezes ${targetPlayer.name}!`);
-            this.playerStay(targetPlayer);
-            
-            if (cardOwner === this.players[this.currentPlayerIndex]) {
-                this.endTurn();
-            }
-        }
-    }
 }
 
 // Initialize game when page loads

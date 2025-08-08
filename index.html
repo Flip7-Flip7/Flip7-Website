@@ -8,7 +8,8 @@
     <meta http-equiv="Expires" content="0">
     <title>Flip 7 - Online Card Game</title>
     
-    <link rel="stylesheet" href="styles.css?v=11.0&t=20250808">
+    <link rel="stylesheet" href="styles.css?v=12.0&t=20250808-mobile">
+    
 </head>
 <body>
     <div class="game-container">
@@ -34,22 +35,32 @@
             <div class="players-grid" style="position: relative;">
                 <!-- Opponent 1 (Left) -->
                 <div class="player-area opponent-player opponent-left" id="opponent1">
-                    <h3>AI Bot 1</h3>
+                    <div class="player-header">
+                        <span class="round-score"><span class="round-value">0</span></span>
+                        <h3>AI Bot 1</h3>
+                        <span class="total-score"><span class="score-value">0</span></span>
+                    </div>
                     <div class="player-stats">
-                        <span class="total-score">Total: <span class="score-value">0</span></span>
-                        <span class="round-score">Round: <span class="round-value">0</span></span>
                         <span class="player-status">Waiting</span>
                     </div>
-                    <div class="modifier-cards"></div>
-                    <div class="number-cards"></div>
+                    <div class="modifier-cards">
+                        <div class="card">+2</div>
+                    </div>
+                    <div class="number-cards">
+                        <div class="card"><span>5</span></div>
+                        <div class="card"><span>7</span></div>
+                        <div class="card"><span>K</span></div>
+                    </div>
                 </div>
 
                 <!-- Opponent 2 (Top) -->
                 <div class="player-area opponent-player opponent-top" id="opponent2">
-                    <h3>AI Bot 2</h3>
+                    <div class="player-header">
+                        <span class="round-score"><span class="round-value">0</span></span>
+                        <h3>AI Bot 2</h3>
+                        <span class="total-score"><span class="score-value">0</span></span>
+                    </div>
                     <div class="player-stats">
-                        <span class="total-score">Total: <span class="score-value">0</span></span>
-                        <span class="round-score">Round: <span class="round-value">0</span></span>
                         <span class="player-status">Waiting</span>
                     </div>
                     <div class="modifier-cards"></div>
@@ -58,10 +69,12 @@
 
                 <!-- Opponent 3 (Right) -->
                 <div class="player-area opponent-player opponent-right" id="opponent3">
-                    <h3>AI Bot 3</h3>
+                    <div class="player-header">
+                        <span class="round-score"><span class="round-value">0</span></span>
+                        <h3>AI Bot 3</h3>
+                        <span class="total-score"><span class="score-value">0</span></span>
+                    </div>
                     <div class="player-stats">
-                        <span class="total-score">Total: <span class="score-value">0</span></span>
-                        <span class="round-score">Round: <span class="round-value">0</span></span>
                         <span class="player-status">Waiting</span>
                     </div>
                     <div class="modifier-cards"></div>
@@ -70,10 +83,12 @@
 
                 <!-- Human Player (Bottom) -->
                 <div class="player-area main-player" id="player">
-                    <h3>You</h3>
+                    <div class="player-header">
+                        <span class="round-score"><span class="round-value">0</span></span>
+                        <h3>You</h3>
+                        <span class="total-score"><span class="score-value">0</span></span>
+                    </div>
                     <div class="player-stats">
-                        <span class="total-score">Total: <span class="score-value">0</span></span>
-                        <span class="round-score">Round: <span class="round-value">0</span></span>
                         <span class="player-status">Waiting</span>
                     </div>
                     <div class="modifier-cards" id="player-modifiers"></div>
@@ -202,6 +217,29 @@
         </div>
     </div>
 
+    <!-- Special Action Card Modal -->
+    <div class="special-action-modal" id="special-action-modal" style="display: none;">
+        <div class="modal-overlay">
+            <div class="special-action-content">
+                <h3 id="special-action-title">Special Action Card</h3>
+                <p id="special-action-description">Drag the card to any player to use it</p>
+                
+                <div class="special-action-card-container">
+                    <div class="special-action-card" id="special-action-card">
+                        <!-- Card will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="special-action-players">
+                    <h4>Choose Target Player:</h4>
+                    <div class="special-action-player-grid" id="special-action-player-grid">
+                        <!-- Player drop zones will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Action Card Prompt -->
     <div class="action-card-prompt" id="action-prompt" style="display: none;">
         <h3 id="action-title">Action Card</h3>
@@ -246,8 +284,8 @@
                 <h3>Card Types</h3>
                 <ul>
                     <li><strong>Number Cards (0-12):</strong> Worth their face value</li>
-                    <li><strong>Freeze:</strong> Forces you to stay immediately</li>
-                    <li><strong>Flip Three:</strong> You must draw 3 cards in a row</li>
+                    <li><strong>Freeze:</strong> Drag to any player to freeze them (forces them to stay)</li>
+                    <li><strong>Flip Three:</strong> Drag to any player to make them draw 3 cards in a row</li>
                     <li><strong>Second Chance:</strong> Protects from one bust</li>
                     <li><strong>+2, +4, +6, +8, +10:</strong> Bonus points</li>
                     <li><strong>x2:</strong> Doubles your number card total</li>
@@ -262,49 +300,7 @@
         </div>
     </div>
 
-    <!-- FINAL MOBILE UNIFORM SIZING - AFTER ALL EXTERNAL STYLESHEETS -->
-    <style>
-    /* HUMAN PLAYER CONTAINER - NATURAL HEIGHT */
-    html body .game-container .game-area .players-grid .main-player,
-    html body .game-container .game-area .players-grid .player-area.main-player,
-    html body .game-container .game-area .players-grid #player,
-    html body .game-container .game-area .players-grid div.player-area.main-player,
-    html body .game-container .game-area .players-grid div#player.main-player,
-    html body .game-container .game-area .players-grid div.main-player,
-    .main-player,
-    #player {
-        flex: 1 !important;
-        min-height: auto !important; /* Natural sizing */
-        max-height: none !important; /* No height limit */
-        height: auto !important; /* Natural height */
-        padding: 6px !important;
-        margin: 4px 0 !important;
-        box-sizing: border-box !important;
-        overflow: visible !important; /* Don't clip content */
-        background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
-        border: 2px solid rgba(255,255,255,0.3) !important;
-        border-radius: 8px !important;
-    }
-    
-    /* BOT PLAYERS - NATURAL HEIGHT */
-    html body .game-container .game-area .players-grid .opponent-player,
-    html body .game-container .game-area .players-grid .player-area.opponent-player,
-    html body .game-container .game-area .players-grid div.opponent-player,
-    .opponent-player {
-        flex: 1 !important;
-        min-height: auto !important; /* Natural sizing */
-        max-height: none !important; /* No height limit */
-        height: auto !important; /* Natural height */
-        padding: 6px !important;
-        margin: 4px 0 !important;
-        box-sizing: border-box !important;
-        overflow: visible !important; /* Don't clip content */
-        background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(74, 95, 122, 0.75) 100%) !important;
-        border: 2px solid rgba(255,255,255,0.3) !important;
-        border-radius: 8px !important;
-    }
-    </style>
 
-    <script src="game.js?v=4.0&t=20250808"></script>
+    <script src="game.js?v=5.0&t=20250808-autostart"></script>
 </body>
 </html>
