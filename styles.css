@@ -1765,7 +1765,12 @@ body {
 
 /* NUCLEAR APPROACH: Mobile layout is DEFAULT - always visible */
 /* Mobile elements hidden on desktop by default */
-.mobile-game-board, .mobile-status-banner, .mobile-info-panel {
+.mobile-game-board, .mobile-status-banner {
+    display: none !important;
+}
+
+/* Mobile info panel always hidden (prevents overlay issues) */
+.mobile-info-panel {
     display: none !important;
 }
 
@@ -1894,11 +1899,19 @@ body {
         overflow: hidden !important;
     }
     
-    /* Show mobile elements */
-    .mobile-game-board, .mobile-status-banner, .mobile-info-panel {
+    /* Show mobile elements (excluding info panel to avoid overlay) */
+    .mobile-game-board, .mobile-status-banner {
         display: flex !important;
         visibility: visible !important;
         position: relative !important;
+    }
+    
+    /* Hide mobile info panel to prevent game log/scoreboard overlay */
+    .mobile-info-panel {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
     }
     
     /* MICHELANGELO MOBILE BOARD - Optimized for maximum card space */
