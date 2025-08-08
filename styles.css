@@ -214,27 +214,6 @@ body {
     box-shadow: 0 4px 15px rgba(250, 112, 154, 0.4);
 }
 
-.unique-counter {
-    font-size: 0.9em;
-    color: #fbbf24;
-    margin-top: 4px;
-    text-align: center;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-    letter-spacing: 2px;
-}
-
-.unique-counter .card-dots {
-    display: inline-block;
-    letter-spacing: 2px;
-}
-
-.unique-counter .card-dots .filled {
-    color: #22c55e;
-}
-
-.unique-counter .card-dots .empty {
-    color: rgba(255, 255, 255, 0.3);
-}
 
 /* Player Positioning - Clean 2x2 Grid */
 .opponent-left {
@@ -2375,21 +2354,6 @@ body {
         display: none; /* Hide default stats, we'll create new layout below */
     }
     
-    /* Subtle unique counter for mobile */
-    .unique-counter {
-        font-size: 0.65em;
-        margin-top: 3px;
-        text-align: center;
-        font-weight: 500;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 6px;
-        padding: 2px 4px;
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 4px;
-        opacity: 0.8;
-    }
     
     .player-stats .total-score {
         background: rgba(255, 255, 255, 0.2);
@@ -2416,27 +2380,6 @@ body {
         background: rgba(0, 0, 0, 0.3);
     }
     
-    /* GOLDEN RATIO STATS BAR - Integrated perfection */
-    .mobile-game-board .unique-counter {
-        width: 100% !important;
-        min-height: 18px !important; /* Minimum height for stats */
-        flex: 0 0 auto !important; /* Don't grow/shrink */
-        font-size: 0.65em !important;
-        margin: 2px 0 !important;
-        text-align: center !important;
-        font-weight: 600 !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        gap: 6px !important;
-        padding: 2px 6px !important;
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.25) 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.04) !important;
-        border-radius: 6px !important;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02), 0 1px 2px rgba(0, 0, 0, 0.05) !important;
-        backdrop-filter: blur(1px) !important;
-        transition: all 0.3s ease !important;
-    }
     
     /* GOLDEN RATIO MOBILE STATS - Compact brilliance */
     .mobile-total-score, .mobile-round-score {
@@ -2465,18 +2408,6 @@ body {
         text-align: center;
     }
     
-    .unique-counter .card-dots {
-        display: inline-block;
-        letter-spacing: 2px;
-    }
-    
-    .unique-counter .card-dots .filled {
-        color: #22c55e;
-    }
-    
-    .unique-counter .card-dots .empty {
-        color: rgba(255, 255, 255, 0.3);
-    }
     
     /* Hide individual action buttons on mobile (moved to controls) */
     .mobile-game-board .action-buttons {
@@ -2635,7 +2566,6 @@ body {
     }
     
     /* Remove conflicting ordering - mobile layout uses natural HTML flow */
-}
 
 /* Extra small screens */
 @media (max-width: 480px) {
@@ -2747,3 +2677,4 @@ body {
         height: 62px;
         font-size: 0.85em;
     }
+}

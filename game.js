@@ -29,7 +29,6 @@ class Flip7Game {
         
         // Auto-start game immediately on page load
         setTimeout(() => {
-            console.log('Auto-starting game...');
             this.playerName = "Player";
             this.players[0].name = "Player";
             this.startNewGame();
@@ -336,7 +335,6 @@ class Flip7Game {
     }
 
     startNewGame() {
-        console.log('Starting new game...');
         this.gameActive = true;
         this.roundNumber = 1;
         this.players.forEach(player => {
@@ -374,7 +372,6 @@ class Flip7Game {
         this.createDeck();
         this.discardPile = [];
         
-        console.log('Deck created, starting round...');
         this.startNewRound();
         this.addToLog('New game started!');
     }
@@ -439,9 +436,6 @@ class Flip7Game {
     }
 
     dealInitialCards() {
-        console.log('Starting initial card dealing...');
-        console.log('Deck length:', this.deck.length);
-        console.log('Players:', this.players.map(p => p.name));
         
         // Always start dealing with human player (index 0)
         let dealIndex = 0;
@@ -523,15 +517,12 @@ class Flip7Game {
             // Handle the card draw
             setTimeout(() => {
                 const continueDealing = () => {
-                    console.log(`Continuing dealing, dealIndex: ${dealIndex}, players.length: ${this.players.length}`);
                     dealIndex++;
                     // Check if we need to continue dealing or if the round ended
                     if (dealIndex < this.players.length && this.gameActive) {
-                        console.log(`Dealing to next player: ${this.players[dealIndex].name}`);
                         setTimeout(dealNextCard, 1200);
                     } else if (dealIndex >= this.players.length && this.gameActive) {
                         // All cards dealt, start normal gameplay
-                        console.log('All initial cards dealt, starting gameplay');
                         this.isInitialDealing = false;
                         setTimeout(() => {
                             // Find the first active player for the first turn
@@ -574,15 +565,10 @@ class Flip7Game {
     }
     
     handleInitialCardDraw(player, card, onActionComplete = null) {
-        console.log(`INITIAL CARD DEAL: ${player.name} drew initial card:`, card);
-        if (player.isHuman) {
-            console.log('HUMAN PLAYER received initial card - should wait for Hit/Stay decision');
-        }
         if (card.type === 'number') {
             player.numberCards.push(card);
             player.uniqueNumbers.add(card.value);
             player.roundScore += card.value;
-            console.log(`${player.name} now has ${player.numberCards.length} number cards`);
             return false;
         } else if (card.type === 'modifier') {
             player.modifierCards.push(card);
@@ -613,7 +599,6 @@ class Flip7Game {
 
     drawCard() {
         if (this.deck.length === 0) {
-            console.log('Deck empty, recreating...');
             if (this.discardPile.length > 0) {
                 this.deck = [...this.discardPile];
                 this.discardPile = [];
@@ -624,7 +609,6 @@ class Flip7Game {
             }
         }
         const card = this.deck.pop();
-        console.log('Drew card:', card);
         return card;
     }
 
@@ -969,7 +953,6 @@ class Flip7Game {
 
     executeFlipThree(cardOwner, targetPlayer, onComplete = null) {
         this.addToLog(`${cardOwner.name} plays Flip Three on ${targetPlayer.name}!`);
-        console.log(`Starting Flip Three: ${cardOwner.name} -> ${targetPlayer.name}, hasCallback: ${!!onComplete}`);
         this.isProcessingFlip3 = true;
         let cardsFlipped = 0;
         let pendingActions = [];
@@ -978,7 +961,6 @@ class Flip7Game {
             // Check if we need to process pending actions first
             if (pendingActions.length > 0) {
                 const action = pendingActions.shift();
-                console.log('Processing pending action during Flip 3:', action);
                 this.processQueuedAction(action, () => {
                     // After processing the action, continue with the next card or action
                     processNextCard();
@@ -988,7 +970,6 @@ class Flip7Game {
             
             if (cardsFlipped >= 3 || targetPlayer.status !== 'active') {
                 // Flip Three sequence completed
-                console.log(`Flip Three completed, cardsFlipped: ${cardsFlipped}, calling callback: ${!!onComplete}`);
                 this.isProcessingFlip3 = false;
                 if (onComplete) {
                     setTimeout(onComplete, 1200); // Standardized timing
@@ -1008,13 +989,11 @@ class Flip7Game {
                 
                 // Check if we got an action card to queue
                 if (result.actionToQueue) {
-                    console.log('Queueing action during Flip 3:', result.actionToQueue);
                     pendingActions.push(result.actionToQueue);
                 }
                 
                 if (result.busted || targetPlayer.status !== 'active') {
                     // Player busted or got Flip 7, end the sequence
-                    console.log('Player busted or achieved Flip 7, ending sequence');
                     this.isProcessingFlip3 = false;
                     if (onComplete) {
                         setTimeout(onComplete, 1200); // Standardized timing
@@ -1263,18 +1242,15 @@ class Flip7Game {
     playerHit() {
         const player = this.players[0];
         if (player.status !== 'active') {
-            console.log('PlayerHit blocked: player status is', player.status);
             return;
         }
         
         // Prevent multiple rapid clicks
         if (this.isProcessingPlayerAction) {
-            console.log('PlayerHit blocked: already processing player action');
             return;
         }
         
         this.isProcessingPlayerAction = true;
-        console.log('HUMAN PLAYER HIT - dealing additional card');
         const card = this.drawCard();
         this.displayCard(card, 'player');
         
@@ -1314,12 +1290,10 @@ class Flip7Game {
         
         // Prevent multiple rapid clicks
         if (this.isProcessingPlayerAction) {
-            console.log('PlayerStay blocked: already processing player action');
             return;
         }
         
         this.isProcessingPlayerAction = true;
-        console.log('HUMAN PLAYER STAY - ending turn');
         
         player.status = 'stayed';
         this.calculateRoundScore(player);
@@ -1591,7 +1565,6 @@ class Flip7Game {
 
     displayCard(card, playerId) {
         // Try animation first, with fallback to direct addition
-        console.log(`Displaying card ${card.display} to ${playerId}`);
         
         try {
             this.animateCardFlip(card, playerId);
@@ -1610,7 +1583,6 @@ class Flip7Game {
         
         // Fallback if animation area doesn't exist - add card directly
         if (!animationArea) {
-            console.log('Animation area not found, adding card directly');
             this.addCardToPlayerHand(card, playerId);
             return;
         }
@@ -1618,7 +1590,6 @@ class Flip7Game {
         // Check if target container exists before starting animation
         const targetElement = this.getTargetCardContainer(playerId, card.type);
         if (!targetElement) {
-            console.log('Target container not found, adding card directly');
             this.addCardToPlayerHand(card, playerId);
             return;
         }
@@ -1704,16 +1675,16 @@ class Flip7Game {
     }
 
     addCardToPlayerHand(card, playerId) {
-        console.log(`Adding card to ${playerId} hand:`, card);
+        // Adding card to hand
         const cardsContainer = this.getTargetCardContainer(playerId, card.type);
-        console.log('Cards container found:', cardsContainer);
+        // Cards container found
         
         if (cardsContainer) {
             const cardElement = this.createCardElement(card);
             cardElement.dataset.cardValue = card.value;
             cardElement.dataset.cardType = card.type;
             cardsContainer.appendChild(cardElement);
-            console.log(`Card added to ${playerId} hand successfully`);
+            // Card added to hand successfully
         } else {
             console.error(`No card container found for ${playerId}, card type: ${card.type}`);
         }
@@ -1729,7 +1700,7 @@ class Flip7Game {
         if (hasCustomImage) {
             // Use custom card image
             const imageName = this.getCardImageName(card);
-            console.log(`Using custom image for card ${card.value}: ${imageName}`);
+            // Using custom image for card
             cardDiv.classList.add('custom-image');
             cardDiv.style.backgroundImage = `url('./images/${imageName}')`;
             cardDiv.innerHTML = ''; // No text needed
@@ -1786,7 +1757,6 @@ class Flip7Game {
     enablePlayerActions() {
         const player = this.players[0];
         if (player.status === 'active' && !this.isProcessingPlayerAction) {
-            console.log('ENABLING player actions - human player can now Hit/Stay');
             // Enable desktop buttons
             document.getElementById('hit-btn').disabled = false;
             document.getElementById('stay-btn').disabled = player.numberCards.length === 0;
@@ -1813,7 +1783,6 @@ class Flip7Game {
     }
 
     disablePlayerActions() {
-        console.log('DISABLING player actions - preventing clicks during animation');
         // Disable desktop buttons
         document.getElementById('hit-btn').disabled = true;
         document.getElementById('stay-btn').disabled = true;
@@ -2032,7 +2001,7 @@ class Flip7Game {
     }
 
     processQueuedAction(actionData, onComplete) {
-        console.log('Processing queued action:', actionData);
+        // Processing queued action
         switch (actionData.type) {
             case 'flip3':
                 // Execute the queued Flip 3
@@ -2137,7 +2106,7 @@ class Flip7Game {
         
         // Show name input popup on all devices
         if (namePopup) {
-            console.log('Showing name popup');
+            // Showing name popup
             namePopup.style.display = 'flex';
             namePopup.style.position = 'fixed';
             namePopup.style.top = '0';
@@ -2147,11 +2116,7 @@ class Flip7Game {
             namePopup.style.zIndex = '99999';
             namePopup.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
             
-            console.log('Popup styles set:', {
-                display: namePopup.style.display,
-                zIndex: namePopup.style.zIndex,
-                position: namePopup.style.position
-            });
+            // Popup styles configured
             
             // Focus the input field for better UX
             setTimeout(() => {
@@ -2167,7 +2132,7 @@ class Flip7Game {
             setTimeout(() => {
                 const retryPopup = document.getElementById('mobile-name-popup');
                 if (retryPopup) {
-                    console.log('Retry successful - showing name popup');
+                    // Retry successful - showing name popup
                     retryPopup.style.display = 'flex';
                     setTimeout(() => {
                         const nameInput = document.getElementById('player-name-input');
@@ -2192,7 +2157,7 @@ class Flip7Game {
     }
     
     animateFlip7Celebration(player) {
-        console.log('🎉 Starting Flip 7 celebration for', player.name);
+        // Starting Flip 7 celebration
         
         // Show celebration overlay
         const celebrationEl = document.getElementById('flip7-celebration');
@@ -2352,7 +2317,7 @@ class Flip7Game {
             numberContainer.style.opacity = '1';
         }
         
-        console.log('🎉 Flip 7 celebration complete!');
+        // Flip 7 celebration complete
     }
 
     startActionCardDrag(cardOwner, actionType, onComplete) {
