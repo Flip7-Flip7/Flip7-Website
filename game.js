@@ -21,18 +21,25 @@ class Flip7Game {
         this.isProcessingPlayerAction = false;
         
         // Store custom player name (defaults to "You")
-        this.playerName = "You";
+        this.playerName = "Player";
         
         this.initializePlayers();
         this.initializeEventListeners();
         this.updateDisplay();
         
-        // Auto-start game immediately on page load
+        // Auto-start game immediately - no delay needed
+        this.players[0].name = "Player";
+        this.startNewGame();
+        
+        // Add visual confirmation game started
         setTimeout(() => {
-            this.playerName = "Player";
-            this.players[0].name = "Player";
-            this.startNewGame();
-        }, 500);
+            const statusElements = document.querySelectorAll('.player-status');
+            statusElements.forEach(el => {
+                if (el.textContent === 'Waiting') {
+                    el.textContent = 'Playing';
+                }
+            });
+        }, 1000);
     }
 
     initializePlayers() {
@@ -93,31 +100,32 @@ class Flip7Game {
     }
 
     initializeEventListeners() {
-        document.getElementById('new-game-btn').addEventListener('click', () => this.startNewGame());
-        document.getElementById('hit-btn').addEventListener('click', () => this.playerHit());
-        document.getElementById('stay-btn').addEventListener('click', () => this.playerStay());
+        // Add event listeners with null checks to prevent errors
+        const newGameBtn = document.getElementById('new-game-btn');
+        if (newGameBtn) newGameBtn.addEventListener('click', () => this.startNewGame());
+        
+        const hitBtn = document.getElementById('hit-btn');
+        if (hitBtn) hitBtn.addEventListener('click', () => this.playerHit());
+        
+        const stayBtn = document.getElementById('stay-btn');
+        if (stayBtn) stayBtn.addEventListener('click', () => this.playerStay());
         
         // Add mobile button event listeners
-        document.getElementById('mobile-hit-btn').addEventListener('click', () => this.playerHit());
-        document.getElementById('mobile-stay-btn').addEventListener('click', () => this.playerStay());
-        document.getElementById('rules-btn').addEventListener('click', () => this.showRules());
-        document.getElementById('close-rules').addEventListener('click', () => this.hideRules());
-        
-        // Mobile action buttons in controls section
         const mobileHitBtn = document.getElementById('mobile-hit-btn');
+        if (mobileHitBtn) mobileHitBtn.addEventListener('click', () => this.playerHit());
+        
         const mobileStayBtn = document.getElementById('mobile-stay-btn');
-        if (mobileHitBtn) {
-            mobileHitBtn.addEventListener('click', () => this.playerHit());
-        }
-        if (mobileStayBtn) {
-            mobileStayBtn.addEventListener('click', () => this.playerStay());
-        }
+        if (mobileStayBtn) mobileStayBtn.addEventListener('click', () => this.playerStay());
+        
+        const rulesBtn = document.getElementById('rules-btn');
+        if (rulesBtn) rulesBtn.addEventListener('click', () => this.showRules());
+        
+        const closeRulesBtn = document.getElementById('close-rules');
+        if (closeRulesBtn) closeRulesBtn.addEventListener('click', () => this.hideRules());
         
         // Mobile rules button
         const mobileRulesBtn = document.getElementById('mobile-rules-btn');
-        if (mobileRulesBtn) {
-            mobileRulesBtn.addEventListener('click', () => this.showRules());
-        }
+        if (mobileRulesBtn) mobileRulesBtn.addEventListener('click', () => this.showRules());
         
         // Mobile start button removed - game auto-starts
         
