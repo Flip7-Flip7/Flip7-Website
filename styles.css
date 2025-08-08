@@ -137,6 +137,44 @@ body {
     pointer-events: none;
 }
 
+/* Center Screen Card Animation Areas */
+.center-card-animation-area {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    height: 160px;
+    z-index: 200;
+    pointer-events: none;
+    display: none; /* Hidden on mobile */
+}
+
+.mobile-center-card-animation-area {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 133px;
+    z-index: 200;
+    pointer-events: none;
+    display: none; /* Hidden on desktop */
+}
+
+/* Show appropriate center animation area per device */
+@media (min-width: 1025px) {
+    .center-card-animation-area {
+        display: block;
+    }
+}
+
+@media (max-width: 1024px) {
+    .mobile-center-card-animation-area {
+        display: block;
+    }
+}
+
 /* Main Game Area */
 .game-area {
     display: grid;
@@ -1037,6 +1075,19 @@ body {
     height: 80px;
     transform-origin: center;
     z-index: 150;
+}
+
+/* Larger animated cards in center areas */
+.center-card-animation-area .animated-card {
+    width: 120px;
+    height: 160px;
+    z-index: 200;
+}
+
+.mobile-center-card-animation-area .animated-card {
+    width: 100px;
+    height: 133px;
+    z-index: 200;
 }
 
 /* Enhanced two-element flip structure */

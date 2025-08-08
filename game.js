@@ -1705,11 +1705,11 @@ class Flip7Game {
     }
 
     animateCardFlip(card, playerId) {
-        // Use mobile animation area if on mobile, desktop otherwise
-        const isMobile = window.innerWidth <= 768;
+        // Use center animation areas for better visual impact
+        const isMobile = window.innerWidth <= 1024;
         const animationArea = isMobile 
-            ? document.getElementById('mobile-card-animation-area')
-            : document.getElementById('card-animation-area');
+            ? document.getElementById('mobile-center-card-animation-area')
+            : document.getElementById('center-card-animation-area');
         
         // Fallback if animation area doesn't exist - add card directly
         if (!animationArea) {
@@ -1729,7 +1729,7 @@ class Flip7Game {
         
         // Use simplified animation for mobile
         if (isMobile) {
-            // Simple fade animation for mobile
+            // Simple fade animation for mobile (now in center screen)
             animatedCard = this.createCardElement(card);
             animatedCard.classList.add('animated-card', 'mobile-reveal');
             
