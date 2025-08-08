@@ -32,7 +32,7 @@ class Flip7Game {
             this.playerName = "Player";
             this.players[0].name = "Player";
             this.startNewGame();
-        }, 100);
+        }, 500);
     }
 
     initializePlayers() {
