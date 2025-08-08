@@ -26,14 +26,30 @@ body {
     position: relative;
 }
 
-/* Mobile responsive layout */
-@media (max-width: 768px) {
+/* Hide mobile elements by default on desktop */
+@media (min-width: 1025px) {
+    .mobile-game-board,
+    .mobile-status-banner,
+    .mobile-info-panel {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
+    }
+}
+
+/* Mobile responsive layout - Force mobile-only view */
+@media (max-width: 1024px) {
     .game-container {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr auto;
-        gap: 10px;
-        padding: 10px;
-        max-width: none;
+        display: block !important; /* Override grid layout */
+        grid-template-columns: none !important;
+        grid-template-rows: none !important;
+        gap: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        min-height: 100vh !important;
+        position: relative !important;
+        overflow: hidden !important;
     }
     
     .draw-pile-column {
@@ -778,7 +794,7 @@ body {
 }
 
 /* Golden ratio mobile adjustments */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .name-popup-content {
         margin: 0 20px !important;
         min-width: 280px !important;
@@ -953,7 +969,7 @@ body {
 }
 
 /* Mobile responsive */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .special-action-content {
         margin: 20px;
         padding: 20px;
@@ -1861,15 +1877,28 @@ body {
     }
     
 /* Mobile Layout - All mobile-specific CSS wrapped in media query */
-@media (max-width: 768px) {
-    /* Hide desktop elements on mobile */
-    .game-area, .draw-pile-column, .controls-panel {
+@media (max-width: 1024px) {
+    /* Force hide ALL desktop elements on mobile/tablet */
+    .game-container > .game-area,
+    .game-container > .draw-pile-column,
+    .game-container > .controls-panel,
+    .game-area,
+    .draw-pile-column,
+    .controls-panel {
         display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
     }
     
     /* Show mobile elements */
     .mobile-game-board, .mobile-status-banner, .mobile-info-panel {
         display: flex !important;
+        visibility: visible !important;
+        position: relative !important;
     }
     
     /* MICHELANGELO MOBILE BOARD - Optimized for maximum card space */
@@ -3131,7 +3160,7 @@ body {
 } /* End Mobile Layout Media Query */
 
 /* Desktop Dynamic Card Sizing */
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
     /* Dynamic sizing for desktop - ensures 7 cards always fit horizontally */
     .number-cards.desktop-cards-1 .card,
     .number-cards.desktop-cards-2 .card {
