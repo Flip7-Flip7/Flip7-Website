@@ -143,8 +143,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 120px;
-    height: 160px;
+    width: 150px;
+    height: 200px;
     z-index: 200;
     pointer-events: none;
     display: none; /* Hidden on mobile */
@@ -155,11 +155,25 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 100px;
-    height: 133px;
+    width: 160px;
+    height: 213px;
     z-index: 200;
     pointer-events: none;
     display: none; /* Hidden on desktop */
+}
+
+/* Add subtle backdrop when card is animating */
+.center-card-animation-area:not(:empty)::before,
+.mobile-center-card-animation-area:not(:empty)::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 199;
+    pointer-events: none;
 }
 
 /* Show appropriate center animation area per device */
@@ -1079,14 +1093,14 @@ body {
 
 /* Larger animated cards in center areas */
 .center-card-animation-area .animated-card {
-    width: 120px;
-    height: 160px;
+    width: 150px;
+    height: 200px;
     z-index: 200;
 }
 
 .mobile-center-card-animation-area .animated-card {
-    width: 100px;
-    height: 133px;
+    width: 160px;
+    height: 213px;
     z-index: 200;
 }
 
