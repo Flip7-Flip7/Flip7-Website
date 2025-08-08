@@ -227,29 +227,29 @@
         overflow: visible !important;
     }
     
-    /* 2x2 CSS Grid Layout for Player Areas */
+    /* 2x2 CSS Grid Layout for Player Areas - Optimized for smaller size */
     .player-area {
         display: grid !important;
         grid-template-columns: 1fr 1fr !important; /* Two equal columns */
         grid-template-rows: auto auto !important; /* Two rows, auto height */
-        gap: 4px !important;
+        gap: 2px !important; /* Reduced from 4px */
         position: relative !important;
         overflow: visible !important;
-        padding: 6px !important;
+        padding: 4px !important; /* Reduced from 6px */
     }
     
     /* Top Left: Player Name */
     .player-area h3 {
         grid-column: 1 !important;
         grid-row: 1 !important;
-        font-size: 0.7em !important;
+        font-size: 0.65em !important; /* Slightly smaller */
         margin: 0 !important;
-        padding: 2px 4px !important;
+        padding: 1px 3px !important; /* Reduced padding */
         text-align: left !important;
         font-weight: bold !important;
         background: rgba(0, 0, 0, 0.5) !important;
         color: white !important;
-        border-radius: 3px !important;
+        border-radius: 2px !important;
     }
     
     /* Top Right: Total Score */
@@ -257,52 +257,36 @@
         grid-column: 2 !important;
         grid-row: 1 !important;
         text-align: right !important;
-        font-size: 0.6em !important;
+        font-size: 0.55em !important; /* Slightly smaller */
         margin: 0 !important;
-        padding: 2px 4px !important;
+        padding: 1px 3px !important; /* Reduced padding */
         background: rgba(0, 0, 0, 0.3) !important;
         color: white !important;
-        border-radius: 3px !important;
+        border-radius: 2px !important;
     }
     
     /* Bottom Left: Number Cards */
     .player-area .number-cards {
         grid-column: 1 !important;
         grid-row: 2 !important;
-        min-height: 18px !important;
+        min-height: 16px !important; /* Reduced from 18px */
         margin: 0 !important;
         background: rgba(255, 255, 255, 0.1) !important;
-        border-radius: 3px !important;
-        padding: 2px !important;
+        border-radius: 2px !important;
+        padding: 1px !important; /* Reduced padding */
     }
     
     /* Right Middle: Modifier Cards - Determines right column height */
     .player-area .modifier-cards {
         grid-column: 2 !important;
         grid-row: 2 !important;
-        min-height: 15px !important;
+        min-height: 13px !important; /* Reduced from 15px */
         margin: 0 !important;
         background: rgba(255, 255, 255, 0.1) !important;
-        border-radius: 3px !important;
-        padding: 2px !important;
+        border-radius: 2px !important;
+        padding: 1px !important; /* Reduced padding */
     }
     
-    /* Bottom Right: Unique Counter - Positioned below modifier cards in right column */
-    .player-area .unique-counter {
-        position: absolute !important; /* Overlay, doesn't affect grid height */
-        top: auto !important;
-        bottom: 2px !important; /* Position at bottom of container */
-        right: 2px !important; /* Right side of container */
-        width: calc(50% - 8px) !important; /* Match right column width */
-        margin: 0 !important;
-        text-align: center !important;
-        font-size: 0.6em !important;
-        padding: 3px 4px !important;
-        background: rgba(0, 0, 0, 0.8) !important;
-        border-radius: 4px !important;
-        min-height: 12px !important;
-        box-sizing: border-box !important;
-    }
     </style>
     
     <link rel="stylesheet" href="styles.css?v=10.0&t=uniform&human=same">
@@ -339,7 +323,6 @@
                     </div>
                     <div class="modifier-cards"></div>
                     <div class="number-cards"></div>
-                    <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
                 </div>
 
                 <!-- Opponent 2 (Top) -->
@@ -352,7 +335,6 @@
                     </div>
                     <div class="modifier-cards"></div>
                     <div class="number-cards"></div>
-                    <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
                 </div>
 
                 <!-- Opponent 3 (Right) -->
@@ -365,7 +347,6 @@
                     </div>
                     <div class="modifier-cards"></div>
                     <div class="number-cards"></div>
-                    <div class="unique-counter"><span class="unique-count">○○○○○○○</span></div>
                 </div>
 
                 <!-- Human Player (Bottom) -->
@@ -378,10 +359,6 @@
                     </div>
                     <div class="modifier-cards" id="player-modifiers"></div>
                     <div class="number-cards" id="player-numbers"></div>
-                    <div class="unique-counter">
-                        <span class="unique-count" id="player-unique">○○○○○○○</span>
-                        <span class="flip7-bonus" id="flip7-indicator" style="display: none;">🎉 Flip 7!</span>
-                    </div>
                     <div class="action-buttons">
                         <button id="hit-btn" class="btn primary" disabled>Hit</button>
                         <button id="stay-btn" class="btn secondary" disabled>Stay</button>
