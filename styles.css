@@ -1914,6 +1914,12 @@ body {
         left: -9999px !important;
     }
     
+    /* Hide dealer button on mobile to save space */
+    .dealer-button {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
     /* MICHELANGELO MOBILE BOARD - Optimized for maximum card space */
     .mobile-game-board {
         flex-direction: column !important;
