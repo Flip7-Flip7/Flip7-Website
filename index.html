@@ -85,43 +85,124 @@
     }
     
     
-    /* STEP 7: Fix action buttons visibility at bottom */
+    /* STEP 7: Fix action buttons visibility at bottom - Glass-morphism style */
     .action-buttons {
         position: fixed !important;
-        bottom: 20px !important; /* More space from bottom */
+        bottom: 20px !important;
         left: 10px !important;
         right: 10px !important;
         display: flex !important;
         justify-content: space-around !important;
-        gap: 15px !important;
-        padding: 15px !important; /* Larger touch area */
-        background: rgba(0, 0, 0, 0.9) !important; /* More opaque */
-        border-radius: 15px !important;
-        z-index: 9999 !important; /* Higher z-index */
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important; /* Shadow for visibility */
+        gap: 20px !important;
+        padding: 20px !important;
+        background: linear-gradient(135deg, 
+            rgba(255, 255, 255, 0.15) 0%, 
+            rgba(255, 255, 255, 0.1) 100%) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 20px !important;
+        z-index: 9999 !important;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37) !important;
     }
     
-    /* Style the buttons for mobile - BIGGER AND MORE VISIBLE */
+    /* Style the buttons - Elegant glass-morphism design */
     .action-buttons .btn {
         flex: 1 !important;
-        padding: 18px 25px !important; /* Larger touch area */
-        font-size: 20px !important; /* Bigger text */
-        font-weight: bold !important;
-        border: 2px solid white !important; /* White border for visibility */
-        border-radius: 12px !important;
+        padding: 18px 25px !important;
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 16px !important;
         color: white !important;
         cursor: pointer !important;
-        min-height: 50px !important; /* Ensure minimum touch size */
+        min-height: 55px !important;
         text-transform: uppercase !important;
-        letter-spacing: 1px !important;
+        letter-spacing: 1.5px !important;
+        position: relative !important;
+        overflow: hidden !important;
+        transition: all 0.3s ease !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
     }
     
+    /* Hit button - Teal to emerald gradient */
     .action-buttons .btn.primary {
-        background: #10b981 !important; /* Green for Hit */
+        background: linear-gradient(135deg, 
+            rgba(20, 184, 166, 0.8) 0%, 
+            rgba(16, 185, 129, 0.8) 100%) !important;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
     }
     
+    /* Stay button - Deep blue to purple gradient */
     .action-buttons .btn.secondary {
-        background: #f59e0b !important; /* Orange for Stay */
+        background: linear-gradient(135deg, 
+            rgba(59, 130, 246, 0.8) 0%, 
+            rgba(147, 51, 234, 0.8) 100%) !important;
+        box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    }
+    
+    /* Button Interactive States */
+    .action-buttons .btn:hover:not(:disabled) {
+        transform: translateY(-2px) scale(1.02) !important;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
+    }
+    
+    .action-buttons .btn.secondary:hover:not(:disabled) {
+        box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4) !important;
+    }
+    
+    .action-buttons .btn:active:not(:disabled) {
+        transform: translateY(0) scale(0.98) !important;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3),
+                    inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    .action-buttons .btn.secondary:active:not(:disabled) {
+        box-shadow: 0 2px 8px rgba(147, 51, 234, 0.3),
+                    inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    /* Disabled state */
+    .action-buttons .btn:disabled {
+        opacity: 0.4 !important;
+        filter: grayscale(50%) !important;
+        cursor: not-allowed !important;
+        transform: none !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* Subtle glow animation for enabled buttons */
+    .action-buttons .btn:not(:disabled) {
+        animation: subtleGlow 3s ease-in-out infinite alternate !important;
+    }
+    
+    @keyframes subtleGlow {
+        0% { 
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        100% { 
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+    }
+    
+    .action-buttons .btn.secondary:not(:disabled) {
+        animation: subtleGlowPurple 3s ease-in-out infinite alternate !important;
+    }
+    
+    @keyframes subtleGlowPurple {
+        0% { 
+            box-shadow: 0 4px 15px rgba(147, 51, 234, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        100% { 
+            box-shadow: 0 4px 18px rgba(147, 51, 234, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
     }
     
     /* STEP 8: Show total scores but hide round scores */
