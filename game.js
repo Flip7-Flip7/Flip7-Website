@@ -165,7 +165,7 @@ class Flip7Game {
     }
 
     handleMobileLayout() {
-        const isMobile = window.innerWidth <= 768;
+        const isMobile = window.innerWidth <= 1024;
         
         if (isMobile) {
             this.setupMobilePlayerAreas();
@@ -176,8 +176,14 @@ class Flip7Game {
     setupMobilePlayerAreas() {
         // Skip if we're in the middle of a bust animation to prevent duplicate cards
         if (this.isBustAnimating) {
+            console.log('Mobile sync skipped - bust animation in progress');
             return;
         }
+        
+        // Debug mobile detection
+        const windowWidth = window.innerWidth;
+        const isMobile = windowWidth <= 1024;
+        console.log(`Mobile sync: width=${windowWidth}px, isMobile=${isMobile}`);
         
         // Clone player content to mobile areas
         const players = [
@@ -351,7 +357,7 @@ class Flip7Game {
         
         // On mobile, always start with Bot 3 as dealer so human player goes first
         // On desktop, randomly assign dealer
-        if (window.innerWidth <= 768) {
+        if (window.innerWidth <= 1024) {
             this.dealerIndex = 3; // Bot 3 (opponent3) is index 3
         } else {
             this.dealerIndex = Math.floor(Math.random() * this.players.length);
@@ -855,6 +861,15 @@ class Flip7Game {
                     // Set bust animation flag to prevent mobile sync during entire bust sequence
                     this.isBustAnimating = true;
                     
+                    // Safety timeout to clear bust animation flag in case it gets stuck
+                    setTimeout(() => {
+                        if (this.isBustAnimating) {
+                            console.log('Clearing stuck bust animation flag');
+                            this.isBustAnimating = false;
+                            this.setupMobilePlayerAreas(); // Force mobile sync
+                        }
+                    }, 5000); // 5 second safety timeout
+                    
                     // Temporarily add the card just for display purposes during bust animation
                     player.numberCards.push(bustCard);
                     player.numberCards.sort((a, b) => a.value - b.value);
@@ -1297,7 +1312,7 @@ class Flip7Game {
             
             // Clear bust animation flag and sync mobile layout after a brief delay
             this.isBustAnimating = false;
-            if (window.innerWidth <= 768) {
+            if (window.innerWidth <= 1024) {
                 // Small delay to ensure desktop DOM is fully settled before mobile sync
                 setTimeout(() => {
                     this.setupMobilePlayerAreas();
@@ -1932,7 +1947,7 @@ class Flip7Game {
         });
         
         // Sync mobile layout if on mobile
-        if (window.innerWidth <= 768) {
+        if (window.innerWidth <= 1024) {
             this.setupMobilePlayerAreas();
         }
         
@@ -2350,7 +2365,7 @@ class Flip7Game {
     
     explodeGlitter() {
         const glitterContainer = document.getElementById('glitter-explosion');
-        const isMobile = window.innerWidth <= 768;
+        const isMobile = window.innerWidth <= 1024;
         const particleCount = isMobile ? 75 : 150;
         
         // Create glitter particles
