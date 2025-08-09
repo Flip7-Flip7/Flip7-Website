@@ -162,19 +162,20 @@ body {
     display: none; /* Hidden on desktop */
 }
 
-/* Add subtle backdrop when card is animating */
-.center-card-animation-area:not(:empty)::before,
-.mobile-center-card-animation-area:not(:empty)::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 199;
-    pointer-events: none;
+/* Enhanced mobile centering for better viewport compatibility */
+@media (max-width: 1024px) {
+    .mobile-center-card-animation-area {
+        /* Use viewport center with fallbacks for mobile browsers */
+        top: 50vh;
+        left: 50vw;
+        margin-top: -106.5px; /* Half of height (213px/2) */
+        margin-left: -80px; /* Half of width (160px/2) */
+        transform: none; /* Remove transform to use margins instead */
+        /* Ensure proper positioning on mobile Safari */
+        -webkit-transform: none;
+    }
 }
+
 
 /* Show appropriate center animation area per device */
 @media (min-width: 1025px) {
