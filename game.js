@@ -201,60 +201,31 @@ class Flip7Game {
                 // Apply dynamic height classes based on card content
                 this.applyMobilePlayerHeightClass(mobilePlayer, playerMap.desktop);
                 
-                // Reorganize mobile layout with horizontal card arrangement
-                const h3 = mobilePlayer.querySelector('h3');
+                // Handle unified card container system
+                const playerHeader = mobilePlayer.querySelector('.player-header');
                 const playerStats = mobilePlayer.querySelector('.player-stats');
-                const modifierCards = mobilePlayer.querySelector('.modifier-cards');
-                const numberCards = mobilePlayer.querySelector('.number-cards');
-                const uniqueCounter = mobilePlayer.querySelector('.unique-counter');
+                const playerCards = mobilePlayer.querySelector('.player-cards');
                 const actionButtons = mobilePlayer.querySelector('.action-buttons');
                 
-                if (h3 && numberCards && modifierCards && uniqueCounter) {
-                    // Create new horizontal layout structure
+                if (playerHeader && playerCards) {
+                    // Clear and rebuild mobile layout
                     mobilePlayer.innerHTML = '';
                     
-                    // Add player name
-                    mobilePlayer.appendChild(h3);
+                    // Add player header (contains name and scores)
+                    mobilePlayer.appendChild(playerHeader);
                     
-                    // Create horizontal cards container
-                    const cardsContainer = document.createElement('div');
-                    cardsContainer.className = 'mobile-cards-container';
-                    
-                    // Number cards section (left)
-                    const numberSection = document.createElement('div');
-                    numberSection.className = 'mobile-number-cards-section';
-                    numberSection.appendChild(numberCards);
-                    
-                    // Modifier cards section (right)
-                    const modifierSection = document.createElement('div');
-                    modifierSection.className = 'mobile-modifier-cards-section';
-                    modifierSection.appendChild(modifierCards);
-                    if (actionButtons) {
-                        modifierSection.appendChild(actionButtons);
+                    // Add player stats if exists
+                    if (playerStats) {
+                        mobilePlayer.appendChild(playerStats);
                     }
                     
-                    cardsContainer.appendChild(numberSection);
-                    cardsContainer.appendChild(modifierSection);
-                    mobilePlayer.appendChild(cardsContainer);
+                    // Add the unified cards container
+                    mobilePlayer.appendChild(playerCards);
                     
-                    // Add unique counter with scores
-                    const scoreValue = playerStats?.querySelector('.score-value');
-                    const roundValue = playerStats?.querySelector('.round-value');
-                    const uniqueCount = uniqueCounter.querySelector('.unique-count');
-                    
-                    if (scoreValue && roundValue && uniqueCount) {
-                        const totalScore = scoreValue.textContent;
-                        const roundScore = roundValue.textContent;
-                        const uniqueText = uniqueCount.innerHTML;
-                        
-                        uniqueCounter.innerHTML = `
-                            <span class="mobile-total-score">Total: ${totalScore}</span>
-                            <span class="unique-count">${uniqueText}</span>
-                            <span class="mobile-round-score">Round: ${roundScore}</span>
-                        `;
+                    // Add action buttons for human player
+                    if (actionButtons && playerMap.desktop === 'player') {
+                        mobilePlayer.appendChild(actionButtons);
                     }
-                    
-                    mobilePlayer.appendChild(uniqueCounter);
                 }
             }
         });
