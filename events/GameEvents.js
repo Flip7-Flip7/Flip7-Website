@@ -48,3 +48,6 @@ const GameEvents = {
 
 // Freeze to prevent modifications
 Object.freeze(GameEvents);
+
+// Make available globally
+window.GameEvents = GameEvents;

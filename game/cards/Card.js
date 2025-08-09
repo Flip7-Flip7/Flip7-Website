@@ -106,3 +106,6 @@ class Card {
         return new Card(data.type, data.value, data.display);
     }
 }
+
+// Make available globally
+window.Card = Card;

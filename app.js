@@ -20,10 +20,11 @@ const moduleLoadOrder = [
     'game/cards/Deck.js',
     'game/core/Player.js',
     
-    // Game logic (to be created)
+    // Game logic
+    'game/cards/CardManager.js',
+    'game/core/GameEngine.js',
     // 'game/core/GameState.js',
     // 'game/core/GameRules.js',
-    // 'game/cards/CardManager.js',
     // 'game/cards/CardActions.js',
     
     // AI (to be created)
@@ -81,16 +82,51 @@ async function loadModules() {
 function initializeGame() {
     console.log('Initializing Flip 7 game...');
     
-    // Make core classes available globally for now
-    window.Flip7.EventBus = window.EventBus || EventBus;
-    window.Flip7.GameEvents = window.GameEvents;
-    window.Flip7.GameConstants = window.GameConstants;
-    window.Flip7.Card = window.Card;
-    window.Flip7.Deck = window.Deck;
-    window.Flip7.Player = window.Player;
-    
-    // Create global event bus instance
-    window.Flip7.eventBus = window.gameEventBus || new EventBus();
+    // Make core classes available in Flip7 namespace
+    window.Flip7 = {
+        // Event system
+        EventBus: window.EventBus,
+        GameEvents: window.GameEvents,
+        eventBus: window.gameEventBus,
+        
+        // Configuration
+        GameConstants: window.GameConstants,
+        
+        // Core classes
+        Card: window.Card,
+        Deck: window.Deck,
+        Player: window.Player,
+        CardManager: window.CardManager,
+        GameEngine: window.GameEngine,
+        DisplayManager: window.DisplayManager,
+        
+        // Utility function to test the modular system
+        testModules: function() {
+            console.log('=== Flip 7 Modules Test ===');
+            console.log('EventBus:', !!this.EventBus);
+            console.log('GameEvents:', !!this.GameEvents);
+            console.log('Card:', !!this.Card);
+            console.log('Deck:', !!this.Deck);
+            console.log('Player:', !!this.Player);
+            console.log('CardManager:', !!this.CardManager);
+            console.log('GameEngine:', !!this.GameEngine);
+            console.log('DisplayManager:', !!this.DisplayManager);
+            console.log('=========================');
+            
+            // Test creating instances
+            try {
+                const testCard = new this.Card('number', 7);
+                console.log('✓ Card creation works:', testCard);
+                
+                const testPlayer = new this.Player({ name: 'Test' });
+                console.log('✓ Player creation works:', testPlayer.name);
+                
+                console.log('✓ All modules loaded successfully!');
+            } catch (error) {
+                console.error('✗ Module test failed:', error);
+            }
+        }
+    };
     
     // For now, still load the legacy game.js
     // In the future, this will be replaced by GameEngine

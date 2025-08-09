@@ -168,3 +168,6 @@ class Deck {
         this.initialize();
     }
 }
+
+// Make available globally
+window.Deck = Deck;

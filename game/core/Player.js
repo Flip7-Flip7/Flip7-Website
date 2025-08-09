@@ -179,3 +179,6 @@ class Player {
         };
     }
 }
+
+// Make available globally
+window.Player = Player;

@@ -99,6 +99,10 @@ class EventBus {
 // Create singleton instance
 const gameEventBus = new EventBus();
 
+// Make available globally
+window.EventBus = EventBus;
+window.gameEventBus = gameEventBus;
+
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = EventBus;

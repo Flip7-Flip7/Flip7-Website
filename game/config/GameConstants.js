@@ -116,3 +116,6 @@ Object.keys(GameConstants).forEach(key => {
         });
     }
 });
+
+// Make available globally
+window.GameConstants = GameConstants;
