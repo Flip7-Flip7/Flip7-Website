@@ -2701,6 +2701,16 @@ body {
     .mobile-game-board .card {
         transition: all 0.3s ease;
         flex-shrink: 0;
+        /* Fallback size for cards without count classes (low specificity) */
+        width: 33px;
+        height: 46px;
+        font-size: 0.5em;
+        margin: 0px;
+        display: inline-block;
+        border-radius: 4px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        position: relative;
+        transform-style: preserve-3d;
     }
     
     /* OPTIMIZED mobile card sizing - Maximum size within containers */
@@ -2786,8 +2796,7 @@ body {
     }
     
     /* 12+ cards: Minimum readable size */
-    .mobile-game-board .cards-12 .card,
-    .mobile-game-board .player-cards .card {
+    .mobile-game-board .cards-12 .card {
         width: 33px;
         height: 46px; /* 33 × 1.4 ratio */
         font-size: 0.5em;
