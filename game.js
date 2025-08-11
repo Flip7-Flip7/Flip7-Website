@@ -2362,11 +2362,13 @@ class Flip7Game {
 
     getTargetCardContainer(playerId, cardType) {
         // Always return the unified card container regardless of card type
-        if (playerId === 'player') {
+        // Handle both numeric (0,1,2,3) and string ('player', 'opponent1') player IDs
+        if (playerId === 0 || playerId === 'player') {
             return document.getElementById('player-cards');
         } else {
-            // For opponents, use direct ID references to their card containers
-            return document.getElementById(`${playerId}-cards`);
+            // Convert numeric player IDs to opponent string format
+            const opponentId = typeof playerId === 'number' ? `opponent${playerId}` : playerId;
+            return document.getElementById(`${opponentId}-cards`);
         }
     }
 
