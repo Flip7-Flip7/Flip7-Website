@@ -30,6 +30,13 @@ class Flip7Game {
         setTimeout(() => {
             this.players[0].name = "Player";
             this.updateDisplay(); // Update display only after DOM is ready
+            
+            // Ensure mobile layout is set up if on mobile
+            if (window.innerWidth <= 1024) {
+                console.log('Initial mobile setup on page load');
+                this.setupMobilePlayerAreas();
+            }
+            
             this.startNewGame();
             
             // Force visual indication that game started
@@ -183,7 +190,7 @@ class Flip7Game {
         // Debug mobile detection
         const windowWidth = window.innerWidth;
         const isMobile = windowWidth <= 1024;
-        console.log(`Mobile sync: width=${windowWidth}px, isMobile=${isMobile}`);
+        console.log(`Mobile sync: width=${windowWidth}px, isMobile=${isMobile}, bustAnimating=${this.isBustAnimating}`);
         
         // Clone player content to mobile areas
         const players = [
@@ -198,40 +205,49 @@ class Flip7Game {
             const mobilePlayer = document.getElementById(playerMap.mobile);
             
             if (desktopPlayer && mobilePlayer) {
-                // Clear mobile container first to prevent duplication artifacts
+                // Get elements from desktop player BEFORE clearing mobile
+                const playerHeader = desktopPlayer.querySelector('.player-header');
+                const playerStats = desktopPlayer.querySelector('.player-stats');
+                const playerCards = desktopPlayer.querySelector('.player-cards');
+                const actionButtons = desktopPlayer.querySelector('.action-buttons');
+                
+                // Clear mobile container
                 mobilePlayer.innerHTML = '';
-                // Then copy content from desktop
-                mobilePlayer.innerHTML = desktopPlayer.innerHTML;
                 mobilePlayer.className = desktopPlayer.className;
                 
                 // Apply dynamic height classes based on card content
                 this.applyMobilePlayerHeightClass(mobilePlayer, playerMap.desktop);
                 
-                // Handle unified card container system
-                const playerHeader = mobilePlayer.querySelector('.player-header');
-                const playerStats = mobilePlayer.querySelector('.player-stats');
-                const playerCards = mobilePlayer.querySelector('.player-cards');
-                const actionButtons = mobilePlayer.querySelector('.action-buttons');
-                
+                // Rebuild mobile layout with cloned elements
                 if (playerHeader && playerCards) {
-                    // Clear and rebuild mobile layout
-                    mobilePlayer.innerHTML = '';
+                    // Clone elements to avoid moving them from desktop
+                    const headerClone = playerHeader.cloneNode(true);
+                    const cardsClone = playerCards.cloneNode(true);
+                    
+                    console.log(`Cloning ${playerMap.desktop}: cards=${cardsClone.children.length}, header text="${headerClone.textContent.trim()}"`);
+                    
                     
                     // Add player header (contains name and scores)
-                    mobilePlayer.appendChild(playerHeader);
+                    mobilePlayer.appendChild(headerClone);
                     
                     // Add player stats if exists
                     if (playerStats) {
-                        mobilePlayer.appendChild(playerStats);
+                        const statsClone = playerStats.cloneNode(true);
+                        mobilePlayer.appendChild(statsClone);
                     }
                     
                     // Add the unified cards container
-                    mobilePlayer.appendChild(playerCards);
+                    mobilePlayer.appendChild(cardsClone);
                     
                     // Add action buttons for human player
                     if (actionButtons && playerMap.desktop === 'player') {
-                        mobilePlayer.appendChild(actionButtons);
+                        const buttonsClone = actionButtons.cloneNode(true);
+                        mobilePlayer.appendChild(buttonsClone);
                     }
+                } else {
+                    console.warn(`Missing elements for ${playerMap.desktop}: header=${!!playerHeader}, cards=${!!playerCards}`);
+                    // Fallback: Just copy innerHTML if structure is missing
+                    mobilePlayer.innerHTML = desktopPlayer.innerHTML;
                 }
             }
         });
