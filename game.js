@@ -829,6 +829,18 @@ class Flip7Game {
     }
     
     executeSpecialAction(card, drawnByPlayer, targetPlayer) {
+        // Show visual drag animation for AI players
+        if (!drawnByPlayer.isHuman) {
+            this.animateAICardDrag(card, drawnByPlayer, targetPlayer, () => {
+                this.executeSpecialActionEffect(card, drawnByPlayer, targetPlayer);
+            });
+        } else {
+            // Human players use the interactive drag system, so execute directly
+            this.executeSpecialActionEffect(card, drawnByPlayer, targetPlayer);
+        }
+    }
+
+    executeSpecialActionEffect(card, drawnByPlayer, targetPlayer) {
         if (card.value === 'flip3') {
             this.executeFlipThree(drawnByPlayer, targetPlayer, () => {
                 // After Flip3 completes, continue game flow
@@ -838,6 +850,9 @@ class Flip7Game {
         } else if (card.value === 'freeze') {
             targetPlayer.isFrozen = true;
             targetPlayer.status = 'frozen';
+            
+            // Add enhanced freeze visual effects
+            this.addFreezeVisualEffects(targetPlayer);
             
             // If it's the current player's turn and they got frozen, advance to next turn
             if (this.players[this.currentPlayerIndex] === targetPlayer && this.gameActive) {
@@ -2045,11 +2060,12 @@ class Flip7Game {
         // Clean up drag interface
         this.cleanupDragInterface();
         
-        // Execute the card effect
+        // Execute the card effect (human players use direct effect execution)
+        const humanPlayer = this.players.find(p => p.isHuman);
         if (card.value === 'freeze') {
-            this.executeSpecialAction(card.value, targetPlayer);
+            this.executeSpecialActionEffect(card, humanPlayer, targetPlayer);
         } else if (card.value === 'flip3') {
-            this.executeSpecialAction(card.value, targetPlayer);
+            this.executeSpecialActionEffect(card, humanPlayer, targetPlayer);
         }
     }
 
@@ -2077,6 +2093,211 @@ class Flip7Game {
         if (animationArea) {
             animationArea.innerHTML = '';
         }
+    }
+
+    animateAICardDrag(card, fromPlayer, toPlayer, callback) {
+        const isMobile = window.innerWidth <= 1024;
+        
+        // Show action message
+        this.addToLog(`${fromPlayer.name} is using ${card.display} on ${toPlayer.name}!`);
+        
+        // Get source and target containers
+        const sourceContainer = isMobile 
+            ? document.getElementById(`mobile-${fromPlayer.id}`)
+            : document.getElementById(fromPlayer.id);
+        
+        const targetContainer = isMobile 
+            ? document.getElementById(`mobile-${toPlayer.id}`)
+            : document.getElementById(toPlayer.id);
+        
+        if (!sourceContainer || !targetContainer) {
+            // Fallback to immediate execution
+            callback();
+            return;
+        }
+        
+        // Create ghost card element
+        const ghostCard = this.createCardElement(card);
+        ghostCard.classList.add('ai-drag-ghost');
+        
+        // Get positions
+        const sourceRect = sourceContainer.getBoundingClientRect();
+        const targetRect = targetContainer.getBoundingClientRect();
+        
+        // Position ghost card at source
+        ghostCard.style.position = 'fixed';
+        ghostCard.style.left = sourceRect.left + (sourceRect.width / 2) + 'px';
+        ghostCard.style.top = sourceRect.top + (sourceRect.height / 2) + 'px';
+        ghostCard.style.zIndex = '10000';
+        ghostCard.style.pointerEvents = 'none';
+        ghostCard.style.transform = 'translate(-50%, -50%) scale(1.5)';
+        
+        // Add to DOM
+        document.body.appendChild(ghostCard);
+        
+        // Highlight target container
+        targetContainer.classList.add('ai-drag-target');
+        
+        // Show drag trajectory
+        this.showDragTrajectory(sourceRect, targetRect);
+        
+        // Animate card movement
+        const targetX = targetRect.left + (targetRect.width / 2);
+        const targetY = targetRect.top + (targetRect.height / 2);
+        
+        // Create smooth animation
+        ghostCard.style.transition = 'all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        
+        // Small delay to ensure positioning is set
+        setTimeout(() => {
+            ghostCard.style.left = targetX + 'px';
+            ghostCard.style.top = targetY + 'px';
+            ghostCard.style.transform = 'translate(-50%, -50%) scale(2) rotate(360deg)';
+        }, 50);
+        
+        // Complete animation
+        setTimeout(() => {
+            // Add drop effect
+            this.showDropEffect(targetContainer);
+            
+            // Clean up
+            ghostCard.remove();
+            targetContainer.classList.remove('ai-drag-target');
+            this.clearDragTrajectory();
+            
+            // Execute the actual card effect
+            callback();
+        }, 1300);
+    }
+
+    showDragTrajectory(sourceRect, targetRect) {
+        const trajectory = document.createElement('div');
+        trajectory.id = 'ai-drag-trajectory';
+        trajectory.className = 'ai-drag-trajectory';
+        
+        // Calculate midpoint for arc
+        const midX = (sourceRect.left + targetRect.left) / 2;
+        const midY = Math.min(sourceRect.top, targetRect.top) - 50; // Arc upward
+        
+        // Create SVG path for smooth curve
+        trajectory.innerHTML = `
+            <svg style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;">
+                <path d="M ${sourceRect.left + sourceRect.width/2} ${sourceRect.top + sourceRect.height/2} 
+                         Q ${midX} ${midY} 
+                         ${targetRect.left + targetRect.width/2} ${targetRect.top + targetRect.height/2}" 
+                      stroke="#ffd700" 
+                      stroke-width="3" 
+                      fill="none" 
+                      stroke-dasharray="10,5" 
+                      opacity="0.8">
+                    <animate attributeName="stroke-dashoffset" 
+                             values="0;-30" 
+                             dur="0.5s" 
+                             repeatCount="indefinite" />
+                </path>
+            </svg>
+        `;
+        
+        document.body.appendChild(trajectory);
+    }
+
+    clearDragTrajectory() {
+        const trajectory = document.getElementById('ai-drag-trajectory');
+        if (trajectory) {
+            trajectory.remove();
+        }
+    }
+
+    showDropEffect(targetContainer) {
+        // Create particle burst effect
+        const particles = document.createElement('div');
+        particles.className = 'drop-particles';
+        particles.style.position = 'absolute';
+        particles.style.top = '50%';
+        particles.style.left = '50%';
+        particles.style.transform = 'translate(-50%, -50%)';
+        particles.style.pointerEvents = 'none';
+        particles.style.zIndex = '100';
+        
+        // Add multiple particle elements
+        for (let i = 0; i < 8; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.position = 'absolute';
+            particle.style.width = '4px';
+            particle.style.height = '4px';
+            particle.style.backgroundColor = '#ffd700';
+            particle.style.borderRadius = '50%';
+            
+            // Random direction and distance
+            const angle = (i * 45) * Math.PI / 180;
+            const distance = 30 + Math.random() * 20;
+            const endX = Math.cos(angle) * distance;
+            const endY = Math.sin(angle) * distance;
+            
+            particle.style.transform = 'translate(-2px, -2px)';
+            particle.style.transition = 'all 0.6s ease-out';
+            particle.style.opacity = '1';
+            
+            particles.appendChild(particle);
+            
+            // Animate particle
+            setTimeout(() => {
+                particle.style.transform = `translate(${endX}px, ${endY}px)`;
+                particle.style.opacity = '0';
+            }, 50);
+        }
+        
+        targetContainer.appendChild(particles);
+        
+        // Clean up particles
+        setTimeout(() => {
+            particles.remove();
+        }, 700);
+    }
+
+    addFreezeVisualEffects(targetPlayer) {
+        // Enhanced freeze effects (builds on existing system)
+        const isMobile = window.innerWidth <= 1024;
+        const container = isMobile 
+            ? document.getElementById(`mobile-${targetPlayer.id}`)
+            : document.getElementById(targetPlayer.id);
+        
+        if (!container) return;
+        
+        // Add enhanced frozen class for additional effects
+        container.classList.add('enhanced-frozen');
+        
+        // Create ice particles effect
+        this.createIceParticles(container);
+    }
+
+    createIceParticles(container) {
+        const iceContainer = document.createElement('div');
+        iceContainer.className = 'ice-particles';
+        iceContainer.style.position = 'absolute';
+        iceContainer.style.top = '0';
+        iceContainer.style.left = '0';
+        iceContainer.style.width = '100%';
+        iceContainer.style.height = '100%';
+        iceContainer.style.pointerEvents = 'none';
+        iceContainer.style.zIndex = '10';
+        
+        // Create multiple ice crystals
+        for (let i = 0; i < 6; i++) {
+            const crystal = document.createElement('div');
+            crystal.textContent = '❄';
+            crystal.style.position = 'absolute';
+            crystal.style.color = '#60a5fa';
+            crystal.style.fontSize = '12px';
+            crystal.style.left = Math.random() * 80 + 10 + '%';
+            crystal.style.top = Math.random() * 80 + 10 + '%';
+            crystal.style.animation = `iceFloat 3s infinite ${Math.random() * 2}s`;
+            
+            iceContainer.appendChild(crystal);
+        }
+        
+        container.appendChild(iceContainer);
     }
 
     getTargetCardContainer(playerId, cardType) {

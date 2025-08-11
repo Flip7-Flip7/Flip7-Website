@@ -1247,6 +1247,100 @@ body {
     }
 }
 
+/* AI Bot Drag Animation Styles */
+.ai-drag-ghost {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8) !important;
+    border: 2px solid #ffd700 !important;
+    filter: brightness(1.2) !important;
+}
+
+.ai-drag-target {
+    position: relative;
+    border: 3px solid #ff6b35 !important;
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.6) !important;
+    background: rgba(255, 107, 53, 0.1) !important;
+    animation: aiTargetPulse 0.8s infinite alternate;
+}
+
+.ai-drag-target::after {
+    content: "TARGET!";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 107, 53, 0.95);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.8em;
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 200;
+    animation: targetBounce 0.6s infinite alternate;
+}
+
+@keyframes aiTargetPulse {
+    from { box-shadow: 0 0 20px rgba(255, 107, 53, 0.6); }
+    to { box-shadow: 0 0 30px rgba(255, 107, 53, 0.9); }
+}
+
+@keyframes targetBounce {
+    from { transform: translate(-50%, -50%) scale(1); }
+    to { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* Enhanced Freeze Visual Effects */
+.enhanced-frozen {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%) !important;
+    border: 2px solid rgba(96, 165, 250, 0.8) !important;
+    box-shadow: 
+        0 0 15px rgba(96, 165, 250, 0.4),
+        inset 0 0 20px rgba(96, 165, 250, 0.2) !important;
+    position: relative;
+    overflow: visible;
+}
+
+.enhanced-frozen::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+    animation: frostShimmer 3s infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes frostShimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+@keyframes iceFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.7; }
+    25% { transform: translateY(-5px) rotate(90deg); opacity: 1; }
+    50% { transform: translateY(0px) rotate(180deg); opacity: 0.8; }
+    75% { transform: translateY(-3px) rotate(270deg); opacity: 0.9; }
+}
+
+/* Mobile adjustments for AI animations */
+@media (max-width: 1024px) {
+    .ai-drag-target::after {
+        font-size: 0.7em;
+        padding: 6px 10px;
+    }
+    
+    .enhanced-frozen {
+        border-width: 1px !important;
+    }
+    
+    .ice-particles {
+        font-size: 10px;
+    }
+}
+
 /* Enhanced two-element flip structure */
 .animated-card .card-back,
 .animated-card .card-front {
