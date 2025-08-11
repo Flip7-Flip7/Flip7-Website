@@ -2409,40 +2409,67 @@ class Flip7Game {
     addFreezeVisualEffects(targetPlayer) {
         // Enhanced freeze effects (builds on existing system)
         const isMobile = window.innerWidth <= 1024;
-        const container = isMobile 
-            ? document.getElementById(`mobile-${targetPlayer.id}`)
-            : document.getElementById(targetPlayer.id);
         
-        if (!container) return;
+        // Try both desktop and mobile containers to ensure we find the right one
+        let container = document.getElementById(targetPlayer.id); // Desktop container
+        let mobileContainer = document.getElementById(`mobile-${targetPlayer.id}`); // Mobile container
         
-        // Add enhanced frozen class for additional effects
-        container.classList.add('enhanced-frozen');
+        console.log(`🧊 Adding freeze effects for ${targetPlayer.name}:`);
+        console.log(`  - Desktop container (${targetPlayer.id}):`, container ? 'found' : 'not found');
+        console.log(`  - Mobile container (mobile-${targetPlayer.id}):`, mobileContainer ? 'found' : 'not found');
+        console.log(`  - Is mobile:`, isMobile);
         
-        // Add clear frozen indicator
-        const frozenIndicator = document.createElement('div');
-        frozenIndicator.className = 'frozen-indicator';
-        frozenIndicator.innerHTML = '❄️ FROZEN ❄️';
-        frozenIndicator.style.cssText = `
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(96, 165, 250, 0.9);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 10px;
-            z-index: 20;
-            pointer-events: none;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-            animation: freezePulse 2s infinite;
-        `;
-        container.style.position = 'relative';
-        container.appendChild(frozenIndicator);
+        // Add effects to both containers to ensure visibility
+        const containers = [container, mobileContainer].filter(c => c !== null);
         
-        // Create ice particles effect
-        this.createIceParticles(container);
+        if (containers.length === 0) {
+            console.warn(`❌ No containers found for player ${targetPlayer.name}`);
+            return;
+        }
+        
+        containers.forEach(container => {
+            // Remove any existing frozen indicator first
+            const existingIndicator = container.querySelector('.frozen-indicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+            
+            // Add enhanced frozen class for additional effects
+            container.classList.add('enhanced-frozen');
+            
+            // Add clear frozen indicator with stronger styling
+            const frozenIndicator = document.createElement('div');
+            frozenIndicator.className = 'frozen-indicator';
+            frozenIndicator.innerHTML = '❄️ FROZEN ❄️';
+            frozenIndicator.style.cssText = `
+                position: absolute !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                background: rgba(59, 130, 246, 0.95) !important;
+                color: white !important;
+                padding: 6px 12px !important;
+                border-radius: 8px !important;
+                font-weight: bold !important;
+                font-size: 12px !important;
+                z-index: 9999 !important;
+                pointer-events: none !important;
+                text-shadow: 0 1px 2px rgba(0,0,0,0.8) !important;
+                animation: freezePulse 1.5s infinite !important;
+                border: 2px solid rgba(255,255,255,0.8) !important;
+                box-shadow: 0 0 10px rgba(59, 130, 246, 0.8) !important;
+            `;
+            container.style.position = 'relative';
+            container.appendChild(frozenIndicator);
+            
+            console.log(`✅ Added freeze indicator to container:`, container.id || container.className);
+        });
+        
+        // Create ice particles effect on primary container
+        const primaryContainer = isMobile && mobileContainer ? mobileContainer : container;
+        if (primaryContainer) {
+            this.createIceParticles(primaryContainer);
+        }
     }
 
     createIceParticles(container) {
