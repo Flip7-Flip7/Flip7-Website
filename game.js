@@ -1677,8 +1677,12 @@ class Flip7Game {
                 return; // Don't call updateDisplay() again or nextTurn()
             }
             
-            // If turn ended due to action card (not bust), the action will handle nextTurn
-            if (result.endTurn && !result.busted) {
+            // Check if waiting for special action (Flip3/Freeze modal or animation)
+            if (result.waitingForModal || result.waitingForAnimation) {
+                // Special action card - let the modal/animation system handle continuation
+                // Don't call nextTurn() here - the special action will handle it
+                this.updateDisplay();
+            } else if (result.endTurn && !result.busted) {
                 // Action card will handle the turn flow
                 setTimeout(() => {
                     this.updateDisplay();
