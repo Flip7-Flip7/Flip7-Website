@@ -1586,8 +1586,35 @@ body {
     }
 }
 
-.second-chance-activation {
-    animation: secondChanceCombine 1.5s ease-out;
+/* Enhanced Second Chance floating animation */
+.second-chance-floating {
+    transform: translate(var(--float-x), var(--float-y)) scale(1.1);
+    transition: transform 0.8s ease-out;
+    z-index: 100;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
+    filter: brightness(1.2);
+}
+
+.second-chance-hovering {
+    animation: secondChanceHover 0.4s ease-in-out;
+}
+
+.second-chance-fading {
+    animation: secondChanceFadeOut 0.8s ease-out forwards;
+}
+
+.duplicate-targeted {
+    border: 3px solid #f59e0b !important;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.8) !important;
+    animation: duplicateTargeted 0.8s ease-out;
+}
+
+.duplicate-hovering {
+    animation: duplicateHover 0.4s ease-in-out;
+}
+
+.duplicate-fading {
+    animation: duplicateFadeOut 0.8s ease-out forwards;
 }
 
 @keyframes secondChanceCombine {
@@ -1643,6 +1670,61 @@ body {
     100% {
         opacity: 0;
         transform: translate(-50%, -50%) scale(0);
+    }
+}
+
+/* Enhanced Second Chance animation keyframes */
+@keyframes secondChanceHover {
+    0%, 100% { 
+        transform: translate(var(--float-x), var(--float-y)) scale(1.1) translateY(0px);
+    }
+    50% { 
+        transform: translate(var(--float-x), var(--float-y)) scale(1.15) translateY(-5px);
+    }
+}
+
+@keyframes secondChanceFadeOut {
+    0% {
+        transform: translate(var(--float-x), var(--float-y)) scale(1.1);
+        opacity: 1;
+        filter: brightness(1.2);
+    }
+    100% {
+        transform: translate(var(--float-x), var(--float-y)) scale(0.8);
+        opacity: 0;
+        filter: brightness(0.8);
+    }
+}
+
+@keyframes duplicateTargeted {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes duplicateHover {
+    0%, 100% { 
+        transform: scale(1) translateY(0px);
+    }
+    50% { 
+        transform: scale(1.05) translateY(-3px);
+    }
+}
+
+@keyframes duplicateFadeOut {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.8);
+        opacity: 0;
     }
 }
 

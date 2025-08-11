@@ -1312,26 +1312,44 @@ class Flip7Game {
         const duplicateCardElement = duplicateCardElements[duplicateCardElements.length - 1];
         
         if (secondChanceCard && duplicateCardElement) {
-            // Add combination effect
-            secondChanceCard.classList.add('card-combine-effect');
-            duplicateCardElement.classList.add('card-combine-effect');
+            // Calculate positions for floating animation
+            const secondChanceRect = secondChanceCard.getBoundingClientRect();
+            const duplicateRect = duplicateCardElement.getBoundingClientRect();
             
-            // Start the animation
+            // Calculate the distance and direction for floating
+            const deltaX = duplicateRect.left - secondChanceRect.left;
+            const deltaY = duplicateRect.top - secondChanceRect.top;
+            
+            // Set CSS custom properties for the float animation
+            secondChanceCard.style.setProperty('--float-x', `${deltaX}px`);
+            secondChanceCard.style.setProperty('--float-y', `${deltaY}px`);
+            
+            // Stage 1: Start floating animation (800ms)
+            secondChanceCard.classList.add('second-chance-floating');
+            duplicateCardElement.classList.add('duplicate-targeted');
+            
             setTimeout(() => {
-                secondChanceCard.classList.add('second-chance-activation');
-                duplicateCardElement.classList.add('second-chance-activation');
+                // Stage 2: Both cards hover together (400ms)
+                secondChanceCard.classList.add('second-chance-hovering');
+                duplicateCardElement.classList.add('duplicate-hovering');
                 
-                // Remove cards after animation
                 setTimeout(() => {
-                    this.removeSecondChanceCards(player, duplicateCard);
-                    if (secondChanceCard.parentNode) {
-                        secondChanceCard.parentNode.removeChild(secondChanceCard);
-                    }
-                    if (duplicateCardElement.parentNode) {
-                        duplicateCardElement.parentNode.removeChild(duplicateCardElement);
-                    }
-                }, 1500);
-            }, 100);
+                    // Stage 3: Both cards fade away together (800ms)
+                    secondChanceCard.classList.add('second-chance-fading');
+                    duplicateCardElement.classList.add('duplicate-fading');
+                    
+                    // Remove cards after fade completes
+                    setTimeout(() => {
+                        this.removeSecondChanceCards(player, duplicateCard);
+                        if (secondChanceCard.parentNode) {
+                            secondChanceCard.parentNode.removeChild(secondChanceCard);
+                        }
+                        if (duplicateCardElement.parentNode) {
+                            duplicateCardElement.parentNode.removeChild(duplicateCardElement);
+                        }
+                    }, 800);
+                }, 400);
+            }, 800);
         } else {
             // Fallback if cards not found
             this.removeSecondChanceCards(player, duplicateCard);
