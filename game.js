@@ -1885,9 +1885,21 @@ class Flip7Game {
             try {
                 const animRect = animatedCard.getBoundingClientRect();
                 
+                // DEBUG: Log animation details
+                console.log(`🎯 Card animation for player: ${playerId}`);
+                
                 // Use entire player area for more accurate slide targeting
                 const playerArea = this.getPlayerAreaElement(playerId);
+                console.log(`📍 Player area element found:`, playerArea);
+                
                 const targetRect = playerArea ? playerArea.getBoundingClientRect() : targetElement.getBoundingClientRect();
+                console.log(`📐 Target rect:`, {
+                    element: playerArea ? 'playerArea' : 'targetElement fallback',
+                    left: targetRect.left,
+                    top: targetRect.top,
+                    width: targetRect.width,
+                    height: targetRect.height
+                });
                 
                 // Calculate slide to center of target player area (more visually appealing)
                 const targetCenterX = targetRect.left + (targetRect.width / 2);
@@ -1897,6 +1909,12 @@ class Flip7Game {
                 
                 const slideX = targetCenterX - animCenterX;
                 const slideY = targetCenterY - animCenterY;
+                
+                console.log(`🎨 Slide calculation:`, {
+                    from: { x: animCenterX, y: animCenterY },
+                    to: { x: targetCenterX, y: targetCenterY },
+                    slide: { x: slideX, y: slideY }
+                });
                 
                 animatedCard.style.setProperty('--slide-x', `${slideX}px`);
                 animatedCard.style.setProperty('--slide-y', `${slideY}px`);
@@ -2392,16 +2410,20 @@ class Flip7Game {
         // Handle both numeric (0,1,2,3) and string ('player', 'opponent1') player IDs
         const isMobile = window.innerWidth <= 1024;
         
+        console.log(`🔍 getPlayerAreaElement called with: ${playerId} (type: ${typeof playerId}), isMobile: ${isMobile}`);
+        
         if (playerId === 0 || playerId === 'player') {
-            return isMobile 
-                ? document.getElementById('mobile-player')
-                : document.getElementById('player');
+            const elementId = isMobile ? 'mobile-player' : 'player';
+            const element = document.getElementById(elementId);
+            console.log(`👤 Human player - looking for #${elementId}, found:`, element);
+            return element;
         } else {
             // Convert numeric player IDs to opponent string format
             const opponentId = typeof playerId === 'number' ? `opponent${playerId}` : playerId;
-            return isMobile
-                ? document.getElementById(`mobile-${opponentId}`)
-                : document.getElementById(opponentId);
+            const elementId = isMobile ? `mobile-${opponentId}` : opponentId;
+            const element = document.getElementById(elementId);
+            console.log(`🤖 AI player - looking for #${elementId}, found:`, element);
+            return element;
         }
     }
 
@@ -2806,10 +2828,25 @@ class Flip7Game {
             container.classList.remove('current-turn');
         });
         
-        // Add highlight to current player
+        // Add highlight to NEXT player instead of current player
         if (this.gameActive && this.currentPlayerIndex >= 0) {
-            const currentPlayer = this.players[this.currentPlayerIndex];
-            const container = document.getElementById(currentPlayer.id);
+            // Find next active player
+            let nextPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+            
+            // Skip frozen players to find the actual next active player
+            let attempts = 0;
+            while (attempts < this.players.length) {
+                const nextPlayer = this.players[nextPlayerIndex];
+                if (!nextPlayer.frozen) {
+                    break;
+                }
+                nextPlayerIndex = (nextPlayerIndex + 1) % this.players.length;
+                attempts++;
+            }
+            
+            // Highlight the next active player
+            const nextPlayer = this.players[nextPlayerIndex];
+            const container = document.getElementById(nextPlayer.id);
             container.classList.add('current-turn');
         }
     }
