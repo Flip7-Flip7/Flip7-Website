@@ -1183,7 +1183,7 @@ body {
         transform: scale(0.95) rotate(-5deg);
     }
     100% {
-        transform: scale(1) rotate(0deg);
+        transform: scale(2) rotate(0deg);
         opacity: 1;
         filter: brightness(1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
@@ -2578,6 +2578,11 @@ body {
     /* All opponent players use the same gradient now */
     .mobile-game-board .opponent-player { 
         background: linear-gradient(135deg, rgba(52, 73, 94, 0.8) 0%, rgba(74, 95, 122, 0.6) 100%);
+    }
+    
+    /* Make cards in opponent/bot containers 10% smaller to fit better */
+    .mobile-game-board .opponent-player .card {
+        transform: scale(0.9);
     }
     
     /* GOLDEN RATIO CURRENT TURN - Divine highlighting */
