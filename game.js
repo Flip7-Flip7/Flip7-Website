@@ -1565,6 +1565,31 @@ class Flip7Game {
         // Move to next player
         this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
         
+        // Check if the current player is frozen - unfreeze them and skip their turn
+        const nextPlayer = this.players[this.currentPlayerIndex];
+        if (nextPlayer.status === 'frozen') {
+            // Unfreeze the player
+            nextPlayer.isFrozen = false;
+            nextPlayer.status = 'active';
+            
+            // Remove frozen visual effects
+            const playerContainer = this.getPlayerContainer(nextPlayer);
+            if (playerContainer) {
+                playerContainer.classList.remove('frozen', 'enhanced-frozen');
+                const frozenIndicator = playerContainer.querySelector('.frozen-indicator');
+                if (frozenIndicator) {
+                    frozenIndicator.remove();
+                }
+            }
+            
+            this.showMessage(`${nextPlayer.name} is unfrozen but skips this turn!`);
+            this.updateDisplay();
+            
+            // Continue to next player after brief delay
+            setTimeout(() => this.nextTurn(), 1000);
+            return;
+        }
+        
         // Skip players who have stayed, busted, or are frozen
         let attempts = 0;
         while (this.players[this.currentPlayerIndex].status !== 'active' && attempts < this.players.length) {
