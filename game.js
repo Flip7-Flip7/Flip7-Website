@@ -886,8 +886,8 @@ class Flip7Game {
                 // The dealing will continue from where it left off
             }, 1000);
         } else {
-            // Continue with current turn or move to next turn
-            // The turn system will handle this automatically
+            // Move to next turn after special action completes
+            this.nextTurn();
         }
     }
 
