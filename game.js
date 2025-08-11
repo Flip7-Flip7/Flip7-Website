@@ -11,6 +11,8 @@ class Flip7Game {
         this.gameActive = false;
         this.winningScore = 200;
         this.isInitialDealing = false;
+        this.currentDealIndex = 0; // Track current dealing position
+        this.dealNextCardFunction = null; // Store deal function for continuation
         this.actionQueue = [];
         this.isProcessingFlip3 = false;
         
@@ -476,10 +478,11 @@ class Flip7Game {
     dealInitialCards() {
         
         // Always start dealing with human player (index 0)
-        let dealIndex = 0;
+        this.currentDealIndex = 0;
         
+        // Store the deal function for continuation after special actions
         const dealNextCard = () => {
-            if (dealIndex >= this.players.length) {
+            if (this.currentDealIndex >= this.players.length) {
                 // All cards dealt, start the game with proper turn highlighting
                 this.isInitialDealing = false;
                 setTimeout(() => {
@@ -508,16 +511,16 @@ class Flip7Game {
                 return;
             }
             
-            const player = this.players[dealIndex];
+            const player = this.players[this.currentDealIndex];
             
             // Skip frozen or busted players during initial deal
             if (player.status === 'frozen' || player.status === 'busted') {
                 this.addToLog(`${player.name} is ${player.status} and skipped during initial deal.`);
-                dealIndex++;
+                this.currentDealIndex++;
                 // Continue to next player
-                if (dealIndex < this.players.length && this.gameActive) {
+                if (this.currentDealIndex < this.players.length && this.gameActive) {
                     setTimeout(dealNextCard, 300);
-                } else if (dealIndex >= this.players.length && this.gameActive) {
+                } else if (this.currentDealIndex >= this.players.length && this.gameActive) {
                     // All cards dealt, start normal gameplay
                     this.isInitialDealing = false;
                     setTimeout(() => {
@@ -555,11 +558,11 @@ class Flip7Game {
             // Handle the card draw
             setTimeout(() => {
                 const continueDealing = () => {
-                    dealIndex++;
+                    this.currentDealIndex++;
                     // Check if we need to continue dealing or if the round ended
-                    if (dealIndex < this.players.length && this.gameActive) {
+                    if (this.currentDealIndex < this.players.length && this.gameActive) {
                         setTimeout(dealNextCard, 1200);
-                    } else if (dealIndex >= this.players.length && this.gameActive) {
+                    } else if (this.currentDealIndex >= this.players.length && this.gameActive) {
                         // All cards dealt, start normal gameplay
                         this.isInitialDealing = false;
                         setTimeout(() => {
@@ -599,6 +602,9 @@ class Flip7Game {
             }, 1800);
         };
         
+        // Store the function for continuation after special actions
+        this.dealNextCardFunction = dealNextCard;
+        
         dealNextCard();
     }
     
@@ -612,10 +618,21 @@ class Flip7Game {
             player.modifierCards.push(card);
             return false;
         } else if (card.type === 'action') {
-            // Special handling for Flip3 and Freeze - show modal popup immediately
+            // Special handling for Flip3 and Freeze - show correct interface based on player type
             if (card.value === 'flip3' || card.value === 'freeze') {
                 this.addToLog(`${player.name} drew ${card.display} during initial deal! Must use immediately.`);
-                this.showSpecialActionModal(card, player);
+                
+                if (player.isHuman) {
+                    // For human players during initial deal, trigger the card animation system
+                    // which will show the drag & drop interface
+                    setTimeout(() => {
+                        // The displayCard call in dealInitialCards will handle the animation
+                        // and transition to interactive mode automatically
+                    }, 100);
+                } else {
+                    // For AI players, use the modal system
+                    this.showSpecialActionModal(card, player);
+                }
                 return true; // Action card interrupts dealing flow
             } else if (card.value === 'second_chance') {
                 if (!player.hasSecondChance) {
@@ -901,9 +918,42 @@ class Flip7Game {
         // Continue the game flow after special action is completed
         // This handles resuming turns or continuing initial deal
         if (this.isInitialDealing) {
-            // Continue initial dealing
+            // Continue initial dealing from where it left off
             setTimeout(() => {
-                // The dealing will continue from where it left off
+                this.currentDealIndex++; // Move to next player
+                if (this.currentDealIndex < this.players.length && this.gameActive && this.dealNextCardFunction) {
+                    // Continue dealing to remaining players
+                    this.dealNextCardFunction();
+                } else {
+                    // All players dealt, finish initial dealing
+                    this.isInitialDealing = false;
+                    this.dealNextCardFunction = null; // Clean up
+                    
+                    // Start normal gameplay
+                    setTimeout(() => {
+                        // Find the first active player for the first turn
+                        let attempts = 0;
+                        while (this.players[this.currentPlayerIndex].status !== 'active' && attempts < this.players.length) {
+                            this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+                            attempts++;
+                        }
+                        
+                        // Check if there are any active players left
+                        const activePlayers = this.players.filter(p => p.status === 'active');
+                        if (activePlayers.length === 0) {
+                            this.endRound();
+                            return;
+                        }
+                        
+                        this.showMessage(`${this.players[this.currentPlayerIndex].name}'s turn!`);
+                        this.highlightCurrentPlayer();
+                        if (this.players[this.currentPlayerIndex].isHuman) {
+                            this.enablePlayerActions();
+                        } else {
+                            setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 1200);
+                        }
+                    }, 1000);
+                }
             }, 1000);
         } else {
             // Move to next turn after special action completes
