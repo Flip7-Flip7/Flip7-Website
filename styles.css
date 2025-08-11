@@ -2693,57 +2693,95 @@ body {
         flex-shrink: 0;
     }
     
-    /* Dynamic mobile card sizing based on card count - MAXIMIZED */
-    /* Base size for fewer cards (largest) */
+    /* OPTIMIZED mobile card sizing - Maximum size within containers */
+    /* 1-2 cards: Use maximum available space */
     .mobile-game-board .cards-1 .card,
     .mobile-game-board .cards-2 .card {
-        width: 65px;
-        height: 91px;
-        font-size: 0.9em;
-        margin: 0px; /* Removed margins for maximum space */
+        width: 85px;
+        height: 119px; /* 85 × 1.4 ratio */
+        font-size: 1.1em;
+        margin: 0px;
     }
     
+    /* 3 cards: Generous sizing */
     .mobile-game-board .cards-3 .card {
-        width: 60px;
-        height: 84px;
+        width: 75px;
+        height: 105px; /* 75 × 1.4 ratio */
+        font-size: 1.0em;
+        margin: 0px;
+    }
+    
+    /* 4 cards: Comfortable fit */
+    .mobile-game-board .cards-4 .card {
+        width: 68px;
+        height: 95px; /* 68 × 1.4 ratio */
+        font-size: 0.95em;
+        margin: 0px;
+    }
+    
+    /* 5 cards: Balanced sizing */
+    .mobile-game-board .cards-5 .card {
+        width: 62px;
+        height: 87px; /* 62 × 1.4 ratio */
         font-size: 0.85em;
         margin: 0px;
     }
     
-    .mobile-game-board .cards-4 .card {
-        width: 56px;
-        height: 78px;
+    /* 6 cards: Efficient packing */
+    .mobile-game-board .cards-6 .card {
+        width: 57px;
+        height: 80px; /* 57 × 1.4 ratio */
         font-size: 0.8em;
         margin: 0px;
     }
     
-    .mobile-game-board .cards-5 .card {
+    /* 7 cards: Flip 7 optimal */
+    .mobile-game-board .cards-7 .card {
         width: 52px;
-        height: 73px;
+        height: 73px; /* 52 × 1.4 ratio */
         font-size: 0.75em;
         margin: 0px;
     }
     
-    .mobile-game-board .cards-6 .card {
-        width: 48px;
-        height: 67px;
+    /* 8 cards: Start scaling down */
+    .mobile-game-board .cards-8 .card {
+        width: 47px;
+        height: 66px; /* 47 × 1.4 ratio */
         font-size: 0.7em;
         margin: 0px;
     }
     
-    .mobile-game-board .cards-7 .card {
-        width: 44px;
-        height: 62px;
+    /* 9 cards: Compact but readable */
+    .mobile-game-board .cards-9 .card {
+        width: 43px;
+        height: 60px; /* 43 × 1.4 ratio */
         font-size: 0.65em;
         margin: 0px;
     }
     
-    /* For 8+ cards, use smaller sizes */
-    .mobile-game-board .player-cards .card {
-        width: 40px;
-        height: 56px;
+    /* 10 cards: Dense packing */
+    .mobile-game-board .cards-10 .card {
+        width: 39px;
+        height: 55px; /* 39 × 1.4 ratio */
         font-size: 0.6em;
-        margin: 0px; /* Removed margins for maximum space */
+        margin: 0px;
+    }
+    
+    /* 11 cards: Very compact */
+    .mobile-game-board .cards-11 .card {
+        width: 36px;
+        height: 50px; /* 36 × 1.4 ratio */
+        font-size: 0.55em;
+        margin: 0px;
+    }
+    
+    /* 12+ cards: Minimum readable size */
+    .mobile-game-board .cards-12 .card,
+    .mobile-game-board .player-cards .card {
+        width: 33px;
+        height: 46px; /* 33 × 1.4 ratio */
+        font-size: 0.5em;
+        margin: 0px;
         display: inline-block;
         border-radius: 4px;
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
@@ -3250,38 +3288,38 @@ body {
     /* Dynamic sizing for desktop - ensures 7 cards always fit horizontally */
     .number-cards.desktop-cards-1 .card,
     .number-cards.desktop-cards-2 .card {
-        width: 65px;
-        height: 91px;
-        font-size: 1.1em;
+        width: 75px;
+        height: 105px;
+        font-size: 1.2em;
     }
     
     .number-cards.desktop-cards-3 .card {
-        width: 58px;
-        height: 81px;
-        font-size: 1.05em;
+        width: 68px;
+        height: 95px;
+        font-size: 1.15em;
     }
     
     .number-cards.desktop-cards-4 .card {
-        width: 54px;
-        height: 76px;
-        font-size: 1em;
+        width: 62px;
+        height: 87px;
+        font-size: 1.1em;
     }
     
     .number-cards.desktop-cards-5 .card {
-        width: 50px;
-        height: 70px;
-        font-size: 0.95em;
+        width: 57px;
+        height: 80px;
+        font-size: 1.05em;
     }
     
     .number-cards.desktop-cards-6 .card {
-        width: 47px;
-        height: 66px;
-        font-size: 0.9em;
+        width: 52px;
+        height: 73px;
+        font-size: 1em;
     }
     
     .number-cards.desktop-cards-7 .card {
-        width: 44px;
-        height: 62px;
-        font-size: 0.85em;
+        width: 48px;
+        height: 67px;
+        font-size: 0.95em;
     }
 }

@@ -2149,17 +2149,20 @@ class Flip7Game {
             container.appendChild(cardElement);
         });
         
-        // Update dynamic card sizing class - extended for mobile optimization
+        // Update dynamic card sizing class - OPTIMIZED for maximum card sizes
         const cardCount = allCards.length;
         let mobileSizeClass;
-        if (cardCount <= 7) {
+        if (cardCount <= 12) {
+            // Use specific size classes for 1-12 cards
             mobileSizeClass = `cards-${cardCount}`;
         } else {
-            // For 8+ cards, don't use specific class (will use default smaller size)
-            mobileSizeClass = '';
+            // For 13+ cards, use the smallest size class (cards-12)
+            mobileSizeClass = 'cards-12';
         }
         const desktopSizeClass = `desktop-cards-${Math.min(cardCount, 7)}`;
         container.className = `player-cards ${mobileSizeClass} ${desktopSizeClass}`.trim();
+        
+        console.log(`Card sizing: ${cardCount} cards -> mobile: ${mobileSizeClass}, desktop: ${desktopSizeClass}`);
     }
 
     getStatusText(status) {
