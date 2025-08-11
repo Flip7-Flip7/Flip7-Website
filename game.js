@@ -868,14 +868,9 @@ class Flip7Game {
                 display: 'Freeze'
             });
             
-            // If it's the current player's turn and they got frozen, advance to next turn
-            if (this.players[this.currentPlayerIndex] === targetPlayer && this.gameActive) {
-                this.updateDisplay();
-                this.nextTurn();
-            } else {
-                this.updateDisplay();
-                this.continueAfterSpecialAction();
-            }
+            // Always continue with next turn after freeze (let nextTurn() handle round-end detection)
+            this.updateDisplay();
+            this.nextTurn();
         }
     }
     
