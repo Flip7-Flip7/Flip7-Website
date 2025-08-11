@@ -1849,12 +1849,8 @@ class Flip7Game {
             const shouldShowModal = card.type === 'action' && (card.value === 'freeze' || card.value === 'flip3');
             
             if (shouldShowModal) {
-                // For special action cards, don't auto-slide - clear animation and let modal system handle it
-                console.log(`Special action card ${card.value} - skipping auto-slide, will show modal`);
-                if (animationArea) {
-                    animationArea.innerHTML = '';
-                }
-                // The card will be handled by the modal system
+                // For special action cards, transition to interactive drag & drop
+                this.transitionToInteractiveCard(animatedCard, animationArea, card, playerId);
                 return;
             }
             
@@ -1888,6 +1884,199 @@ class Flip7Game {
                 }
             }
         }, revealDuration + 150); // Add 150ms delay so animation is visible before sliding
+    }
+
+    transitionToInteractiveCard(animatedCard, animationArea, card, playerId) {
+        // Remove the reveal animation classes
+        animatedCard.classList.remove('flip-reveal', 'mobile-reveal');
+        
+        // Add interactive classes for visual cues
+        animatedCard.classList.add('interactive-card', 'drag-me');
+        
+        // Show backdrop and instructions
+        const backdrop = document.getElementById('animation-backdrop');
+        if (backdrop) {
+            backdrop.classList.add('show');
+            backdrop.style.zIndex = '9998'; // Below the card but above everything else
+        }
+        
+        // Add instructional overlay
+        this.showDragInstructions(card);
+        
+        // Highlight valid drop targets
+        this.highlightDropTargets();
+        
+        // Enable drag functionality
+        this.enableCardDrag(animatedCard, card, playerId, animationArea);
+    }
+
+    showDragInstructions(card) {
+        const instructions = document.createElement('div');
+        instructions.id = 'drag-instructions';
+        instructions.className = 'drag-instructions';
+        
+        const actionText = card.value === 'freeze' ? 'freeze them' : 'make them draw 3 cards';
+        instructions.innerHTML = `
+            <div class="instruction-content">
+                <h3>Drag the ${card.display} card</h3>
+                <p>Drop it on any player to ${actionText}</p>
+                <div class="drag-arrow">⬇</div>
+            </div>
+        `;
+        
+        document.body.appendChild(instructions);
+    }
+
+    highlightDropTargets() {
+        const isMobile = window.innerWidth <= 1024;
+        
+        // Get all player containers
+        this.players.forEach(player => {
+            const container = isMobile 
+                ? document.getElementById(`mobile-${player.id}`)
+                : document.getElementById(player.id);
+            
+            if (container) {
+                container.classList.add('valid-drop-target');
+            }
+        });
+    }
+
+    enableCardDrag(animatedCard, card, playerId, animationArea) {
+        // Make card draggable
+        animatedCard.draggable = true;
+        animatedCard.style.cursor = 'grab';
+        
+        // Add touch support for mobile
+        let isDragging = false;
+        let startX, startY;
+        let currentX = 0, currentY = 0;
+        
+        // Desktop drag events
+        animatedCard.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', JSON.stringify({ card, playerId }));
+            animatedCard.style.opacity = '0.7';
+        });
+        
+        animatedCard.addEventListener('dragend', (e) => {
+            animatedCard.style.opacity = '1';
+        });
+        
+        // Mobile touch events
+        animatedCard.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            const touch = e.touches[0];
+            startX = touch.clientX - currentX;
+            startY = touch.clientY - currentY;
+            animatedCard.style.cursor = 'grabbing';
+            animatedCard.style.zIndex = '10001';
+            e.preventDefault();
+        });
+        
+        animatedCard.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            
+            const touch = e.touches[0];
+            currentX = touch.clientX - startX;
+            currentY = touch.clientY - startY;
+            
+            animatedCard.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.1)`;
+            e.preventDefault();
+        });
+        
+        animatedCard.addEventListener('touchend', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            // Find drop target under touch point
+            const touch = e.changedTouches[0];
+            const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+            const dropTarget = elementUnder?.closest('.valid-drop-target');
+            
+            if (dropTarget) {
+                this.handleCardDrop(dropTarget, card, playerId);
+            } else {
+                // Snap back to center
+                animatedCard.style.transform = 'translate(0, 0) scale(1)';
+            }
+            
+            animatedCard.style.cursor = 'grab';
+        });
+        
+        // Setup drop zones
+        this.setupDropZones(card, playerId, animationArea);
+    }
+
+    setupDropZones(card, playerId, animationArea) {
+        const isMobile = window.innerWidth <= 1024;
+        
+        this.players.forEach(targetPlayer => {
+            const container = isMobile 
+                ? document.getElementById(`mobile-${targetPlayer.id}`)
+                : document.getElementById(targetPlayer.id);
+            
+            if (!container) return;
+            
+            // Desktop drop events
+            container.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                container.classList.add('drag-hover');
+            });
+            
+            container.addEventListener('dragleave', (e) => {
+                container.classList.remove('drag-hover');
+            });
+            
+            container.addEventListener('drop', (e) => {
+                e.preventDefault();
+                container.classList.remove('drag-hover');
+                this.handleCardDrop(container, card, playerId);
+            });
+        });
+    }
+
+    handleCardDrop(dropTarget, card, playerId) {
+        // Find which player was targeted
+        const targetPlayerId = dropTarget.id.replace('mobile-', '');
+        const targetPlayer = this.players.find(p => p.id === targetPlayerId);
+        
+        if (!targetPlayer) return;
+        
+        // Clean up drag interface
+        this.cleanupDragInterface();
+        
+        // Execute the card effect
+        if (card.value === 'freeze') {
+            this.executeSpecialAction(card.value, targetPlayer);
+        } else if (card.value === 'flip3') {
+            this.executeSpecialAction(card.value, targetPlayer);
+        }
+    }
+
+    cleanupDragInterface() {
+        // Remove backdrop
+        const backdrop = document.getElementById('animation-backdrop');
+        if (backdrop) {
+            backdrop.classList.remove('show');
+        }
+        
+        // Remove instructions
+        const instructions = document.getElementById('drag-instructions');
+        if (instructions) {
+            instructions.remove();
+        }
+        
+        // Remove drop target highlights
+        document.querySelectorAll('.valid-drop-target').forEach(target => {
+            target.classList.remove('valid-drop-target', 'drag-hover');
+        });
+        
+        // Clear animation area
+        const animationArea = document.getElementById('mobile-center-card-animation-area') 
+            || document.getElementById('center-card-animation-area');
+        if (animationArea) {
+            animationArea.innerHTML = '';
+        }
     }
 
     getTargetCardContainer(playerId, cardType) {
