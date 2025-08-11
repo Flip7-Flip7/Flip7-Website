@@ -1887,7 +1887,7 @@ class Flip7Game {
                     animationArea.innerHTML = '';
                 }
             }
-        }, revealDuration);
+        }, revealDuration + 150); // Add 150ms delay so animation is visible before sliding
     }
 
     getTargetCardContainer(playerId, cardType) {
