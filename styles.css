@@ -1099,6 +1099,14 @@ body {
     z-index: 200;
 }
 
+/* Override mobile card sizing specifically for animation cards - HIGH SPECIFICITY */
+.mobile-center-card-animation-area .animated-card.card,
+.mobile-center-card-animation-area .card {
+    width: 170px !important; /* Force big size for animation */
+    height: 238px !important; /* Force big size for animation */
+    font-size: 2em !important; /* Scale up text too */
+}
+
 /* Enhanced two-element flip structure */
 .animated-card .card-back,
 .animated-card .card-front {
