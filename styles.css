@@ -160,6 +160,8 @@ body {
     z-index: 200;
     pointer-events: none;
     display: none; /* Hidden on desktop */
+    background-color: red; /* TEMP: Visual indicator */
+    opacity: 0.5; /* TEMP: Make semi-transparent */
 }
 
 /* Enhanced mobile centering for better viewport compatibility */
