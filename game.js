@@ -947,7 +947,7 @@ class Flip7Game {
                     // Update display to show duplicate card in hand with highlighting
                     this.updateDisplay();
                     
-                    // Brief pause to let player see the duplicates, then animate bust
+                    // Longer pause to let player clearly see the duplicate card that caused bust
                     setTimeout(() => {
                         this.addToLog(`${player.name} busted with duplicate ${card.value}!`);
                         // Remove the temporary bust card before animating
@@ -956,7 +956,7 @@ class Flip7Game {
                             player.numberCards.splice(bustCardIndex, 1);
                         }
                         this.animateBust(player);
-                    }, 300);
+                    }, 1500);
                     
                     return { endTurn: true, busted: true };
                 }
