@@ -26,26 +26,24 @@ class Flip7Game {
         this.initializePlayers();
         this.initializeEventListeners();
         
-        // Auto-start game after DOM is fully ready
+        // Enhanced auto-start with multiple fallback triggers
+        console.log('Flip7Game constructor - setting up autostart...');
+        this.autoStartAttempted = false;
+        
+        // Primary autostart trigger
         setTimeout(() => {
-            this.players[0].name = "Player";
-            this.updateDisplay(); // Update display only after DOM is ready
-            
-            // Ensure mobile layout is set up if on mobile
-            if (window.innerWidth <= 1024) {
-                console.log('Initial mobile setup on page load');
-                this.setupMobilePlayerAreas();
-            }
-            
-            this.startNewGame();
-            
-            // Force visual indication that game started
-            const statusElements = document.querySelectorAll('.player-status');
-            statusElements.forEach(el => {
-                el.textContent = 'Game Active';
-                el.style.color = 'lime';
-            });
-        }, 200);
+            this.attemptAutoStart('primary-timeout');
+        }, 500); // Increased from 200ms for better reliability
+        
+        // Secondary fallback trigger
+        setTimeout(() => {
+            this.attemptAutoStart('secondary-timeout');
+        }, 1500);
+        
+        // Ultimate fallback trigger
+        setTimeout(() => {
+            this.attemptAutoStart('ultimate-fallback');
+        }, 3000);
         
         // Add visual confirmation game started
         setTimeout(() => {
@@ -169,6 +167,40 @@ class Flip7Game {
         // Handle mobile layout
         this.handleMobileLayout();
         window.addEventListener('resize', () => this.handleMobileLayout());
+    }
+
+    attemptAutoStart(trigger) {
+        if (this.autoStartAttempted) {
+            console.log(`Autostart already attempted, skipping ${trigger}`);
+            return;
+        }
+        
+        console.log(`🎮 Attempting autostart from: ${trigger}`);
+        this.autoStartAttempted = true;
+        
+        // Set player name
+        this.players[0].name = "Player";
+        
+        // Update display first
+        this.updateDisplay();
+        
+        // Ensure mobile layout is set up if on mobile
+        if (window.innerWidth <= 1024) {
+            console.log('Setting up mobile layout for autostart');
+            this.setupMobilePlayerAreas();
+        }
+        
+        // Start the game
+        this.startNewGame();
+        
+        // Force visual indication that game started
+        const statusElements = document.querySelectorAll('.player-status');
+        statusElements.forEach(el => {
+            el.textContent = 'Game Active';
+            el.style.color = 'lime';
+        });
+        
+        console.log('✓ Game autostart completed successfully');
     }
 
     handleMobileLayout() {
@@ -2477,7 +2509,44 @@ class Flip7Game {
     
 }
 
-// Initialize game when page loads
+// Enhanced game initialization with multiple triggers
+console.log('Game script loaded - setting up initialization...');
+
+let gameInstance = null;
+let initAttempted = false;
+
+function initializeGame(trigger) {
+    if (initAttempted) {
+        console.log(`Game initialization already attempted, skipping ${trigger}`);
+        return;
+    }
+    
+    console.log(`🚀 Initializing game from: ${trigger}`);
+    initAttempted = true;
+    
+    try {
+        gameInstance = new Flip7Game();
+        console.log('✓ Game instance created successfully');
+    } catch (error) {
+        console.error('✗ Error creating game instance:', error);
+        // Reset flag to allow retry
+        initAttempted = false;
+    }
+}
+
+// Primary trigger: DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
-    const game = new Flip7Game();
+    initializeGame('DOMContentLoaded');
 });
+
+// Fallback trigger: window.onload (in case DOMContentLoaded already fired)
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        initializeGame('window-load-fallback');
+    }, 100);
+});
+
+// Ultimate fallback: direct timeout
+setTimeout(() => {
+    initializeGame('timeout-fallback');
+}, 1000);
