@@ -1821,74 +1821,102 @@ body {
     backdrop-filter: blur(2px);
 }
 
-.pinata-container {
+.flip7-logo-container {
     position: absolute;
-    top: 50px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
     z-index: 6001;
+    perspective: 1000px;
 }
 
-.pinata {
-    font-size: 4em;
-    animation: pinataPendulum 2s ease-in-out infinite;
-    transform-origin: center top;
+.flip7-celebration-logo {
+    width: 300px;
+    height: auto;
     opacity: 0;
+    transform-style: preserve-3d;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
 }
 
-.pinata.show {
-    opacity: 1;
-    animation: pinataSlideDown 0.5s ease-out, pinataPendulum 2s ease-in-out infinite 0.5s;
+.flip7-celebration-logo.drop-spin {
+    animation: logoSpinDrop 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-.pinata.shake {
-    animation: pinataShake 0.5s ease-in-out;
+.flip7-celebration-logo.spin-fast {
+    animation: logoSpinTop 2s linear;
 }
 
-.pinata.explode {
-    animation: pinataExplode 0.5s ease-out;
+.flip7-celebration-logo.wobble-spin {
+    animation: logoWobble 1.5s ease-in-out;
 }
 
-@keyframes pinataSlideDown {
-    0% {
-        transform: translateY(-100px) scale(0.5);
-        opacity: 0;
+.flip7-celebration-logo.finale {
+    animation: logoFinale 1s ease-out forwards;
+}
+
+@keyframes logoSpinDrop {
+    0% { 
+        transform: translateY(-300px) scale(0.3) rotate(0deg); 
+        opacity: 0; 
     }
-    100% {
-        transform: translateY(0) scale(1);
+    40% { 
+        transform: translateY(-50px) scale(0.8) rotate(360deg); 
+        opacity: 0.8; 
+    }
+    70% { 
+        transform: translateY(20px) scale(1.1) rotate(540deg); 
+        opacity: 1; 
+    }
+    100% { 
+        transform: translateY(0) scale(1) rotate(720deg); 
+        opacity: 1; 
+    }
+}
+
+@keyframes logoSpinTop {
+    0% { 
+        transform: rotate(720deg) scale(1); 
+        filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)) blur(0px);
+    }
+    50% { 
+        transform: rotate(2520deg) scale(1.1); 
+        filter: drop-shadow(0 0 40px rgba(255, 215, 0, 1)) blur(0.5px);
+    }
+    100% { 
+        transform: rotate(4320deg) scale(1); 
+        filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)) blur(0px);
+    }
+}
+
+@keyframes logoWobble {
+    0%, 100% { 
+        transform: rotate(0deg) rotateX(0deg) rotateY(0deg) scale(1); 
+    }
+    25% { 
+        transform: rotate(900deg) rotateX(10deg) rotateY(-10deg) scale(1.05); 
+    }
+    50% { 
+        transform: rotate(1800deg) rotateX(-10deg) rotateY(10deg) scale(0.95); 
+    }
+    75% { 
+        transform: rotate(2700deg) rotateX(10deg) rotateY(-10deg) scale(1.05); 
+    }
+}
+
+@keyframes logoFinale {
+    0% { 
+        transform: scale(1) rotate(0deg); 
+        filter: brightness(1) drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
         opacity: 1;
     }
-}
-
-@keyframes pinataPendulum {
-    0%, 100% { transform: rotate(-5deg); }
-    50% { transform: rotate(5deg); }
-}
-
-@keyframes pinataShake {
-    0%, 100% { transform: translateX(0); }
-    10% { transform: translateX(-10px) rotate(-2deg); }
-    20% { transform: translateX(10px) rotate(2deg); }
-    30% { transform: translateX(-8px) rotate(-1deg); }
-    40% { transform: translateX(8px) rotate(1deg); }
-    50% { transform: translateX(-6px) rotate(-0.5deg); }
-    60% { transform: translateX(6px) rotate(0.5deg); }
-    70% { transform: translateX(-4px); }
-    80% { transform: translateX(4px); }
-    90% { transform: translateX(-2px); }
-}
-
-@keyframes pinataExplode {
-    0% {
-        transform: scale(1);
+    50% { 
+        transform: scale(2) rotate(180deg); 
+        filter: brightness(2) drop-shadow(0 0 60px rgba(255, 215, 0, 1));
         opacity: 1;
     }
-    50% {
-        transform: scale(1.5);
-        opacity: 0.8;
-    }
-    100% {
-        transform: scale(3);
+    100% { 
+        transform: scale(3) rotate(360deg); 
+        filter: brightness(3) drop-shadow(0 0 100px rgba(255, 215, 0, 0));
         opacity: 0;
     }
 }

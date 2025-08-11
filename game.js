@@ -2940,29 +2940,29 @@ class Flip7Game {
         const celebrationEl = document.getElementById('flip7-celebration');
         celebrationEl.style.display = 'block';
         
-        // Stage 1: Card wave animation (2.5s)
+        // Stage 1: Card wave animation (2s)
         this.animateCardWave(player);
         
         setTimeout(() => {
-            // Stage 2: Piñata appears (0.5s)
-            this.showPinata();
+            // Stage 2: Logo drops and spins (2s)
+            this.showFlip7Logo();
             
             setTimeout(() => {
-                // Stage 3: Piñata shake & smash (1s)
-                this.smashPinata();
+                // Stage 3: Fast spinning top effect (2s)
+                this.spinLogoFast();
                 
                 setTimeout(() => {
-                    // Stage 4: Glitter explosion (3s)
-                    this.explodeGlitter();
+                    // Stage 4: Wobble and finale with glitter (2.5s)
+                    this.wobbleAndExplodeLogo();
                     
                     setTimeout(() => {
-                        // Stage 5: Clean up and end round (7s total)
+                        // Stage 5: Clean up and end round (6.5s total)
                         this.cleanupFlip7Celebration();
                         this.endRound();
-                    }, 3000);
-                }, 1000);
-            }, 500);
-        }, 2500);
+                    }, 2500);
+                }, 2000);
+            }, 2000);
+        }, 2000);
     }
     
     animateCardWave(player) {
@@ -3006,23 +3006,29 @@ class Flip7Game {
         }, 200);
     }
     
-    showPinata() {
-        const pinata = document.getElementById('pinata');
-        pinata.classList.add('show');
+    showFlip7Logo() {
+        const logo = document.getElementById('flip7-celebration-logo');
+        logo.classList.add('drop-spin');
     }
     
-    smashPinata() {
-        const pinata = document.getElementById('pinata');
+    spinLogoFast() {
+        const logo = document.getElementById('flip7-celebration-logo');
+        logo.classList.remove('drop-spin');
+        logo.classList.add('spin-fast');
+    }
+    
+    wobbleAndExplodeLogo() {
+        const logo = document.getElementById('flip7-celebration-logo');
+        logo.classList.remove('spin-fast');
+        logo.classList.add('wobble-spin');
         
-        // Shake first
-        pinata.classList.remove('show');
-        pinata.classList.add('shake');
+        // Add glitter explosion during wobble
+        this.explodeGlitter();
         
-        // Then explode
         setTimeout(() => {
-            pinata.classList.remove('shake');
-            pinata.classList.add('explode');
-        }, 500);
+            logo.classList.remove('wobble-spin');
+            logo.classList.add('finale');
+        }, 1500);
     }
     
     explodeGlitter() {
@@ -3078,9 +3084,9 @@ class Flip7Game {
         const celebrationEl = document.getElementById('flip7-celebration');
         celebrationEl.style.display = 'none';
         
-        // Reset piñata classes
-        const pinata = document.getElementById('pinata');
-        pinata.classList.remove('show', 'shake', 'explode');
+        // Reset logo classes
+        const logo = document.getElementById('flip7-celebration-logo');
+        logo.classList.remove('drop-spin', 'spin-fast', 'wobble-spin', 'finale');
         
         // Clear any remaining particles
         const glitterContainer = document.getElementById('glitter-explosion');
