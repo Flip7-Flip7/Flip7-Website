@@ -1570,12 +1570,16 @@ class Flip7Game {
         
         const currentPlayer = this.players[this.currentPlayerIndex];
         
-        // Highlight the current player immediately when their turn starts
-        this.highlightCurrentPlayer();
+        // Note: Highlight timing moved to be just before AI action for better flow
+        // Human players get immediate highlight, AI players get timed highlight
         
-        // Then handle the actual turn logic with a longer delay for better visual flow
+        // Handle the actual turn logic with proper timing
         setTimeout(() => {
             if (currentPlayer.isHuman) {
+                // Human players get immediate highlight and turn indication
+                this.highlightCurrentPlayer();
+                this.showMessage(`Your turn!`);
+                
                 // Safety check: Clear any lingering processing flag when it's human's turn
                 if (this.isProcessingPlayerAction) {
                     console.warn('Clearing stuck processing flag before human turn');
@@ -1583,14 +1587,16 @@ class Flip7Game {
                 }
                 // Enable actions for human player
                 this.enablePlayerActions();
-                this.showMessage(`Your turn!`);
             } else {
-                // AI turn - show message first
-                this.showMessage(`${currentPlayer.name}'s turn...`);
-                // Extra delay for mobile to ensure turn highlight is clearly visible before card flip
-                const isMobile = window.innerWidth <= 1024;
-                const aiDelay = isMobile ? 3000 : 1500; // Even longer delay on mobile for clear turn visibility
-                setTimeout(() => this.takeAITurn(currentPlayer), aiDelay);
+                // AI turn - first show highlight after brief delay, then AI acts 1 second later
+                setTimeout(() => {
+                    // Show whose turn it is
+                    this.highlightCurrentPlayer();
+                    this.showMessage(`${currentPlayer.name}'s turn...`);
+                    
+                    // 1 second later, AI makes decision and draws card
+                    setTimeout(() => this.takeAITurn(currentPlayer), 1000);
+                }, 500); // Brief delay after human card animation completes
             }
         }, 800); // Increased delay to let users register the turn highlight
     }
