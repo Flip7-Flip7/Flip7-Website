@@ -2186,11 +2186,11 @@ body {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        width: 55px !important; /* Compact size for smaller cards */
-        height: 42px !important; /* Proportional height */
+        width: 28px !important; /* 50% reduction: 55px → 28px */
+        height: 21px !important; /* 50% reduction: 42px → 21px */
         background: linear-gradient(135deg, #4a90a4 0%, #357a8a 50%, #2c6b7a 100%) !important;
-        border: 2px solid rgba(255, 215, 0, 0.3) !important;
-        border-radius: 8px !important;
+        border: 1px solid rgba(255, 215, 0, 0.3) !important; /* Thinner border for smaller size */
+        border-radius: 4px !important; /* Smaller radius */
         padding: 4px !important;
         margin: 0 !important;
         box-shadow: 
@@ -2347,17 +2347,27 @@ body {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
+        gap: 2px; /* Smaller gap for compact design */
     }
     
-    /* GOLDEN RATIO DRAW PILE LABEL - Premium detail */
+    /* Smaller pile info for mobile draw pile */
+    .mobile-draw-pile-area .pile-info {
+        font-size: 0.25em !important; /* Very small text */
+        color: #FFD700 !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+        white-space: nowrap !important;
+    }
+    
+    /* GOLDEN RATIO DRAW PILE LABEL - Premium detail (50% smaller) */
     .mobile-draw-pile-area::after {
         content: "DRAW" !important;
         position: absolute !important;
-        bottom: 2px !important;
+        bottom: 1px !important; /* Smaller offset */
         left: 50% !important;
         transform: translateX(-50%) !important;
-        font-size: 0.5em !important;
+        font-size: 0.25em !important; /* 50% reduction: 0.5em → 0.25em */
         font-weight: 700 !important;
         color: rgba(255, 255, 255, 0.8) !important;
         text-shadow: 
@@ -2377,8 +2387,8 @@ body {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 65px;
-        height: 91px;
+        width: 32px; /* 50% reduction: 65px → 32px */
+        height: 45px; /* 50% reduction: 91px → 45px */
         z-index: 150;
         pointer-events: none;
     }
@@ -2890,50 +2900,50 @@ body {
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1) !important;
     }
     
-    /* GOLDEN RATIO DRAW CARD - Central piece */
+    /* GOLDEN RATIO DRAW CARD - Central piece (50% smaller) */
     .mobile-draw-pile-area .draw-card {
-        width: 32px !important; /* Compact size to fit container */
-        height: 45px !important; /* Proper aspect ratio */
+        width: 16px !important; /* 50% reduction: 32px → 16px */
+        height: 22px !important; /* 50% reduction: 45px → 22px */
         position: relative !important;
         z-index: 3 !important;
-        border-radius: 5px !important;
+        border-radius: 3px !important; /* Smaller radius */
         box-shadow: 
-            0 4px 12px rgba(250, 112, 154, 0.4),
-            0 2px 4px rgba(0, 0, 0, 0.2),
+            0 2px 6px rgba(250, 112, 154, 0.4),
+            0 1px 2px rgba(0, 0, 0, 0.2),
             inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-        backdrop-filter: blur(2px) !important;
+        backdrop-filter: blur(1px) !important;
     }
     
     /* GOLDEN RATIO CARD STACK - Premium depth effect */
     .mobile-draw-pile-area .draw-pile::before {
         content: "" !important;
         position: absolute !important;
-        width: 32px !important;
-        height: 45px !important;
+        width: 16px !important; /* 50% reduction: 32px → 16px */
+        height: 22px !important; /* 50% reduction: 45px → 22px */
         background-image: url('images/Flip7CardBack.png') !important;
         background-size: cover !important;
         background-position: center !important;
         background-repeat: no-repeat !important;
-        border-radius: 6px !important;
-        transform: translate(-1px, -1px) !important;
+        border-radius: 3px !important; /* Smaller radius */
+        transform: translate(-0.5px, -0.5px) !important; /* Smaller offset */
         z-index: 1 !important;
-        box-shadow: 0 3px 8px rgba(250, 112, 154, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-        backdrop-filter: blur(1px) !important;
+        box-shadow: 0 1px 4px rgba(250, 112, 154, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+        backdrop-filter: blur(0.5px) !important;
     }
     
     .mobile-draw-pile-area .draw-pile::after {
         content: "" !important;
         position: absolute !important;
-        width: 32px !important;
-        height: 45px !important;
+        width: 16px !important; /* 50% reduction: 32px → 16px */
+        height: 22px !important; /* 50% reduction: 45px → 22px */
         background-image: url('images/Flip7CardBack.png') !important;
         background-size: cover !important;
         background-position: center !important;
         background-repeat: no-repeat !important;
-        border-radius: 6px !important;
-        transform: translate(-2px, -2px) !important;
+        border-radius: 3px !important; /* Smaller radius */
+        transform: translate(-1px, -1px) !important; /* Smaller offset */
         z-index: 0 !important;
-        box-shadow: 0 2px 6px rgba(250, 112, 154, 0.2) !important;
+        box-shadow: 0 1px 3px rgba(250, 112, 154, 0.2) !important;
         opacity: 0.8 !important;
     }
     
@@ -3042,11 +3052,11 @@ body {
     /* Position mobile draw pile area */
     /* Remove conflicting draw-pile-area styling - mobile uses .mobile-draw-pile-area instead */
     
-    /* Animated card sizing to match mobile draw pile */
+    /* Animated card sizing to match mobile draw pile (50% smaller) */
     .animated-card {
-        width: 32px !important;
-        height: 45px !important;
-        font-size: 0.65em !important;
+        width: 16px !important; /* 50% reduction: 32px → 16px */
+        height: 22px !important; /* 50% reduction: 45px → 22px */
+        font-size: 0.32em !important; /* 50% reduction: 0.65em → 0.32em */
     }
     
     /* Compact controls */
