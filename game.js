@@ -669,9 +669,17 @@ class Flip7Game {
         let targetPlayer;
         
         if (card.value === 'freeze') {
-            // Bot AI for Freeze: Target the point leader
-            targetPlayer = this.getPointLeader();
-            this.addToLog(`${player.name} uses Freeze on ${targetPlayer.name} (point leader)!`);
+            // Bot AI for Freeze: Target the point leader, but if bot is the leader, target next closest
+            const pointLeader = this.getPointLeader();
+            if (pointLeader === player) {
+                // Bot is the leader, target the next closest player instead
+                targetPlayer = this.getNextClosestPlayer(player);
+                this.addToLog(`${player.name} uses Freeze on ${targetPlayer.name} (next closest player)!`);
+            } else {
+                // Target the point leader
+                targetPlayer = pointLeader;
+                this.addToLog(`${player.name} uses Freeze on ${targetPlayer.name} (point leader)!`);
+            }
         } else if (card.value === 'flip3') {
             // Bot AI for Flip3: Target self if < 3 cards, otherwise random other player
             const botCardCount = player.numberCards.length;
@@ -704,6 +712,21 @@ class Flip7Game {
         
         // If multiple leaders, choose randomly among them
         return leaders[Math.floor(Math.random() * leaders.length)];
+    }
+    
+    getNextClosestPlayer(excludePlayer) {
+        // Get all active players except the one to exclude
+        const otherPlayers = this.players.filter(p => p.status === 'active' && p !== excludePlayer);
+        
+        if (otherPlayers.length === 0) {
+            return excludePlayer; // Fallback if no other active players
+        }
+        
+        // Sort by total score (highest first)
+        otherPlayers.sort((a, b) => b.totalScore - a.totalScore);
+        
+        // Return the highest scoring active player (excluding the bot itself)
+        return otherPlayers[0];
     }
     
     setupModalCard(cardElement, card, player) {
