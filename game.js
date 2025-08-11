@@ -981,7 +981,7 @@ class Flip7Game {
         } else if (card.type === 'modifier') {
             player.modifierCards.push(card);
         } else if (card.type === 'action') {
-            // Special handling for Flip3 and Freeze - show modal popup immediately
+            // Special handling for Flip3 and Freeze
             if (card.value === 'flip3' || card.value === 'freeze') {
                 // During Flip 3, defer to queue as before
                 if (duringFlip3) {
@@ -995,10 +995,16 @@ class Flip7Game {
                         }
                     };
                 } else {
-                    // Show modal popup for immediate action
-                    this.addToLog(`${player.name} drew ${card.display}! Must use immediately.`);
-                    this.showSpecialActionModal(card, player);
-                    return { endTurn: false, busted: false, waitingForModal: true };
+                    // For AI bots, use modal system
+                    if (!player.isHuman) {
+                        this.addToLog(`${player.name} drew ${card.display}! Must use immediately.`);
+                        this.showSpecialActionModal(card, player);
+                        return { endTurn: false, busted: false, waitingForModal: true };
+                    } else {
+                        // For human players, let the animation system handle it via transitionToInteractiveCard
+                        this.addToLog(`${player.name} drew ${card.display}! Must use immediately.`);
+                        return { endTurn: false, busted: false, waitingForAnimation: true };
+                    }
                 }
             } else {
                 // Handle other action cards (like Second Chance) normally
