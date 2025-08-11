@@ -2379,6 +2379,29 @@ class Flip7Game {
         // Add enhanced frozen class for additional effects
         container.classList.add('enhanced-frozen');
         
+        // Add clear frozen indicator
+        const frozenIndicator = document.createElement('div');
+        frozenIndicator.className = 'frozen-indicator';
+        frozenIndicator.innerHTML = '❄️ FROZEN ❄️';
+        frozenIndicator.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(96, 165, 250, 0.9);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 10px;
+            z-index: 20;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            animation: freezePulse 2s infinite;
+        `;
+        container.style.position = 'relative';
+        container.appendChild(frozenIndicator);
+        
         // Create ice particles effect
         this.createIceParticles(container);
     }
