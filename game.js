@@ -1790,6 +1790,9 @@ class Flip7Game {
             return;
         }
         
+        // Define reveal duration first
+        const revealDuration = isMobile ? 800 : 1000; // Mobile animation is shorter
+        
         // Show backdrop for focus (mobile only)
         if (isMobile) {
             const backdrop = document.getElementById('animation-backdrop');
@@ -1841,7 +1844,6 @@ class Flip7Game {
         }
         
         // After reveal, check if we should auto-slide to player's hand
-        const revealDuration = isMobile ? 800 : 1000; // Mobile animation is shorter
         setTimeout(() => {
             // Check if this is a special action card that should show modal instead of auto-slide
             const shouldShowModal = card.type === 'action' && (card.value === 'freeze' || card.value === 'flip3');
