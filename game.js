@@ -839,10 +839,10 @@ class Flip7Game {
             targetPlayer.isFrozen = true;
             targetPlayer.status = 'frozen';
             
-            // If it's the current player's turn and they got frozen, end their turn
+            // If it's the current player's turn and they got frozen, advance to next turn
             if (this.players[this.currentPlayerIndex] === targetPlayer && this.gameActive) {
                 this.updateDisplay();
-                this.endTurn();
+                this.nextTurn();
             } else {
                 this.updateDisplay();
                 this.continueAfterSpecialAction();
