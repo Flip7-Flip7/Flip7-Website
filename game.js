@@ -1884,13 +1884,28 @@ class Flip7Game {
             // For regular cards, proceed with auto-slide animation
             try {
                 const animRect = animatedCard.getBoundingClientRect();
-                const targetRect = targetElement.getBoundingClientRect();
                 
-                const slideX = targetRect.left - animRect.left;
-                const slideY = targetRect.top - animRect.top;
+                // Use entire player area for more accurate slide targeting
+                const playerArea = this.getPlayerAreaElement(playerId);
+                const targetRect = playerArea ? playerArea.getBoundingClientRect() : targetElement.getBoundingClientRect();
+                
+                // Calculate slide to center of target player area (more visually appealing)
+                const targetCenterX = targetRect.left + (targetRect.width / 2);
+                const targetCenterY = targetRect.top + (targetRect.height / 2);
+                const animCenterX = animRect.left + (animRect.width / 2);
+                const animCenterY = animRect.top + (animRect.height / 2);
+                
+                const slideX = targetCenterX - animCenterX;
+                const slideY = targetCenterY - animCenterY;
                 
                 animatedCard.style.setProperty('--slide-x', `${slideX}px`);
                 animatedCard.style.setProperty('--slide-y', `${slideY}px`);
+                
+                // Add brief highlight to target player area during slide
+                if (playerArea) {
+                    playerArea.classList.add('receiving-card');
+                    setTimeout(() => playerArea.classList.remove('receiving-card'), 800);
+                }
                 
                 // Remove the reveal animation class (both desktop and mobile)
                 animatedCard.classList.remove('flip-reveal', 'mobile-reveal');
@@ -2369,6 +2384,24 @@ class Flip7Game {
             // Convert numeric player IDs to opponent string format
             const opponentId = typeof playerId === 'number' ? `opponent${playerId}` : playerId;
             return document.getElementById(`${opponentId}-cards`);
+        }
+    }
+
+    getPlayerAreaElement(playerId) {
+        // Get entire player area for better slide animation targeting
+        // Handle both numeric (0,1,2,3) and string ('player', 'opponent1') player IDs
+        const isMobile = window.innerWidth <= 1024;
+        
+        if (playerId === 0 || playerId === 'player') {
+            return isMobile 
+                ? document.getElementById('mobile-player')
+                : document.getElementById('player');
+        } else {
+            // Convert numeric player IDs to opponent string format
+            const opponentId = typeof playerId === 'number' ? `opponent${playerId}` : playerId;
+            return isMobile
+                ? document.getElementById(`mobile-${opponentId}`)
+                : document.getElementById(opponentId);
         }
     }
 
