@@ -1773,32 +1773,22 @@ class Flip7Game {
     animateCardFlip(card, playerId) {
         // Use center animation areas for better visual impact
         const isMobile = window.innerWidth <= 1024;
-        console.log(`🎯 ANIMATION DEBUG: isMobile=${isMobile}, windowWidth=${window.innerWidth}`);
-        
         const animationArea = isMobile 
             ? document.getElementById('mobile-center-card-animation-area')
             : document.getElementById('center-card-animation-area');
         
-        console.log(`🎯 Animation area:`, animationArea, `visible:`, animationArea?.style.display !== 'none');
-        
         // Fallback if animation area doesn't exist - add card directly
         if (!animationArea) {
-            console.log(`❌ No animation area - falling back`);
             this.addCardToPlayerHand(card, playerId);
             return;
         }
         
         // Check if target container exists before starting animation
         const targetElement = this.getTargetCardContainer(playerId, card.type);
-        console.log(`🎯 Target element:`, targetElement?.id);
-        
         if (!targetElement) {
-            console.log(`❌ No target element - falling back`);
             this.addCardToPlayerHand(card, playerId);
             return;
         }
-        
-        console.log(`✅ Starting animation for ${card.display} → ${playerId}`);
         
         // Define reveal duration first
         const revealDuration = isMobile ? 800 : 1000; // Mobile animation is shorter

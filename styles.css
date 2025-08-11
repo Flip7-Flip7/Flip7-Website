@@ -157,11 +157,9 @@ body {
     transform: translate(-50%, -50%);
     width: 170px; /* Much bigger for mobile visibility - 2x size */
     height: 238px; /* Much bigger for mobile visibility - 2x size */
-    z-index: 200;
+    z-index: 9999; /* Much higher z-index to ensure it's on top */
     pointer-events: none;
     display: none; /* Hidden on desktop */
-    background-color: rgba(255, 0, 0, 0.3); /* DEBUG: Red background to see area */
-    border: 2px solid yellow; /* DEBUG: Yellow border to see boundaries */
 }
 
 /* Show appropriate center animation area per device */
@@ -1101,12 +1099,19 @@ body {
     z-index: 200;
 }
 
-/* Override mobile card sizing specifically for animation cards - HIGH SPECIFICITY */
-.mobile-center-card-animation-area .animated-card.card,
-.mobile-center-card-animation-area .card {
-    width: 170px !important; /* Force big size for animation */
-    height: 238px !important; /* Force big size for animation */
-    font-size: 2em !important; /* Scale up text too */
+/* Override mobile card sizing specifically for animation cards - NUCLEAR OPTION */
+@media (max-width: 1024px) {
+    .mobile-center-card-animation-area .animated-card,
+    .mobile-center-card-animation-area .animated-card.card,
+    .mobile-center-card-animation-area .card {
+        width: 170px !important; /* Force big size for animation */
+        height: 238px !important; /* Force big size for animation */
+        font-size: 2em !important; /* Scale up text too */
+        display: block !important; /* Ensure it's visible */
+        position: relative !important; /* Ensure positioning works */
+        background-size: contain !important; /* Scale background images properly */
+        z-index: 10000 !important; /* Ensure it's on top */
+    }
 }
 
 /* Enhanced two-element flip structure */
