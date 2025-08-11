@@ -582,15 +582,15 @@ body {
 }
 
 .btn.secondary {
-    background: linear-gradient(145deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(145deg, #c8717a 0%, #a85660 100%);
     color: white;
-    box-shadow: 0 6px 20px rgba(240, 147, 251, 0.4);
+    box-shadow: 0 6px 20px rgba(200, 113, 122, 0.4);
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .btn.secondary:hover:not(:disabled) {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 25px rgba(240, 147, 251, 0.6);
+    box-shadow: 0 8px 25px rgba(200, 113, 122, 0.6);
 }
 
 /* Controls Panel */
@@ -2397,7 +2397,7 @@ body {
     }
     
     .mobile-action-btn.secondary {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        background: linear-gradient(135deg, #c8717a 0%, #a85660 100%) !important;
         color: white !important;
     }
     
@@ -2486,9 +2486,9 @@ body {
     /* Stay button - Muted cautious colors (less appealing) */
     .mobile-bottom-section .mobile-action-btn.secondary {
         background: linear-gradient(135deg, 
-            rgba(71, 85, 105, 0.7) 0%,   /* Muted slate */
-            rgba(100, 116, 139, 0.7) 100%) !important; /* Lighter slate */
-        box-shadow: 0 3px 12px rgba(71, 85, 105, 0.2),
+            rgba(200, 113, 122, 0.7) 0%,   /* Muted red */
+            rgba(168, 86, 96, 0.7) 100%) !important; /* Darker muted red */
+        box-shadow: 0 3px 12px rgba(200, 113, 122, 0.2),
                     inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
         transform: scale(0.95) !important; /* Slightly smaller than Hit */
         opacity: 0.85 !important; /* Slightly less prominent */
@@ -2505,7 +2505,7 @@ body {
 
     .mobile-bottom-section .mobile-action-btn.secondary:hover:not(:disabled) {
         transform: translateY(-1px) scale(0.96) !important; /* Minimal hover response */
-        box-shadow: 0 4px 15px rgba(71, 85, 105, 0.3) !important;
+        box-shadow: 0 4px 15px rgba(200, 113, 122, 0.3) !important;
         opacity: 0.9 !important;
     }
 
@@ -2518,7 +2518,7 @@ body {
 
     .mobile-bottom-section .mobile-action-btn.secondary:active:not(:disabled) {
         transform: translateY(1px) scale(0.93) !important; /* Less satisfying press */
-        box-shadow: 0 2px 8px rgba(71, 85, 105, 0.2),
+        box-shadow: 0 2px 8px rgba(200, 113, 122, 0.2),
                     inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
     }
 
@@ -3422,14 +3422,14 @@ body {
     }
     
     .btn.secondary {
-        background: #f59e0b;
+        background: #c8717a;
         color: white;
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        box-shadow: 0 4px 12px rgba(200, 113, 122, 0.4);
     }
     
     .btn.secondary:active:not(:disabled) {
         transform: translateY(1px);
-        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        box-shadow: 0 2px 8px rgba(200, 113, 122, 0.4);
     }
     
     /* Position mobile draw pile area */
