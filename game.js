@@ -1928,8 +1928,8 @@ class Flip7Game {
         // After reveal, check if we should auto-slide to player's hand
         setTimeout(() => {
             // Check if this is a special action card that should show modal instead of auto-slide
-            // IMPORTANT: Only show interactive modal for human players (playerId === 0)
-            const isHumanPlayer = playerId === 0;
+            // IMPORTANT: Only show interactive modal for human players (playerId === 'player')
+            const isHumanPlayer = playerId === 'player';
             const shouldShowModal = card.type === 'action' && (card.value === 'freeze' || card.value === 'flip3') && isHumanPlayer;
             
             if (shouldShowModal) {
