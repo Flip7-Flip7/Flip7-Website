@@ -1140,8 +1140,8 @@ class Flip7Game {
         let cardsFlipped = 0;
         let pendingActions = [];
         
-        // Show Flip3 sequence indicator
-        this.showFlip3SequenceIndicator(cardOwner, targetPlayer, cardsFlipped);
+        // Show Flip3 sequence indicator (commented out - function doesn't exist)
+        // this.showFlip3SequenceIndicator(cardOwner, targetPlayer, cardsFlipped);
         
         const processNextCard = () => {
             // Check if we need to process pending actions first
@@ -1157,7 +1157,7 @@ class Flip7Game {
             if (cardsFlipped >= 3 || targetPlayer.status !== 'active') {
                 // Flip Three sequence completed
                 this.isProcessingFlip3 = false;
-                this.hideFlip3SequenceIndicator();
+                // this.hideFlip3SequenceIndicator(); // Commented out - function doesn't exist
                 if (onComplete) {
                     setTimeout(onComplete, 1200); // Standardized timing
                 } else {
