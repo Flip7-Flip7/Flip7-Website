@@ -2055,6 +2055,9 @@ class Flip7Game {
                 animatedCard.style.left = '';
                 animatedCard.style.top = '';
                 animatedCard.style.transform = 'scale(1)';
+                
+                // Clean up drag interface if no valid drop (so instructions disappear)
+                this.cleanupDragInterface();
             }
             
             animatedCard.style.cursor = 'grab';
