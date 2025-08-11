@@ -1790,10 +1790,23 @@ class Flip7Game {
             return;
         }
         
+        // Show backdrop for focus (mobile only)
+        if (isMobile) {
+            const backdrop = document.getElementById('animation-backdrop');
+            if (backdrop) {
+                backdrop.classList.add('show');
+                
+                // Hide backdrop after animation completes
+                setTimeout(() => {
+                    backdrop.classList.remove('show');
+                }, revealDuration + 800); // Reveal + slide duration
+            }
+        }
+        
         // Declare animatedCard outside the if/else blocks
         let animatedCard;
         
-        // Use simplified animation for mobile
+        // Use enhanced animation for mobile
         if (isMobile) {
             // Simple fade animation for mobile (now in center screen)
             animatedCard = this.createCardElement(card);
@@ -1827,9 +1840,23 @@ class Flip7Game {
             animatedCard.classList.add('flip-reveal');
         }
         
-        // After reveal, slide to player's hand
+        // After reveal, check if we should auto-slide to player's hand
         const revealDuration = isMobile ? 800 : 1000; // Mobile animation is shorter
         setTimeout(() => {
+            // Check if this is a special action card that should show modal instead of auto-slide
+            const shouldShowModal = card.type === 'action' && (card.value === 'freeze' || card.value === 'flip3');
+            
+            if (shouldShowModal) {
+                // For special action cards, don't auto-slide - clear animation and let modal system handle it
+                console.log(`Special action card ${card.value} - skipping auto-slide, will show modal`);
+                if (animationArea) {
+                    animationArea.innerHTML = '';
+                }
+                // The card will be handled by the modal system
+                return;
+            }
+            
+            // For regular cards, proceed with auto-slide animation
             try {
                 const animRect = animatedCard.getBoundingClientRect();
                 const targetRect = targetElement.getBoundingClientRect();
@@ -1844,13 +1871,13 @@ class Flip7Game {
                 animatedCard.classList.remove('flip-reveal', 'mobile-reveal');
                 animatedCard.classList.add('slide-to-hand');
                 
-                // Add the actual card to the player's hand
+                // Add the actual card to the player's hand after enhanced slide animation
                 setTimeout(() => {
                     this.addCardToPlayerHand(card, playerId);
                     if (animationArea && animationArea.parentNode) {
                         animationArea.innerHTML = '';
                     }
-                }, 500);
+                }, 600); // Updated to match enhanced slide animation duration
             } catch (error) {
                 console.error('Animation calculation failed:', error);
                 this.addCardToPlayerHand(card, playerId);

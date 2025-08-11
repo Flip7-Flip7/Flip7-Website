@@ -155,8 +155,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 160px;
-    height: 213px;
+    width: 85px; /* Match 1-2 card hand size */
+    height: 119px; /* Match 1-2 card hand size */
     z-index: 200;
     pointer-events: none;
     display: none; /* Hidden on desktop */
@@ -168,8 +168,8 @@ body {
         /* Use viewport center with fallbacks for mobile browsers */
         top: 50vh;
         left: 50vw;
-        margin-top: -106.5px; /* Half of height (213px/2) */
-        margin-left: -80px; /* Half of width (160px/2) */
+        margin-top: -59.5px; /* Half of height (119px/2) */
+        margin-left: -42.5px; /* Half of width (85px/2) */
         transform: none; /* Remove transform to use margins instead */
         /* Ensure proper positioning on mobile Safari */
         -webkit-transform: none;
@@ -1100,8 +1100,8 @@ body {
 }
 
 .mobile-center-card-animation-area .animated-card {
-    width: 160px;
-    height: 213px;
+    width: 85px; /* Match 1-2 card hand size */
+    height: 119px; /* Match 1-2 card hand size */
     z-index: 200;
 }
 
@@ -1165,16 +1165,16 @@ body {
     }
 }
 
-/* Enhanced mobile card reveal animation - Captivating! */
+/* ENHANCED mobile card reveal animation - Professional & Smooth */
 .animated-card.mobile-reveal {
-    animation: mobileRevealEnhanced 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    animation: mobileRevealProfessional 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes mobileRevealEnhanced {
+@keyframes mobileRevealProfessional {
     0% {
-        transform: scale(0.3) rotate(180deg);
+        transform: scale(0.2) rotate(360deg);
         opacity: 0;
-        filter: brightness(2) drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+        filter: brightness(1.8) drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));
     }
     40% {
         transform: scale(1.8) rotate(90deg);
@@ -1196,17 +1196,44 @@ body {
 }
 
 .animated-card.slide-to-hand {
-    animation: slideToHand 0.5s ease-in-out;
+    animation: slideToHandSmooth 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-@keyframes slideToHand {
-    from {
-        transform: translate(0, 0) scale(1);
+@keyframes slideToHandSmooth {
+    0% {
+        transform: translate(0, 0) scale(1) rotate(0deg);
+        opacity: 1;
     }
-    to {
+    20% {
+        transform: translate(calc(var(--slide-x) * 0.1), calc(var(--slide-y) * -0.2)) scale(0.9) rotate(5deg);
+        opacity: 0.9;
+    }
+    80% {
+        transform: translate(calc(var(--slide-x) * 0.9), calc(var(--slide-y) * 0.9)) scale(0.7) rotate(-3deg);
+        opacity: 0.7;
+    }
+    100% {
         transform: translate(var(--slide-x), var(--slide-y)) scale(0.8);
         opacity: 0;
     }
+}
+
+/* Animation backdrop for focus during card reveals */
+.animation-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 199;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.animation-backdrop.show {
+    opacity: 1;
 }
 
 /* Freeze Animations */
