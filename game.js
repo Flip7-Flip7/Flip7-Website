@@ -843,7 +843,12 @@ class Flip7Game {
     executeSpecialActionEffect(card, drawnByPlayer, targetPlayer) {
         if (card.value === 'flip3') {
             this.executeFlipThree(drawnByPlayer, targetPlayer, () => {
-                // After Flip3 completes, continue game flow
+                // After Flip3 completes, discard the card and continue game flow
+                this.discardPile.push({
+                    type: 'action',
+                    value: card.value,
+                    display: 'Flip Three'
+                });
                 this.updateDisplay();
                 this.continueAfterSpecialAction();
             });
@@ -854,6 +859,13 @@ class Flip7Game {
             // Add enhanced freeze visual effects
             this.addFreezeVisualEffects(targetPlayer);
             
+            // For Freeze cards, discard immediately since effect is instant
+            this.discardPile.push({
+                type: 'action',
+                value: card.value,
+                display: 'Freeze'
+            });
+            
             // If it's the current player's turn and they got frozen, advance to next turn
             if (this.players[this.currentPlayerIndex] === targetPlayer && this.gameActive) {
                 this.updateDisplay();
@@ -863,13 +875,6 @@ class Flip7Game {
                 this.continueAfterSpecialAction();
             }
         }
-        
-        // Add card to discard pile
-        this.discardPile.push({
-            type: 'action',
-            value: card.value,
-            display: card.value === 'flip3' ? 'Flip Three' : 'Freeze'
-        });
     }
     
     continueAfterSpecialAction() {
