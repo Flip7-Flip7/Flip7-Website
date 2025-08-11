@@ -2121,11 +2121,11 @@ body {
     
     /* Hit/Stay buttons in bottom section - Glass-morphism styling */
     .mobile-bottom-section .mobile-action-btn {
-        height: 36px !important;
-        min-width: 100px !important;
+        height: 48px !important;
+        min-width: 120px !important;
         flex: 1 !important;
-        padding: 8px 20px !important;
-        font-size: 16px !important;
+        padding: 12px 24px !important;
+        font-size: 18px !important;
         font-weight: 600 !important;
         border: 1px solid rgba(255, 255, 255, 0.3) !important;
         border-radius: 16px !important;
