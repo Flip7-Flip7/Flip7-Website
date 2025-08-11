@@ -1094,8 +1094,8 @@ body {
 }
 
 .mobile-center-card-animation-area .animated-card {
-    width: 85px; /* Match 1-2 card hand size */
-    height: 119px; /* Match 1-2 card hand size */
+    width: 170px; /* Much bigger for mobile visibility - 2x size */
+    height: 238px; /* Much bigger for mobile visibility - 2x size */
     z-index: 200;
 }
 
