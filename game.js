@@ -1357,6 +1357,17 @@ class Flip7Game {
         }
         
         this.isProcessingPlayerAction = true;
+        console.log('🔒 Processing flag SET (playerHit)');
+        
+        // Safety timeout to clear processing flag if it gets stuck (playerHit)
+        setTimeout(() => {
+            if (this.isProcessingPlayerAction) {
+                console.warn('Hit processing flag stuck - force clearing and re-enabling buttons');
+                this.isProcessingPlayerAction = false;
+                this.enablePlayerActions();
+            }
+        }, 10000); // 10 second safety timeout
+        
         const card = this.drawCard();
         this.displayCard(card, 'player');
         
@@ -1368,7 +1379,9 @@ class Flip7Game {
             
             // If busted, handleCardDraw already handled everything - exit early
             if (result.busted) {
+                console.log('Player busted - resetting processing flag');
                 this.isProcessingPlayerAction = false; // Reset flag
+                console.log('🔓 Processing flag CLEARED');
                 return; // Don't call updateDisplay() again or nextTurn()
             }
             
@@ -1377,14 +1390,18 @@ class Flip7Game {
                 // Action card will handle the turn flow
                 setTimeout(() => {
                     this.updateDisplay();
+                    console.log('Action card processed - resetting processing flag');
                     this.isProcessingPlayerAction = false; // Reset flag
+                console.log('🔓 Processing flag CLEARED');
                 }, 1200); // Standardized timing
             } else {
                 // Normal flow: move to next turn after animation
                 setTimeout(() => {
                     this.updateDisplay();
                     this.nextTurn();
+                    console.log('Normal turn completed - resetting processing flag');
                     this.isProcessingPlayerAction = false; // Reset flag
+                console.log('🔓 Processing flag CLEARED');
                 }, 1200); // Standardized timing
             }
         }, 1200); // Standardized card animation duration
@@ -1400,6 +1417,16 @@ class Flip7Game {
         }
         
         this.isProcessingPlayerAction = true;
+        console.log('🔒 Processing flag SET (playerStay)');
+        
+        // Safety timeout to clear processing flag if it gets stuck (playerStay)
+        setTimeout(() => {
+            if (this.isProcessingPlayerAction) {
+                console.warn('Stay processing flag stuck - force clearing and re-enabling buttons');
+                this.isProcessingPlayerAction = false;
+                this.enablePlayerActions();
+            }
+        }, 10000); // 10 second safety timeout
         
         player.status = 'stayed';
         this.calculateRoundScore(player);
@@ -1482,6 +1509,11 @@ class Flip7Game {
         // Then handle the actual turn logic with a longer delay for better visual flow
         setTimeout(() => {
             if (currentPlayer.isHuman) {
+                // Safety check: Clear any lingering processing flag when it's human's turn
+                if (this.isProcessingPlayerAction) {
+                    console.warn('Clearing stuck processing flag before human turn');
+                    this.isProcessingPlayerAction = false;
+                }
                 // Enable actions for human player
                 this.enablePlayerActions();
                 this.showMessage(`Your turn!`);
@@ -1870,7 +1902,14 @@ class Flip7Game {
 
     enablePlayerActions() {
         const player = this.players[0];
-        if (player.status === 'active' && !this.isProcessingPlayerAction) {
+        console.log(`enablePlayerActions: status=${player.status}, processing=${this.isProcessingPlayerAction}, currentPlayer=${this.currentPlayerIndex}, gameActive=${this.gameActive}`);
+        
+        // Validate turn state before enabling buttons
+        const isHumanTurn = this.gameActive && this.currentPlayerIndex === 0;
+        const canEnable = player.status === 'active' && !this.isProcessingPlayerAction && isHumanTurn;
+        
+        if (canEnable) {
+            console.log('✓ Enabling buttons - all conditions met');
             // Enable desktop buttons
             document.getElementById('hit-btn').disabled = false;
             document.getElementById('stay-btn').disabled = player.numberCards.length === 0;
@@ -1893,10 +1932,13 @@ class Flip7Game {
             if (mobilePlayer) mobilePlayer.classList.remove('show-buttons');
             if (mobileHitBtn) mobileHitBtn.disabled = true;
             if (mobileStayBtn) mobileStayBtn.disabled = true;
+        } else {
+            console.log(`✗ NOT enabling buttons - canEnable=${canEnable}, gameActive=${this.gameActive}, isHumanTurn=${isHumanTurn}`);
         }
     }
 
     disablePlayerActions() {
+        console.log('disablePlayerActions: Disabling all player buttons');
         // Disable desktop buttons
         document.getElementById('hit-btn').disabled = true;
         document.getElementById('stay-btn').disabled = true;
@@ -1921,25 +1963,8 @@ class Flip7Game {
             mobileCardsRemainingElement.textContent = this.deck.length;
         }
         
-        // Update mobile button states
-        const mobileHitBtn = document.getElementById('mobile-hit-btn');
-        const mobileStayBtn = document.getElementById('mobile-stay-btn');
-        const humanPlayer = this.players[0];
-        const isHumanTurn = this.gameActive && this.currentPlayerIndex === 0 && humanPlayer.status === 'active';
-        
-        if (mobileHitBtn && mobileStayBtn) {
-            if (isHumanTurn) {
-                mobileHitBtn.classList.remove('inactive');
-                mobileStayBtn.classList.remove('inactive');
-                mobileHitBtn.disabled = false;
-                mobileStayBtn.disabled = false;
-            } else {
-                mobileHitBtn.classList.add('inactive');
-                mobileStayBtn.classList.add('inactive');
-                mobileHitBtn.disabled = true;
-                mobileStayBtn.disabled = true;
-            }
-        }
+        // Note: Mobile button states are now handled exclusively by enablePlayerActions() and disablePlayerActions()
+        // to avoid race conditions and duplicate state management
         
         // Update each player's display
         this.players.forEach(player => {
