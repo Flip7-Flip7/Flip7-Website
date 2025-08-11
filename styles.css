@@ -160,24 +160,7 @@ body {
     z-index: 200;
     pointer-events: none;
     display: none; /* Hidden on desktop */
-    background-color: red; /* TEMP: Visual indicator */
-    opacity: 0.5; /* TEMP: Make semi-transparent */
 }
-
-/* Enhanced mobile centering for better viewport compatibility */
-@media (max-width: 1024px) {
-    .mobile-center-card-animation-area {
-        /* Use viewport center with fallbacks for mobile browsers */
-        top: 50vh;
-        left: 50vw;
-        margin-top: -59.5px; /* Half of height (119px/2) */
-        margin-left: -42.5px; /* Half of width (85px/2) */
-        transform: none; /* Remove transform to use margins instead */
-        /* Ensure proper positioning on mobile Safari */
-        -webkit-transform: none;
-    }
-}
-
 
 /* Show appropriate center animation area per device */
 @media (min-width: 1025px) {
@@ -188,7 +171,16 @@ body {
 
 @media (max-width: 1024px) {
     .mobile-center-card-animation-area {
-        display: block;
+        /* Use viewport center with fallbacks for mobile browsers */
+        top: 50vh;
+        left: 50vw;
+        margin-top: -59.5px; /* Half of height (119px/2) */
+        margin-left: -42.5px; /* Half of width (85px/2) */
+        transform: none; /* Remove transform to use margins instead */
+        /* Ensure proper positioning on mobile Safari */
+        -webkit-transform: none;
+        /* Force display on mobile */
+        display: block !important;
     }
 }
 
