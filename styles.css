@@ -160,6 +160,8 @@ body {
     z-index: 200;
     pointer-events: none;
     display: none; /* Hidden on desktop */
+    background-color: rgba(255, 0, 0, 0.3); /* DEBUG: Red background to see area */
+    border: 2px solid yellow; /* DEBUG: Yellow border to see boundaries */
 }
 
 /* Show appropriate center animation area per device */
