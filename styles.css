@@ -433,7 +433,7 @@ body {
 
 /* Draw Pile Subtle Enhancement */
 .draw-pile-area::after {
-    content: "DRAW";
+    content: "";
     position: absolute;
     bottom: 8px;
     left: 50%;
@@ -2383,7 +2383,7 @@ body {
     
     /* GOLDEN RATIO DRAW PILE LABEL - Premium detail (50% smaller) */
     .mobile-draw-pile-area::after {
-        content: "DRAW" !important;
+        content: "" !important;
         position: absolute !important;
         bottom: 1px !important; /* Smaller offset */
         left: 50% !important;
