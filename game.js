@@ -1129,6 +1129,9 @@ class Flip7Game {
         let cardsFlipped = 0;
         let pendingActions = [];
         
+        // Show Flip3 sequence indicator
+        this.showFlip3SequenceIndicator(cardOwner, targetPlayer, cardsFlipped);
+        
         const processNextCard = () => {
             // Check if we need to process pending actions first
             if (pendingActions.length > 0) {
@@ -1143,6 +1146,7 @@ class Flip7Game {
             if (cardsFlipped >= 3 || targetPlayer.status !== 'active') {
                 // Flip Three sequence completed
                 this.isProcessingFlip3 = false;
+                this.hideFlip3SequenceIndicator();
                 if (onComplete) {
                     setTimeout(onComplete, 1200); // Standardized timing
                 } else {
@@ -1908,6 +1912,11 @@ class Flip7Game {
         // Add interactive classes for visual cues
         animatedCard.classList.add('interactive-card', 'drag-me');
         
+        // CRITICAL: Enable pointer events on mobile animation area for touch interaction
+        if (animationArea) {
+            animationArea.classList.add('has-interactive-card');
+        }
+        
         // Show backdrop and instructions
         const backdrop = document.getElementById('animation-backdrop');
         if (backdrop) {
@@ -1995,7 +2004,7 @@ class Flip7Game {
             currentX = touch.clientX - startX;
             currentY = touch.clientY - startY;
             
-            animatedCard.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.1)`;
+            animatedCard.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.3)`;
             e.preventDefault();
         });
         
@@ -2087,11 +2096,12 @@ class Flip7Game {
             target.classList.remove('valid-drop-target', 'drag-hover');
         });
         
-        // Clear animation area
+        // Clear animation area and disable pointer events
         const animationArea = document.getElementById('mobile-center-card-animation-area') 
             || document.getElementById('center-card-animation-area');
         if (animationArea) {
             animationArea.innerHTML = '';
+            animationArea.classList.remove('has-interactive-card'); // Restore pointer-events: none
         }
     }
 

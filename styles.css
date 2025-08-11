@@ -155,11 +155,41 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 170px; /* Much bigger for mobile visibility - 2x size */
-    height: 238px; /* Much bigger for mobile visibility - 2x size */
+    width: 42px; /* 1/4 size for better mobile UX */
+    height: 60px; /* 1/4 size for better mobile UX */
     z-index: 9999; /* Much higher z-index to ensure it's on top */
     pointer-events: none;
     display: none; /* Hidden on desktop */
+}
+
+/* Enable pointer events when interactive drag cards are present */
+.mobile-center-card-animation-area.has-interactive-card {
+    pointer-events: auto !important;
+    touch-action: none; /* Prevent scrolling during drag */
+}
+
+/* Mobile-specific drag improvements */
+@media (max-width: 1024px) {
+    .animated-card.interactive-card {
+        /* Larger touch target with invisible padding */
+        padding: 10px;
+        margin: -10px;
+        /* Better touch feedback */
+        -webkit-tap-highlight-color: rgba(255, 215, 0, 0.3);
+        /* Prevent text selection during drag */
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        /* Prevent default touch behaviors */
+        touch-action: none;
+    }
+    
+    .animated-card.interactive-card:active {
+        /* Enhanced mobile feedback */
+        transform: scale(1.2) rotate(3deg) !important;
+        box-shadow: 0 0 30px rgba(255, 215, 0, 1) !important;
+    }
 }
 
 /* Show appropriate center animation area per device */
@@ -174,8 +204,8 @@ body {
         /* Use viewport center with fallbacks for mobile browsers */
         top: 50vh;
         left: 50vw;
-        margin-top: -119px; /* Half of height (238px/2) */
-        margin-left: -85px; /* Half of width (170px/2) */
+        margin-top: -30px; /* Half of height (60px/2) */
+        margin-left: -21px; /* Half of width (42px/2) */
         transform: none; /* Remove transform to use margins instead */
         /* Ensure proper positioning on mobile Safari */
         -webkit-transform: none;
@@ -1094,8 +1124,8 @@ body {
 }
 
 .mobile-center-card-animation-area .animated-card {
-    width: 170px; /* Much bigger for mobile visibility - 2x size */
-    height: 238px; /* Much bigger for mobile visibility - 2x size */
+    width: 42px; /* 1/4 size for better mobile UX */
+    height: 60px; /* 1/4 size for better mobile UX */
     z-index: 200;
 }
 
@@ -1104,9 +1134,9 @@ body {
     .mobile-center-card-animation-area .animated-card,
     .mobile-center-card-animation-area .animated-card.card,
     .mobile-center-card-animation-area .card {
-        width: 170px !important; /* Force big size for animation */
-        height: 238px !important; /* Force big size for animation */
-        font-size: 2em !important; /* Scale up text too */
+        width: 42px !important; /* 1/4 size for better mobile UX */
+        height: 60px !important; /* 1/4 size for better mobile UX */
+        font-size: 0.5em !important; /* Scale down text proportionally */
         display: block !important; /* Ensure it's visible */
         position: relative !important; /* Ensure positioning works */
         background-size: contain !important; /* Scale background images properly */
@@ -1127,13 +1157,13 @@ body {
 }
 
 @keyframes dragPulse {
-    0%, 100% { transform: scale(2) rotate(0deg); }
-    50% { transform: scale(2.1) rotate(1deg); }
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.05) rotate(1deg); }
 }
 
 .animated-card.interactive-card:active {
     cursor: grabbing !important;
-    transform: scale(2.2) rotate(3deg) !important;
+    transform: scale(1.1) rotate(3deg) !important;
 }
 
 /* Drag instructions overlay */
