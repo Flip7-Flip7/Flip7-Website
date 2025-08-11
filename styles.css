@@ -155,8 +155,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 85px; /* Match 1-2 card hand size */
-    height: 119px; /* Match 1-2 card hand size */
+    width: 170px; /* Much bigger for mobile visibility - 2x size */
+    height: 238px; /* Much bigger for mobile visibility - 2x size */
     z-index: 200;
     pointer-events: none;
     display: none; /* Hidden on desktop */
@@ -174,8 +174,8 @@ body {
         /* Use viewport center with fallbacks for mobile browsers */
         top: 50vh;
         left: 50vw;
-        margin-top: -59.5px; /* Half of height (119px/2) */
-        margin-left: -42.5px; /* Half of width (85px/2) */
+        margin-top: -119px; /* Half of height (238px/2) */
+        margin-left: -85px; /* Half of width (170px/2) */
         transform: none; /* Remove transform to use margins instead */
         /* Ensure proper positioning on mobile Safari */
         -webkit-transform: none;
