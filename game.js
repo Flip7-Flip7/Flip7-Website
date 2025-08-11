@@ -870,7 +870,7 @@ class Flip7Game {
             
             // Always continue with next turn after freeze (let nextTurn() handle round-end detection)
             this.updateDisplay();
-            this.nextTurn();
+            this.continueAfterSpecialAction();
         }
     }
     
@@ -1622,7 +1622,10 @@ class Flip7Game {
                     this.showMessage(`${currentPlayer.name}'s turn...`);
                     
                     // 1 second later, AI makes decision and draws card
-                    setTimeout(() => this.takeAITurn(currentPlayer), 1000);
+                    setTimeout(() => {
+                        console.log(`🤖 Taking AI turn for ${currentPlayer.name}`);
+                        this.takeAITurn(currentPlayer);
+                    }, 1000);
                 }, 500); // Brief delay after human card animation completes
             }
         }, 800); // Increased delay to let users register the turn highlight
