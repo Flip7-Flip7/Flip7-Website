@@ -1570,7 +1570,7 @@ class Flip7Game {
                 this.showMessage(`${currentPlayer.name}'s turn...`);
                 // Extra delay for mobile to ensure turn highlight is clearly visible before card flip
                 const isMobile = window.innerWidth <= 1024;
-                const aiDelay = isMobile ? 2000 : 1500; // Longer delay on mobile
+                const aiDelay = isMobile ? 3000 : 1500; // Even longer delay on mobile for clear turn visibility
                 setTimeout(() => this.takeAITurn(currentPlayer), aiDelay);
             }
         }, 800); // Increased delay to let users register the turn highlight
