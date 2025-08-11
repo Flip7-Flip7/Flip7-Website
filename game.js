@@ -1912,6 +1912,19 @@ class Flip7Game {
         // Add interactive classes for visual cues
         animatedCard.classList.add('interactive-card', 'drag-me');
         
+        // IMPORTANT: Make only Flip3/Freeze cards small for drag/drop
+        if (card.value === 'flip3' || card.value === 'freeze') {
+            animatedCard.classList.add('drag-card-small');
+            
+            // Expand animation area for better touch interaction with small cards
+            if (animationArea && window.innerWidth <= 1024) {
+                animationArea.style.width = '100px';
+                animationArea.style.height = '120px';
+                animationArea.style.marginLeft = '-50px'; // Half of 100px
+                animationArea.style.marginTop = '-60px';  // Half of 120px
+            }
+        }
+        
         // CRITICAL: Enable pointer events on mobile animation area for touch interaction
         if (animationArea) {
             animationArea.classList.add('has-interactive-card');
@@ -1990,10 +2003,21 @@ class Flip7Game {
         animatedCard.addEventListener('touchstart', (e) => {
             isDragging = true;
             const touch = e.touches[0];
-            startX = touch.clientX - currentX;
-            startY = touch.clientY - currentY;
+            
+            // Get the card's current position relative to the viewport
+            const rect = animatedCard.getBoundingClientRect();
+            startX = touch.clientX - rect.left;
+            startY = touch.clientY - rect.top;
+            
+            // Enable dragging positioning
+            animatedCard.classList.add('dragging');
             animatedCard.style.cursor = 'grabbing';
-            animatedCard.style.zIndex = '10001';
+            animatedCard.style.left = rect.left + 'px';
+            animatedCard.style.top = rect.top + 'px';
+            
+            currentX = 0;
+            currentY = 0;
+            
             e.preventDefault();
         });
         
@@ -2001,10 +2025,14 @@ class Flip7Game {
             if (!isDragging) return;
             
             const touch = e.touches[0];
-            currentX = touch.clientX - startX;
-            currentY = touch.clientY - startY;
+            const newLeft = touch.clientX - startX;
+            const newTop = touch.clientY - startY;
             
-            animatedCard.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.3)`;
+            // Use absolute positioning instead of transform for better mobile support
+            animatedCard.style.left = newLeft + 'px';
+            animatedCard.style.top = newTop + 'px';
+            animatedCard.style.transform = 'scale(1.3)'; // Just scale for visual feedback
+            
             e.preventDefault();
         });
         
@@ -2020,8 +2048,11 @@ class Flip7Game {
             if (dropTarget) {
                 this.handleCardDrop(dropTarget, card, playerId);
             } else {
-                // Snap back to center
-                animatedCard.style.transform = 'translate(0, 0) scale(1)';
+                // Snap back to center - reset positioning
+                animatedCard.classList.remove('dragging');
+                animatedCard.style.left = '';
+                animatedCard.style.top = '';
+                animatedCard.style.transform = 'scale(1)';
             }
             
             animatedCard.style.cursor = 'grab';
@@ -2102,6 +2133,14 @@ class Flip7Game {
         if (animationArea) {
             animationArea.innerHTML = '';
             animationArea.classList.remove('has-interactive-card'); // Restore pointer-events: none
+            
+            // Reset dynamic sizing for mobile
+            if (window.innerWidth <= 1024) {
+                animationArea.style.width = '';
+                animationArea.style.height = '';
+                animationArea.style.marginLeft = '';
+                animationArea.style.marginTop = '';
+            }
         }
     }
 

@@ -155,8 +155,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 42px; /* 1/4 size for better mobile UX */
-    height: 60px; /* 1/4 size for better mobile UX */
+    width: 170px; /* Restored original size for draw animations */
+    height: 238px; /* Restored original size for draw animations */
     z-index: 9999; /* Much higher z-index to ensure it's on top */
     pointer-events: none;
     display: none; /* Hidden on desktop */
@@ -204,8 +204,8 @@ body {
         /* Use viewport center with fallbacks for mobile browsers */
         top: 50vh;
         left: 50vw;
-        margin-top: -30px; /* Half of height (60px/2) */
-        margin-left: -21px; /* Half of width (42px/2) */
+        margin-top: -119px; /* Half of height (238px/2) */
+        margin-left: -85px; /* Half of width (170px/2) */
         transform: none; /* Remove transform to use margins instead */
         /* Ensure proper positioning on mobile Safari */
         -webkit-transform: none;
@@ -1124,8 +1124,8 @@ body {
 }
 
 .mobile-center-card-animation-area .animated-card {
-    width: 42px; /* 1/4 size for better mobile UX */
-    height: 60px; /* 1/4 size for better mobile UX */
+    width: 170px; /* Restored original size for draw animations */
+    height: 238px; /* Restored original size for draw animations */
     z-index: 200;
 }
 
@@ -1134,9 +1134,9 @@ body {
     .mobile-center-card-animation-area .animated-card,
     .mobile-center-card-animation-area .animated-card.card,
     .mobile-center-card-animation-area .card {
-        width: 42px !important; /* 1/4 size for better mobile UX */
-        height: 60px !important; /* 1/4 size for better mobile UX */
-        font-size: 0.5em !important; /* Scale down text proportionally */
+        width: 170px !important; /* Restored original size for draw animations */
+        height: 238px !important; /* Restored original size for draw animations */
+        font-size: 2em !important; /* Restored original font size */
         display: block !important; /* Ensure it's visible */
         position: relative !important; /* Ensure positioning works */
         background-size: contain !important; /* Scale background images properly */
@@ -1148,6 +1148,20 @@ body {
 .animated-card.interactive-card {
     cursor: grab !important;
     transition: all 0.3s ease;
+}
+
+/* Small size specifically for drag/drop cards (Flip3/Freeze only) */
+.animated-card.drag-card-small {
+    width: 42px !important;
+    height: 60px !important;
+    font-size: 0.5em !important;
+}
+
+/* Enable dragging with proper positioning */
+.animated-card.dragging {
+    position: absolute !important;
+    z-index: 10001 !important;
+    pointer-events: auto !important;
 }
 
 .animated-card.interactive-card.drag-me {
