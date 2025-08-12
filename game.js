@@ -3027,11 +3027,11 @@ class Flip7Game {
             // Find next active player
             let nextPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
             
-            // Skip frozen players to find the actual next active player
+            // Skip all inactive players (stayed, busted, frozen) to find the actual next active player
             let attempts = 0;
             while (attempts < this.players.length) {
                 const nextPlayer = this.players[nextPlayerIndex];
-                if (!nextPlayer.frozen) {
+                if (nextPlayer.status === 'active') {
                     break;
                 }
                 nextPlayerIndex = (nextPlayerIndex + 1) % this.players.length;
