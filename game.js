@@ -246,9 +246,21 @@ class Flip7Game {
                 const playerCards = desktopPlayer.querySelector('.player-cards');
                 const actionButtons = desktopPlayer.querySelector('.action-buttons');
                 
+                // Preserve any existing freeze indicators before clearing
+                const existingFreezeIndicator = mobilePlayer.querySelector('.frozen-indicator');
+                const hasFrozenClass = mobilePlayer.classList.contains('enhanced-frozen');
+                
                 // Clear mobile container
                 mobilePlayer.innerHTML = '';
                 mobilePlayer.className = desktopPlayer.className;
+                
+                // Restore freeze effects if they existed
+                if (existingFreezeIndicator || hasFrozenClass) {
+                    console.log(`🧊 Preserving freeze effects for ${playerMap.mobile}`);
+                    if (hasFrozenClass) {
+                        mobilePlayer.classList.add('enhanced-frozen');
+                    }
+                }
                 
                 // Apply dynamic height classes based on card content
                 this.applyMobilePlayerHeightClass(mobilePlayer, playerMap.desktop);
@@ -279,10 +291,24 @@ class Flip7Game {
                         const buttonsClone = actionButtons.cloneNode(true);
                         mobilePlayer.appendChild(buttonsClone);
                     }
+                    
+                    // Re-add freeze indicator if it existed
+                    if (existingFreezeIndicator) {
+                        console.log(`🧊 Re-adding freeze indicator to ${playerMap.mobile}`);
+                        mobilePlayer.style.position = 'relative';
+                        mobilePlayer.appendChild(existingFreezeIndicator.cloneNode(true));
+                    }
                 } else {
                     console.warn(`Missing elements for ${playerMap.desktop}: header=${!!playerHeader}, cards=${!!playerCards}`);
                     // Fallback: Just copy innerHTML if structure is missing
                     mobilePlayer.innerHTML = desktopPlayer.innerHTML;
+                    
+                    // Re-add freeze indicator to fallback content as well
+                    if (existingFreezeIndicator) {
+                        console.log(`🧊 Re-adding freeze indicator to ${playerMap.mobile} (fallback)`);
+                        mobilePlayer.style.position = 'relative';
+                        mobilePlayer.appendChild(existingFreezeIndicator.cloneNode(true));
+                    }
                 }
             }
         });
