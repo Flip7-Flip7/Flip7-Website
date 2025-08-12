@@ -1081,11 +1081,8 @@ class Flip7Game {
                     // Longer pause to let player clearly see the duplicate card that caused bust
                     setTimeout(() => {
                         this.addToLog(`${player.name} busted with duplicate ${card.value}!`);
-                        // Remove the temporary bust card before animating
-                        const bustCardIndex = player.numberCards.findIndex(c => c === bustCard);
-                        if (bustCardIndex !== -1) {
-                            player.numberCards.splice(bustCardIndex, 1);
-                        }
+                        // Keep both duplicate cards in hand until round ends
+                        // (They will be cleared in startNewRound())
                         this.animateBust(player);
                     }, 1500);
                     
@@ -1273,8 +1270,8 @@ class Flip7Game {
         let cardsFlipped = 0;
         let pendingActions = [];
         
-        // Show Flip3 sequence indicator (commented out - function doesn't exist)
-        // this.showFlip3SequenceIndicator(cardOwner, targetPlayer, cardsFlipped);
+        // Show Flip3 sequence indicator
+        this.showFlip3SequenceIndicator(cardOwner, targetPlayer, cardsFlipped);
         
         const processNextCard = () => {
             // Check if we need to process pending actions first
@@ -1290,7 +1287,7 @@ class Flip7Game {
             if (cardsFlipped >= 3 || targetPlayer.status !== 'active') {
                 // Flip Three sequence completed
                 this.isProcessingFlip3 = false;
-                // this.hideFlip3SequenceIndicator(); // Commented out - function doesn't exist
+                this.hideFlip3SequenceIndicator();
                 if (onComplete) {
                     setTimeout(onComplete, 1200); // Standardized timing
                 } else {
@@ -1306,6 +1303,9 @@ class Flip7Game {
                 const result = this.handleCardDraw(targetPlayer, nextCard, false, true);
                 this.updateDisplay();
                 cardsFlipped++;
+                
+                // Update Flip3 progress indicator
+                this.updateFlip3Progress(cardsFlipped);
                 
                 // Check if we got an action card to queue
                 if (result.actionToQueue) {
@@ -1704,6 +1704,42 @@ class Flip7Game {
         }
         
         player.roundScore = score;
+    }
+    
+    calculateCurrentRoundScore(player) {
+        // Real-time calculation for display purposes (includes modifier cards)
+        let score = 0;
+        
+        // Step 1: Sum all number cards
+        player.numberCards.forEach(card => {
+            score += card.value;
+        });
+        
+        // Step 2: Apply x2 multiplier to number card total (if present)
+        let hasX2 = false;
+        let bonusPoints = 0;
+        
+        player.modifierCards.forEach(card => {
+            if (card.value === 'x2') {
+                hasX2 = true;
+            } else {
+                bonusPoints += card.value;
+            }
+        });
+        
+        if (hasX2) {
+            score *= 2;
+        }
+        
+        // Step 3: Add other modifier bonuses (+2, +4, +6, +8, +10)
+        score += bonusPoints;
+        
+        // Step 4: Add Flip 7 bonus if applicable (after all other calculations)
+        if (player.uniqueNumbers.size === 7) {
+            score += 15;
+        }
+        
+        return score;
     }
 
     nextTurn() {
@@ -2761,7 +2797,9 @@ class Flip7Game {
         // Update scores in new header structure
         const roundScoreElement = container.querySelector('.player-header .round-value');
         if (roundScoreElement) {
-            roundScoreElement.textContent = player.roundScore;
+            // Use real-time calculated score that includes modifier cards
+            const currentRoundScore = this.calculateCurrentRoundScore(player);
+            roundScoreElement.textContent = currentRoundScore;
         }
         
         const totalScoreElement = container.querySelector('.player-header .score-value');
@@ -3241,6 +3279,103 @@ class Flip7Game {
         
         // Flip 7 celebration complete
     }
+    
+    // ==================== FLIP 3 PROGRESS INDICATOR METHODS ====================
+    
+    showFlip3SequenceIndicator(cardOwner, targetPlayer, currentCard) {
+        console.log(`🔄 Showing Flip3 indicator: ${cardOwner.name} → ${targetPlayer.name}`);
+        
+        const indicator = document.getElementById('flip3-progress-indicator');
+        const targetName = document.getElementById('flip3-target-name');
+        const currentCounter = document.getElementById('flip3-current');
+        
+        if (!indicator || !targetName || !currentCounter) {
+            console.warn('Flip3 indicator elements not found');
+            return;
+        }
+        
+        // Set target player name
+        targetName.textContent = targetPlayer.name;
+        
+        // Reset all dots
+        const dots = indicator.querySelectorAll('.flip3-dot');
+        dots.forEach(dot => {
+            dot.classList.remove('filled', 'active');
+        });
+        
+        // Set starting state (card 1)
+        currentCounter.textContent = '1';
+        if (dots[0]) dots[0].classList.add('active');
+        
+        // Show the indicator
+        indicator.style.display = 'block';
+    }
+    
+    updateFlip3Progress(currentCard) {
+        console.log(`🔄 Updating Flip3 progress: card ${currentCard}`);
+        
+        const indicator = document.getElementById('flip3-progress-indicator');
+        const currentCounter = document.getElementById('flip3-current');
+        
+        if (!indicator || !currentCounter) {
+            console.warn('Flip3 indicator elements not found for update');
+            return;
+        }
+        
+        const dots = indicator.querySelectorAll('.flip3-dot');
+        
+        // Update counter
+        currentCounter.textContent = currentCard.toString();
+        
+        // Update dots
+        dots.forEach((dot, index) => {
+            dot.classList.remove('active');
+            if (index < currentCard) {
+                dot.classList.add('filled');
+            }
+        });
+        
+        // Set active dot (next card to be drawn)
+        if (currentCard < 3 && dots[currentCard]) {
+            dots[currentCard].classList.add('active');
+        }
+        
+        // Special handling for completion
+        if (currentCard >= 3) {
+            // All cards drawn - brief "COMPLETE!" message
+            setTimeout(() => {
+                const title = indicator.querySelector('.flip3-title');
+                if (title) {
+                    const originalText = title.textContent;
+                    title.textContent = 'FLIP 3 COMPLETE!';
+                    title.style.color = '#4ade80'; // Green
+                    
+                    setTimeout(() => {
+                        title.textContent = originalText;
+                        title.style.color = '#ffd700'; // Back to gold
+                    }, 1000);
+                }
+            }, 500);
+        }
+    }
+    
+    hideFlip3SequenceIndicator() {
+        console.log('🔄 Hiding Flip3 indicator');
+        
+        const indicator = document.getElementById('flip3-progress-indicator');
+        if (!indicator) {
+            console.warn('Flip3 indicator not found for hiding');
+            return;
+        }
+        
+        // Fade out animation
+        indicator.style.animation = 'flip3Appear 0.3s ease-in reverse';
+        
+        setTimeout(() => {
+            indicator.style.display = 'none';
+            indicator.style.animation = ''; // Reset animation
+        }, 300);
+    }
 
     
 }
@@ -3276,6 +3411,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Fallback trigger: window.onload (in case DOMContentLoaded already fired)
+
+// ==================== INITIALIZATION ====================
+
 window.addEventListener('load', () => {
     setTimeout(() => {
         initializeGame('window-load-fallback');
