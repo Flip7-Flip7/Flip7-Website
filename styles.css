@@ -2442,6 +2442,7 @@ body {
         height: calc(100vh - 20px) !important;
         overflow: hidden !important;
         padding: 0 6px 6px 6px !important;
+        padding-bottom: env(safe-area-inset-bottom, 6px) !important; /* iOS safe area */
         gap: 0 !important;
         background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, transparent 100%) !important;
     }
@@ -2528,6 +2529,7 @@ body {
         justify-content: space-around !important;
         align-items: center !important;
         padding: 4px 16px !important;
+        padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px)) !important; /* iOS safe area */
         width: 100% !important;
         height: 45px !important;
         background: transparent !important;
@@ -2536,7 +2538,7 @@ body {
         box-shadow: none !important;
         flex-shrink: 0 !important;
         margin-top: 8px !important; /* Reduced gap - moved closer to AI Bot 3 */
-        margin-bottom: 6px !important;
+        margin-bottom: 50px !important; /* Space for Safari URL bar */
         backdrop-filter: none !important;
         position: relative !important;
         z-index: 10 !important;
