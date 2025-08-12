@@ -13,6 +13,7 @@ class Flip7Game {
         this.isInitialDealing = false;
         this.currentDealIndex = 0; // Track current dealing position
         this.dealNextCardFunction = null; // Store deal function for continuation
+        this.pendingInitialDealContinuation = null; // Store continuation for human action cards
         this.actionQueue = [];
         this.isProcessingFlip3 = false;
         
@@ -601,7 +602,10 @@ class Flip7Game {
                 
                 // If it was not an action card, continue immediately
                 if (!wasActionCard) {
+                    console.log('  📦 Not an action card, continuing dealing immediately');
                     continueDealing();
+                } else {
+                    console.log('  ⏸️ Action card detected! Pausing dealing sequence for player action');
                 }
                 // If it was an action card, the action will call continueDealing when complete
             }, 1800);
@@ -630,12 +634,13 @@ class Flip7Game {
                 this.addToLog(`${player.name} drew ${card.display} during initial deal! Must use immediately.`);
                 
                 if (player.isHuman) {
-                    // For human players during initial deal, trigger the card animation system
-                    // which will show the drag & drop interface
-                    setTimeout(() => {
-                        // The displayCard call in dealInitialCards will handle the animation
-                        // and transition to interactive mode automatically
-                    }, 100);
+                    // For human players during initial deal, store the continuation callback
+                    // The drag & drop system will call continueAfterSpecialAction when done
+                    console.log('  💾 Storing initial deal continuation for human action card');
+                    this.pendingInitialDealContinuation = onActionComplete;
+                    
+                    // The displayCard call in dealInitialCards will handle the animation
+                    // and transition to interactive mode automatically
                 } else {
                     // For AI players, use the modal system
                     this.showSpecialActionModal(card, player);
@@ -927,11 +932,21 @@ class Flip7Game {
         console.log('  currentDealIndex:', this.currentDealIndex);
         console.log('  players.length:', this.players.length);
         console.log('  dealNextCardFunction exists:', !!this.dealNextCardFunction);
+        console.log('  pendingInitialDealContinuation exists:', !!this.pendingInitialDealContinuation);
         
         // Continue the game flow after special action is completed
         // This handles resuming turns or continuing initial deal
         if (this.isInitialDealing) {
             console.log('  📋 Continuing initial deal sequence...');
+            
+            // Check if we have a stored continuation callback (for human action cards)
+            if (this.pendingInitialDealContinuation) {
+                console.log('  ✅ Using stored continuation callback for human action card');
+                const continuation = this.pendingInitialDealContinuation;
+                this.pendingInitialDealContinuation = null; // Clear it
+                continuation(); // Call the stored continuation
+                return;
+            }
             
             // Continue initial dealing from where it left off
             // Simulate what continueDealing() would do: increment and then call dealNextCard
@@ -2195,11 +2210,16 @@ class Flip7Game {
     }
 
     handleCardDrop(dropTarget, card, playerId) {
+        console.log('🎯 Human dropped card:', card.value, 'on target:', dropTarget.id);
+        
         // Find which player was targeted
         const targetPlayerId = dropTarget.id.replace('mobile-', '');
         const targetPlayer = this.players.find(p => p.id === targetPlayerId);
         
         if (!targetPlayer) return;
+        
+        console.log('  Target player:', targetPlayer.name);
+        console.log('  Is initial dealing:', this.isInitialDealing);
         
         // Clean up drag interface
         this.cleanupDragInterface();
