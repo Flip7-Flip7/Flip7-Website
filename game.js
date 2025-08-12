@@ -476,12 +476,17 @@ class Flip7Game {
     }
 
     dealInitialCards() {
+        console.log('🎰 Starting initial deal...');
         
         // Always start dealing with human player (index 0)
         this.currentDealIndex = 0;
+        console.log('  Initial currentDealIndex set to:', this.currentDealIndex);
         
         // Store the deal function for continuation after special actions
         const dealNextCard = () => {
+            console.log('🎴 dealNextCard called - currentDealIndex:', this.currentDealIndex);
+            console.log('  Players length:', this.players.length);
+            
             if (this.currentDealIndex >= this.players.length) {
                 // All cards dealt, start the game with proper turn highlighting
                 this.isInitialDealing = false;
@@ -604,6 +609,7 @@ class Flip7Game {
         
         // Store the function for continuation after special actions
         this.dealNextCardFunction = dealNextCard;
+        console.log('  💾 Stored dealNextCardFunction for continuation');
         
         dealNextCard();
     }
@@ -620,6 +626,7 @@ class Flip7Game {
         } else if (card.type === 'action') {
             // Special handling for Flip3 and Freeze - show correct interface based on player type
             if (card.value === 'flip3' || card.value === 'freeze') {
+                console.log('🃏 Special action card during initial deal:', card.value, 'for player:', player.name);
                 this.addToLog(`${player.name} drew ${card.display} during initial deal! Must use immediately.`);
                 
                 if (player.isHuman) {
@@ -915,19 +922,33 @@ class Flip7Game {
     }
     
     continueAfterSpecialAction() {
+        console.log('🔄 continueAfterSpecialAction called');
+        console.log('  isInitialDealing:', this.isInitialDealing);
+        console.log('  currentDealIndex:', this.currentDealIndex);
+        console.log('  players.length:', this.players.length);
+        console.log('  dealNextCardFunction exists:', !!this.dealNextCardFunction);
+        
         // Continue the game flow after special action is completed
         // This handles resuming turns or continuing initial deal
         if (this.isInitialDealing) {
+            console.log('  📋 Continuing initial deal sequence...');
+            
             // Continue initial dealing from where it left off
+            // Simulate what continueDealing() would do: increment and then call dealNextCard
             setTimeout(() => {
-                this.currentDealIndex++; // Move to next player
-                if (this.currentDealIndex < this.players.length && this.gameActive && this.dealNextCardFunction) {
-                    // Continue dealing to remaining players
-                    this.dealNextCardFunction();
-                } else {
-                    // All players dealt, finish initial dealing
+                console.log('  ⏭️ Before increment - currentDealIndex:', this.currentDealIndex);
+                this.currentDealIndex++; // Move to next player (same as continueDealing does)
+                console.log('  ⏭️ After increment - currentDealIndex:', this.currentDealIndex);
+                
+                // Check if we need to continue dealing or if all players are dealt
+                if (this.currentDealIndex < this.players.length && this.gameActive) {
+                    console.log('  ✅ Continuing dealing to player', this.currentDealIndex, '(' + this.players[this.currentDealIndex].name + ')');
+                    // Call dealNextCard with the same delay as continueDealing uses
+                    setTimeout(() => this.dealNextCardFunction(), 1200);
+                } else if (this.currentDealIndex >= this.players.length && this.gameActive) {
+                    console.log('  🏁 Initial dealing complete - transitioning to normal gameplay');
+                    // All players dealt, finish initial dealing (same as continueDealing does)
                     this.isInitialDealing = false;
-                    this.dealNextCardFunction = null; // Clean up
                     
                     // Start normal gameplay
                     setTimeout(() => {
@@ -956,6 +977,7 @@ class Flip7Game {
                 }
             }, 1000);
         } else {
+            console.log('  🎯 Normal gameplay - calling nextTurn()');
             // Move to next turn after special action completes
             this.nextTurn();
         }
