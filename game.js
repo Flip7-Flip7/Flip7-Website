@@ -1944,8 +1944,8 @@ class Flip7Game {
             return;
         }
         
-        // Define reveal duration first
-        const revealDuration = isMobile ? 800 : 1000; // Mobile animation is shorter
+        // Define reveal duration for simple flip
+        const revealDuration = 600; // Quick simple flip
         
         // Show backdrop for focus (mobile only)
         if (isMobile) {
@@ -1956,50 +1956,36 @@ class Flip7Game {
                 // Hide backdrop after animation completes
                 setTimeout(() => {
                     backdrop.classList.remove('show');
-                }, revealDuration + 800); // Reveal + slide duration
+                }, revealDuration + 100); // Just after flip completes
             }
         }
         
-        // Declare animatedCard outside the if/else blocks
-        let animatedCard;
+        // Create simple flip animation for both mobile and desktop
+        const animatedCard = document.createElement('div');
+        animatedCard.classList.add('animated-card');
         
-        // Use enhanced animation for mobile
-        if (isMobile) {
-            // Simple fade animation for mobile (now in center screen)
-            animatedCard = this.createCardElement(card);
-            animatedCard.classList.add('animated-card', 'mobile-reveal');
-            
-            // Clear any existing animation
-            animationArea.innerHTML = '';
-            animationArea.appendChild(animatedCard);
-        } else {
-            // Desktop: Use enhanced two-element flip animation
-            animatedCard = document.createElement('div');
-            animatedCard.classList.add('animated-card');
-            
-            // Create card back element
-            const cardBack = document.createElement('div');
-            cardBack.classList.add('card-back');
-            
-            // Create card front element with actual card content
-            const cardFront = this.createCardElement(card);
-            cardFront.classList.add('card-front');
-            
-            // Assemble the animated card
-            animatedCard.appendChild(cardBack);
-            animatedCard.appendChild(cardFront);
-            
-            // Clear any existing animation
-            animationArea.innerHTML = '';
-            animationArea.appendChild(animatedCard);
-            
-            // Start flip reveal animation
-            animatedCard.classList.add('flip-reveal');
-        }
+        // Create card back element
+        const cardBack = document.createElement('div');
+        cardBack.classList.add('card-back');
         
-        // After reveal, check if we should auto-slide to player's hand
+        // Create card front element with actual card content
+        const cardFront = this.createCardElement(card);
+        cardFront.classList.add('card-front');
+        
+        // Assemble the animated card
+        animatedCard.appendChild(cardBack);
+        animatedCard.appendChild(cardFront);
+        
+        // Clear any existing animation
+        animationArea.innerHTML = '';
+        animationArea.appendChild(animatedCard);
+        
+        // Start simple flip animation
+        animatedCard.classList.add('simple-flip');
+        
+        // After flip completes, handle the card
         setTimeout(() => {
-            // Check if this is a special action card that should show modal instead of auto-slide
+            // Check if this is a special action card that should show modal instead
             // IMPORTANT: Only show interactive modal for human players (playerId === 'player')
             const isHumanPlayer = playerId === 'player';
             const shouldShowModal = card.type === 'action' && (card.value === 'freeze' || card.value === 'flip3') && isHumanPlayer;
@@ -2010,69 +1996,14 @@ class Flip7Game {
                 return;
             }
             
-            // For regular cards, proceed with auto-slide animation
-            try {
-                const animRect = animatedCard.getBoundingClientRect();
-                
-                // DEBUG: Log animation details
-                console.log(`🎯 Card animation for player: ${playerId}`);
-                
-                // Use entire player area for more accurate slide targeting
-                const playerArea = this.getPlayerAreaElement(playerId);
-                console.log(`📍 Player area element found:`, playerArea);
-                
-                const targetRect = playerArea ? playerArea.getBoundingClientRect() : targetElement.getBoundingClientRect();
-                console.log(`📐 Target rect:`, {
-                    element: playerArea ? 'playerArea' : 'targetElement fallback',
-                    left: targetRect.left,
-                    top: targetRect.top,
-                    width: targetRect.width,
-                    height: targetRect.height
-                });
-                
-                // Calculate slide to center of target player area (more visually appealing)
-                const targetCenterX = targetRect.left + (targetRect.width / 2);
-                const targetCenterY = targetRect.top + (targetRect.height / 2);
-                const animCenterX = animRect.left + (animRect.width / 2);
-                const animCenterY = animRect.top + (animRect.height / 2);
-                
-                const slideX = targetCenterX - animCenterX;
-                const slideY = targetCenterY - animCenterY;
-                
-                console.log(`🎨 Slide calculation:`, {
-                    from: { x: animCenterX, y: animCenterY },
-                    to: { x: targetCenterX, y: targetCenterY },
-                    slide: { x: slideX, y: slideY }
-                });
-                
-                animatedCard.style.setProperty('--slide-x', `${slideX}px`);
-                animatedCard.style.setProperty('--slide-y', `${slideY}px`);
-                
-                // Add brief highlight to target player area during slide
-                if (playerArea) {
-                    playerArea.classList.add('receiving-card');
-                    setTimeout(() => playerArea.classList.remove('receiving-card'), 800);
-                }
-                
-                // Remove the reveal animation class (both desktop and mobile)
-                animatedCard.classList.remove('flip-reveal', 'mobile-reveal');
-                animatedCard.classList.add('slide-to-hand');
-                
-                // Add the actual card to the player's hand after enhanced slide animation
-                setTimeout(() => {
-                    this.addCardToPlayerHand(card, playerId);
-                    if (animationArea && animationArea.parentNode) {
-                        animationArea.innerHTML = '';
-                    }
-                }, 600); // Updated to match enhanced slide animation duration
-            } catch (error) {
-                console.error('Animation calculation failed:', error);
-                this.addCardToPlayerHand(card, playerId);
-                if (animationArea && animationArea.parentNode) {
-                    animationArea.innerHTML = '';
-                }
+            // For regular cards, just add to hand and remove animation
+            this.addCardToPlayerHand(card, playerId);
+            
+            // Clear animation area
+            if (animationArea && animationArea.parentNode) {
+                animationArea.innerHTML = '';
             }
-        }, revealDuration + 150); // Add 150ms delay so animation is visible before sliding
+        }, revealDuration); // Wait for flip to complete
     }
 
     transitionToInteractiveCard(animatedCard, animationArea, card, playerId) {
