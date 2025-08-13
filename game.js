@@ -922,14 +922,23 @@ class Flip7Game {
     executeSpecialActionEffect(card, drawnByPlayer, targetPlayer) {
         if (card.value === 'flip3') {
             this.executeFlipThree(drawnByPlayer, targetPlayer, () => {
-                // After Flip3 completes, discard the card and continue game flow
+                // After Flip3 completes, discard the card
                 this.discardPile.push({
                     type: 'action',
                     value: card.value,
                     display: 'Flip Three'
                 });
                 this.updateDisplay();
-                this.continueAfterSpecialAction();
+                
+                // Check if there are pending Flip 3s to process
+                if (this.pendingFlip3Queue.length > 0) {
+                    // Process next Flip 3 in queue
+                    this.processPendingFlip3Queue();
+                } else if (!this.isProcessingFlip3) {
+                    // All Flip 3s complete - safe to continue turn
+                    this.continueAfterSpecialAction();
+                }
+                // If still processing a Flip 3, don't continue yet
             });
         } else if (card.value === 'freeze') {
             // Freeze card makes player bank their points (same as staying)
@@ -1311,14 +1320,18 @@ class Flip7Game {
                 this.flip3TargetPlayer = null;
                 this.flip3DrawnCards = [];
                 
-                // Process any pending Flip 3 cards
+                // Check what to do after Flip 3 completes
                 const checkPendingFlip3 = () => {
-                    if (this.pendingFlip3Queue.length > 0) {
-                        this.processPendingFlip3Queue();
-                    } else if (onComplete) {
+                    if (onComplete) {
+                        // Let the completion callback handle next steps
                         onComplete();
                     } else {
-                        this.checkForRoundEnd();
+                        // No callback provided - check for pending Flip 3s
+                        if (this.pendingFlip3Queue.length > 0) {
+                            this.processPendingFlip3Queue();
+                        } else {
+                            this.checkForRoundEnd();
+                        }
                     }
                 };
                 
@@ -1456,14 +1469,18 @@ class Flip7Game {
                     setTimeout(() => {
                         this.hideFlip3SequenceIndicator();
                         
-                        // Continue to next active player immediately
+                        // Check what to do after bust
                         setTimeout(() => {
-                            if (this.pendingFlip3Queue.length > 0) {
-                                this.processPendingFlip3Queue();
-                            } else if (onComplete) {
+                            if (onComplete) {
+                                // Let the completion callback handle next steps
                                 onComplete();
                             } else {
-                                this.nextTurn(); // Go directly to next turn
+                                // No callback - check for pending Flip 3s or continue turn
+                                if (this.pendingFlip3Queue.length > 0) {
+                                    this.processPendingFlip3Queue();
+                                } else {
+                                    this.nextTurn(); // Go directly to next turn
+                                }
                             }
                         }, 300); // Brief pause after hiding popup
                     }, 1000); // Show bust message for 1 second
@@ -1517,12 +1534,17 @@ class Flip7Game {
                             this.flip3TargetPlayer = null;
                             this.flip3DrawnCards = [];
                             
-                            // Process any pending Flip 3 cards after celebration
+                            // Check what to do after Flip 7
                             const checkPendingFlip3 = () => {
-                                if (this.pendingFlip3Queue.length > 0) {
-                                    this.processPendingFlip3Queue();
-                                } else if (onComplete) {
+                                if (onComplete) {
+                                    // Let the completion callback handle next steps
                                     onComplete();
+                                } else {
+                                    // No callback - check for pending Flip 3s
+                                    if (this.pendingFlip3Queue.length > 0) {
+                                        this.processPendingFlip3Queue();
+                                    }
+                                    // Round will end automatically due to Flip 7
                                 }
                             };
                             
@@ -1559,7 +1581,18 @@ class Flip7Game {
                 console.warn('Pending Flip 3 without target - this should not happen');
                 this.processPendingFlip3Queue();
             }
+        } else {
+            // No more Flip 3s in queue - check if we should continue turn
+            if (!this.isProcessingFlip3) {
+                // All Flip 3s complete - safe to continue
+                this.continueAfterSpecialAction();
+            }
         }
+    }
+    
+    isProcessingAnyFlip3() {
+        // Check if currently processing a Flip 3 or have any queued
+        return this.isProcessingFlip3 || this.pendingFlip3Queue.length > 0;
     }
 
     activateSecondChance(player, duplicateCard) {
@@ -1963,6 +1996,12 @@ class Flip7Game {
     }
 
     nextTurn() {
+        // Don't advance turn if still processing Flip 3
+        if (this.isProcessingAnyFlip3()) {
+            console.log('⏸️ Flip 3 in progress - delaying next turn');
+            return;
+        }
+        
         // Check if someone got Flip 7
         if (this.players.some(p => p.status === 'flip7')) {
             this.endRound();
