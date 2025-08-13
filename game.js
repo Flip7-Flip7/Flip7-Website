@@ -16,6 +16,7 @@ class Flip7Game {
         this.pendingInitialDealContinuation = null; // Store continuation for human action cards
         this.actionQueue = [];
         this.isProcessingFlip3 = false;
+        this.pendingFlip3Queue = []; // Queue for nested Flip 3 cards
         
         // Flag to prevent mobile sync during bust animations
         this.isBustAnimating = false;
@@ -1269,6 +1270,7 @@ class Flip7Game {
         this.isProcessingFlip3 = true;
         let cardsFlipped = 0;
         let pendingActions = [];
+        const drawnCards = [];
         
         // Show Flip3 sequence indicator
         this.showFlip3SequenceIndicator(cardOwner, targetPlayer, cardsFlipped);
@@ -1285,61 +1287,279 @@ class Flip7Game {
             }
             
             if (cardsFlipped >= 3 || targetPlayer.status !== 'active') {
-                // Flip Three sequence completed
-                this.isProcessingFlip3 = false;
-                this.hideFlip3SequenceIndicator();
-                if (onComplete) {
-                    setTimeout(onComplete, 1200); // Standardized timing
-                } else {
-                    this.checkForRoundEnd();
+                // All cards drawn successfully - now add them to the player's hand
+                if (drawnCards.length > 0 && targetPlayer.status === 'active') {
+                    drawnCards.forEach(card => {
+                        if (card.type === 'number') {
+                            targetPlayer.numberCards.push(card);
+                            targetPlayer.uniqueNumbers.add(card.value);
+                            targetPlayer.numberCards.sort((a, b) => a.value - b.value);
+                        } else if (card.type === 'modifier') {
+                            targetPlayer.modifierCards.push(card);
+                        } else if (card.type === 'action') {
+                            // Action cards were already queued
+                        }
+                    });
+                    
+                    // Animate success
+                    this.animateFlip3Success();
+                    this.updateDisplay();
                 }
+                
+                // Flip Three sequence completed - cleanup
+                this.isProcessingFlip3 = false;
+                this.flip3TargetPlayer = null;
+                this.flip3DrawnCards = [];
+                
+                // Process any pending Flip 3 cards
+                const checkPendingFlip3 = () => {
+                    if (this.pendingFlip3Queue.length > 0) {
+                        this.processPendingFlip3Queue();
+                    } else if (onComplete) {
+                        onComplete();
+                    } else {
+                        this.checkForRoundEnd();
+                    }
+                };
+                
+                setTimeout(checkPendingFlip3, 2000); // Wait for animations
                 return;
             }
             
             const nextCard = this.drawCard();
-            this.displayCard(nextCard, targetPlayer.id);
+            cardsFlipped++;
             
+            // Preview the card in the popup
+            const slotNumber = cardsFlipped;
+            let isDuplicate = nextCard.type === 'number' && targetPlayer.uniqueNumbers.has(nextCard.value);
+            const hasSecondChance = targetPlayer.hasSecondChance && isDuplicate;
+            
+            // Store all cards temporarily (we'll handle them based on outcome)
+            this.flip3DrawnCards.push(nextCard);
+            
+            // Show card preview with animation
             setTimeout(() => {
-                const result = this.handleCardDraw(targetPlayer, nextCard, false, true);
-                this.updateDisplay();
-                cardsFlipped++;
+                this.previewFlip3Card(nextCard, slotNumber);
                 
                 // Update Flip3 progress indicator
                 this.updateFlip3Progress(cardsFlipped);
                 
-                // Check if we got an action card to queue
-                if (result.actionToQueue) {
-                    pendingActions.push(result.actionToQueue);
+                // Check for action cards that need immediate use
+                if (nextCard.type === 'action' && (nextCard.value === 'flip3' || nextCard.value === 'freeze')) {
+                    // Action card drawn during Flip 3 - must use immediately
+                    this.addToLog(`${targetPlayer.name} drew ${nextCard.display} during Flip 3 and must use it immediately!`);
+                    
+                    // Special handling for nested Flip 3
+                    if (nextCard.value === 'flip3') {
+                        // Queue this Flip 3 to execute after current one completes
+                        this.pendingFlip3Queue.push({
+                            cardOwner: targetPlayer,
+                            card: nextCard
+                        });
+                        
+                        // For nested Flip 3, just select target now but execute later
+                        if (targetPlayer.isHuman) {
+                            // Show target selection for human
+                            this.hideFlip3SequenceIndicator();
+                            const resumeFlip3 = () => {
+                                // Target selected, continue current Flip 3
+                                this.showFlip3SequenceIndicator(cardOwner, targetPlayer, cardsFlipped);
+                                setTimeout(processNextCard, 1000);
+                            };
+                            this.showSpecialActionModal(nextCard, targetPlayer, null, resumeFlip3);
+                        } else {
+                            // AI selects target
+                            const actionTarget = this.determineAITarget(targetPlayer, nextCard);
+                            this.pendingFlip3Queue[this.pendingFlip3Queue.length - 1].target = actionTarget;
+                            this.addToLog(`${targetPlayer.name} will use Flip 3 on ${actionTarget.name} after current Flip 3 completes!`);
+                            
+                            // Continue current Flip 3
+                            setTimeout(processNextCard, 1000);
+                        }
+                        return;
+                    }
+                    
+                    // For Freeze cards, execute immediately
+                    const resumeFlip3 = () => {
+                        // Continue with next card after action completes
+                        setTimeout(processNextCard, 1000);
+                    };
+                    
+                    if (targetPlayer.isHuman) {
+                        // Show drag/drop interface for human
+                        this.hideFlip3SequenceIndicator();
+                        this.showSpecialActionModal(nextCard, targetPlayer, null, resumeFlip3);
+                    } else {
+                        // AI uses card immediately
+                        this.hideFlip3SequenceIndicator();
+                        setTimeout(() => {
+                            const actionTarget = this.determineAITarget(targetPlayer, nextCard);
+                            this.executeSpecialAction(nextCard, targetPlayer, actionTarget);
+                            // Re-show Flip 3 indicator after action
+                            setTimeout(() => {
+                                this.showFlip3SequenceIndicator(cardOwner, targetPlayer, cardsFlipped);
+                                resumeFlip3();
+                            }, 1000);
+                        }, 500);
+                    }
+                    return; // Exit early, will resume after action
                 }
                 
-                if (result.busted || targetPlayer.status !== 'active') {
-                    // Player busted or got Flip 7, end the sequence
-                    this.isProcessingFlip3 = false;
-                    if (onComplete) {
-                        setTimeout(onComplete, 1200); // Standardized timing
+                // Handle duplicates with Second Chance
+                if (isDuplicate && hasSecondChance) {
+                    // Transfer Second Chance to random other player
+                    const otherPlayers = this.players.filter(p => p.id !== targetPlayer.id && p.status === 'active');
+                    if (otherPlayers.length > 0) {
+                        const recipient = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+                        targetPlayer.hasSecondChance = false;
+                        targetPlayer.actionCards = targetPlayer.actionCards.filter(c => c.value !== 'second_chance');
+                        recipient.hasSecondChance = true;
+                        recipient.actionCards.push({ type: 'action', value: 'second_chance', display: 'Second Chance' });
+                        
+                        this.addToLog(`${targetPlayer.name}'s Second Chance transferred to ${recipient.name}!`);
+                        
+                        // Show Second Chance animation
+                        this.animateSecondChanceActivation(targetPlayer, nextCard);
+                        
+                        // Add the card as normal (not duplicate anymore)
+                        drawnCards.push(nextCard);
+                        
+                        // Continue to next card
+                        setTimeout(processNextCard, 2000);
                     } else {
-                        this.checkForRoundEnd();
+                        // No other players, treat as normal duplicate
+                        isDuplicate = true;
                     }
-                } else if (cardsFlipped < 3) {
-                    // Continue flipping cards - wait for full animation cycle
-                    setTimeout(processNextCard, 2000);
+                    return;
+                }
+                
+                if (isDuplicate && !hasSecondChance) {
+                    // Handle bust
+                    targetPlayer.numberCards.push(nextCard);
+                    targetPlayer.numberCards.sort((a, b) => a.value - b.value);
+                    targetPlayer.status = 'busted';
+                    this.addToLog(`${targetPlayer.name} busted with duplicate ${nextCard.value} during Flip Three!`);
+                    this.calculateScore(targetPlayer);
+                    
+                    // Show bust animation in popup briefly
+                    this.handleFlip3Bust(nextCard, cardsFlipped);
+                    
+                    // Update display to show bust
+                    this.updateDisplay();
+                    
+                    // End Flip3 sequence and cleanup immediately
+                    this.isProcessingFlip3 = false;
+                    this.flip3TargetPlayer = null;
+                    this.flip3DrawnCards = [];
+                    
+                    // Hide popup immediately and continue to next turn
+                    setTimeout(() => {
+                        this.hideFlip3SequenceIndicator();
+                        
+                        // Continue to next active player immediately
+                        setTimeout(() => {
+                            if (this.pendingFlip3Queue.length > 0) {
+                                this.processPendingFlip3Queue();
+                            } else if (onComplete) {
+                                onComplete();
+                            } else {
+                                this.nextTurn(); // Go directly to next turn
+                            }
+                        }, 300); // Brief pause after hiding popup
+                    }, 1000); // Show bust message for 1 second
                 } else {
-                    // All 3 cards flipped successfully, now process any queued actions
-                    if (pendingActions.length > 0) {
-                        setTimeout(processNextCard, 1200); // Standardized timing
-                    } else {
-                        this.isProcessingFlip3 = false;
-                        if (onComplete) {
-                            setTimeout(onComplete, 1200); // Standardized timing
-                        } else {
-                            this.checkForRoundEnd();
+                    // Card is not a duplicate - add to drawn cards
+                    drawnCards.push(nextCard);
+                    
+                    // Check if this card completes Flip 7
+                    if (nextCard.type === 'number') {
+                        const tempUniqueNumbers = new Set(targetPlayer.uniqueNumbers);
+                        tempUniqueNumbers.add(nextCard.value);
+                        
+                        if (tempUniqueNumbers.size === 7) {
+                            // Flip 7 achieved during Flip 3!
+                            this.addToLog(`${targetPlayer.name} achieved Flip 7 during Flip 3!`);
+                            
+                            // Add all drawn cards so far
+                            drawnCards.forEach(card => {
+                                if (card.type === 'number') {
+                                    targetPlayer.numberCards.push(card);
+                                    targetPlayer.uniqueNumbers.add(card.value);
+                                    targetPlayer.numberCards.sort((a, b) => a.value - b.value);
+                                } else if (card.type === 'modifier') {
+                                    targetPlayer.modifierCards.push(card);
+                                } else if (card.type === 'action' && card.value === 'second_chance') {
+                                    if (!targetPlayer.hasSecondChance) {
+                                        targetPlayer.hasSecondChance = true;
+                                        targetPlayer.actionCards.push(card);
+                                    }
+                                }
+                            });
+                            
+                            targetPlayer.status = 'flip7';
+                            this.updateDisplay();
+                            
+                            // Hide Flip 3 indicator
+                            this.hideFlip3SequenceIndicator();
+                            
+                            // Show Flip 7 celebration
+                            if (targetPlayer.isHuman) {
+                                this.animateFlip7Celebration(targetPlayer);
+                            } else {
+                                // For AI, just end the round
+                                setTimeout(() => {
+                                    this.endRound();
+                                }, 1000);
+                            }
+                            
+                            // End Flip 3 sequence and cleanup
+                            this.isProcessingFlip3 = false;
+                            this.flip3TargetPlayer = null;
+                            this.flip3DrawnCards = [];
+                            
+                            // Process any pending Flip 3 cards after celebration
+                            const checkPendingFlip3 = () => {
+                                if (this.pendingFlip3Queue.length > 0) {
+                                    this.processPendingFlip3Queue();
+                                } else if (onComplete) {
+                                    onComplete();
+                                }
+                            };
+                            
+                            // Wait longer for Flip 7 celebration
+                            setTimeout(checkPendingFlip3, 5000);
+                            return;
                         }
                     }
+                    
+                    // Continue to next card after showing preview
+                    setTimeout(processNextCard, 1500);
                 }
-            }, 1800);
+            }, 600);
         };
         
         setTimeout(processNextCard, 500);
+    }
+    
+    processPendingFlip3Queue() {
+        // Check if there are pending Flip 3 cards to execute
+        if (this.pendingFlip3Queue.length > 0) {
+            const pendingFlip3 = this.pendingFlip3Queue.shift();
+            this.addToLog(`Processing queued Flip 3 from ${pendingFlip3.cardOwner.name}`);
+            
+            // Execute the queued Flip 3
+            if (pendingFlip3.target) {
+                // Target already selected (AI)
+                this.executeFlipThree(pendingFlip3.cardOwner, pendingFlip3.target, () => {
+                    // After this Flip 3 completes, check for more in queue
+                    this.processPendingFlip3Queue();
+                });
+            } else {
+                // Need to select target (human) - this shouldn't happen as we handle it earlier
+                console.warn('Pending Flip 3 without target - this should not happen');
+                this.processPendingFlip3Queue();
+            }
+        }
     }
 
     activateSecondChance(player, duplicateCard) {
@@ -2288,6 +2508,17 @@ class Flip7Game {
         
         // Execute the card effect (human players use direct effect execution)
         const humanPlayer = this.players.find(p => p.isHuman);
+        
+        // Check if this is a nested Flip 3 during another Flip 3
+        if (card.value === 'flip3' && this.isProcessingFlip3) {
+            // Store the target for later execution
+            if (this.pendingFlip3Queue.length > 0) {
+                this.pendingFlip3Queue[this.pendingFlip3Queue.length - 1].target = targetPlayer;
+            }
+            this.addToLog(`Flip 3 will be executed on ${targetPlayer.name} after current Flip 3 completes!`);
+            return; // Don't execute now, just store target
+        }
+        
         if (card.value === 'freeze') {
             this.executeSpecialActionEffect(card, humanPlayer, targetPlayer);
         } else if (card.value === 'flip3') {
@@ -2955,6 +3186,46 @@ class Flip7Game {
             if (onComplete) onComplete();
         }
     }
+    
+    determineAITarget(player, card) {
+        // Reusable AI targeting logic
+        let targetPlayer = null;
+        
+        if (card.value === 'freeze') {
+            // Target the point leader (excluding self)
+            const maxScore = Math.max(...this.players.filter(p => 
+                p.status === 'active' && p.id !== player.id
+            ).map(p => p.roundScore));
+            const pointLeaders = this.players.filter(p => 
+                p.status === 'active' && p.id !== player.id && p.roundScore === maxScore
+            );
+            
+            if (pointLeaders.length > 0) {
+                targetPlayer = pointLeaders[Math.floor(Math.random() * pointLeaders.length)];
+            } else {
+                // No other active players, target self
+                targetPlayer = player;
+            }
+        } else if (card.value === 'flip3') {
+            // Bot AI for Flip3: Target self if < 3 cards, otherwise random other player
+            const botCardCount = player.numberCards.length;
+            if (botCardCount < 3) {
+                targetPlayer = player; // Target self
+            } else {
+                // Target random other active player
+                const otherActivePlayers = this.players.filter(p => 
+                    p.status === 'active' && p.id !== player.id
+                );
+                if (otherActivePlayers.length > 0) {
+                    targetPlayer = otherActivePlayers[Math.floor(Math.random() * otherActivePlayers.length)];
+                } else {
+                    targetPlayer = player; // Fallback to self
+                }
+            }
+        }
+        
+        return targetPlayer;
+    }
 
     updateScoreboard() {
         // Update both desktop and mobile scoreboards
@@ -3288,6 +3559,7 @@ class Flip7Game {
         const indicator = document.getElementById('flip3-progress-indicator');
         const targetName = document.getElementById('flip3-target-name');
         const currentCounter = document.getElementById('flip3-current');
+        const statusDiv = document.getElementById('flip3-status');
         
         if (!indicator || !targetName || !currentCounter) {
             console.warn('Flip3 indicator elements not found');
@@ -3303,11 +3575,31 @@ class Flip7Game {
             dot.classList.remove('filled', 'active');
         });
         
+        // Reset card slots to show card backs
+        for (let i = 1; i <= 3; i++) {
+            const slot = document.getElementById(`flip3-card-${i}`);
+            if (slot) {
+                slot.innerHTML = '<div class="card back"></div>';
+            }
+        }
+        
+        // Clear status
+        if (statusDiv) {
+            statusDiv.textContent = '';
+            statusDiv.className = 'flip3-status';
+        }
+        
         // Set starting state (card 1)
         currentCounter.textContent = '1';
         if (dots[0]) dots[0].classList.add('active');
         
-        // Show the indicator
+        // Store target player for later use
+        this.flip3TargetPlayer = targetPlayer;
+        this.flip3DrawnCards = [];
+        
+        // Show the backdrop and indicator
+        const backdrop = document.getElementById('flip3-backdrop');
+        if (backdrop) backdrop.style.display = 'block';
         indicator.style.display = 'block';
     }
     
@@ -3372,9 +3664,102 @@ class Flip7Game {
         indicator.style.animation = 'flip3Appear 0.3s ease-in reverse';
         
         setTimeout(() => {
+            // Hide backdrop and indicator
+            const backdrop = document.getElementById('flip3-backdrop');
+            if (backdrop) backdrop.style.display = 'none';
             indicator.style.display = 'none';
             indicator.style.animation = ''; // Reset animation
+            
+            // Clear stored data
+            this.flip3TargetPlayer = null;
+            this.flip3DrawnCards = [];
         }, 300);
+    }
+    
+    previewFlip3Card(card, slotNumber) {
+        console.log(`🎴 Previewing Flip3 card ${slotNumber}: ${card.display}`);
+        
+        const slot = document.getElementById(`flip3-card-${slotNumber}`);
+        if (!slot) return;
+        
+        const cardDiv = slot.querySelector('.card');
+        if (!cardDiv) return;
+        
+        // Add flipping animation class
+        cardDiv.classList.add('flipping');
+        
+        // After flip animation, show the card face
+        setTimeout(() => {
+            cardDiv.className = `card ${card.type}`;
+            if (card.type === 'number') {
+                cardDiv.innerHTML = `<span class="card-value">${card.value}</span>`;
+            } else if (card.type === 'action') {
+                cardDiv.innerHTML = `<span class="card-action">${card.display}</span>`;
+            } else if (card.type === 'modifier') {
+                cardDiv.innerHTML = `<span class="card-modifier">${card.display}</span>`;
+            }
+            
+            // Check if this is a duplicate
+            const isDuplicate = this.flip3TargetPlayer && 
+                               card.type === 'number' && 
+                               this.flip3TargetPlayer.uniqueNumbers.has(card.value);
+            
+            if (isDuplicate) {
+                cardDiv.classList.add('duplicate');
+            } else {
+                cardDiv.classList.add('success');
+            }
+        }, 300);
+        
+        return isDuplicate;
+    }
+    
+    animateFlip3Success() {
+        console.log('✅ Animating Flip3 success - adding cards to hand');
+        
+        // Get all card slots
+        const slots = [];
+        for (let i = 1; i <= 3; i++) {
+            const slot = document.getElementById(`flip3-card-${i}`);
+            if (slot) {
+                const cardDiv = slot.querySelector('.card');
+                if (cardDiv) {
+                    slots.push(cardDiv);
+                }
+            }
+        }
+        
+        // Animate cards flying to player's hand
+        slots.forEach((cardDiv, index) => {
+            setTimeout(() => {
+                cardDiv.style.animation = 'flip3CardFlyToHand 0.5s ease-out forwards';
+            }, index * 100);
+        });
+        
+        // Update status
+        const statusDiv = document.getElementById('flip3-status');
+        if (statusDiv) {
+            statusDiv.textContent = 'All cards added successfully!';
+            statusDiv.className = 'flip3-status success';
+        }
+        
+        // Hide indicator after animation
+        setTimeout(() => {
+            this.hideFlip3SequenceIndicator();
+        }, 1000);
+    }
+    
+    handleFlip3Bust(duplicateCard, cardNumber) {
+        console.log(`❌ Flip3 bust on card ${cardNumber} - duplicate ${duplicateCard.value}`);
+        
+        // Update status
+        const statusDiv = document.getElementById('flip3-status');
+        if (statusDiv) {
+            statusDiv.textContent = `Duplicate ${duplicateCard.value} - BUST!`;
+            statusDiv.className = 'flip3-status error';
+        }
+        
+        // Don't hide indicator here - let the calling function control when to hide it
     }
 
     
