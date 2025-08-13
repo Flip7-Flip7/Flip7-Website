@@ -2436,66 +2436,205 @@ class Flip7Game {
             animatedCard.style.opacity = '1';
         });
         
-        // Mobile touch events
+        // Enhanced mobile touch events with better finger tracking
+        let currentDropTarget = null;
+        let animationFrameId = null;
+        
         animatedCard.addEventListener('touchstart', (e) => {
             isDragging = true;
             const touch = e.touches[0];
             
             // Get the card's current position relative to the viewport
             const rect = animatedCard.getBoundingClientRect();
-            startX = touch.clientX - rect.left;
-            startY = touch.clientY - rect.top;
             
-            // Enable dragging positioning
+            // Center the card under the finger for better control
+            const cardWidth = rect.width;
+            const cardHeight = rect.height;
+            startX = cardWidth / 2;
+            startY = cardHeight / 2;
+            
+            // Enable dragging positioning with improved setup
             animatedCard.classList.add('dragging');
             animatedCard.style.cursor = 'grabbing';
-            animatedCard.style.left = rect.left + 'px';
-            animatedCard.style.top = rect.top + 'px';
+            animatedCard.style.position = 'fixed';
+            animatedCard.style.left = (touch.clientX - startX) + 'px';
+            animatedCard.style.top = (touch.clientY - startY) + 'px';
+            animatedCard.style.zIndex = '15000';
+            animatedCard.style.pointerEvents = 'none'; // Prevent touch conflicts
+            
+            // Add haptic feedback if available
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
             
             currentX = 0;
             currentY = 0;
+            currentDropTarget = null;
             
             e.preventDefault();
+            e.stopPropagation();
         });
         
         animatedCard.addEventListener('touchmove', (e) => {
             if (!isDragging) return;
             
             const touch = e.touches[0];
-            const newLeft = touch.clientX - startX;
-            const newTop = touch.clientY - startY;
             
-            // Use absolute positioning instead of transform for better mobile support
-            animatedCard.style.left = newLeft + 'px';
-            animatedCard.style.top = newTop + 'px';
-            animatedCard.style.transform = 'scale(1.3)'; // Just scale for visual feedback
+            // Use requestAnimationFrame for smoother movement
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            
+            animationFrameId = requestAnimationFrame(() => {
+                // Position card centered under finger
+                const newLeft = touch.clientX - startX;
+                const newTop = touch.clientY - startY;
+                
+                animatedCard.style.left = newLeft + 'px';
+                animatedCard.style.top = newTop + 'px';
+                animatedCard.style.transform = 'scale(1.3) rotate(-5deg)'; // Add slight rotation for visual feedback
+                
+                // Enhanced drop target detection with expanded hit areas
+                const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+                let newDropTarget = elementUnder?.closest('.valid-drop-target');
+                
+                // If no direct hit, search for nearby drop targets (mobile forgiveness)
+                if (!newDropTarget && window.innerWidth <= 1024) {
+                    const tolerance = 60; // Pixels of tolerance for mobile
+                    const dropTargets = document.querySelectorAll('.valid-drop-target');
+                    
+                    let closestTarget = null;
+                    let closestDistance = tolerance;
+                    
+                    dropTargets.forEach(target => {
+                        const rect = target.getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
+                        const centerY = rect.top + rect.height / 2;
+                        
+                        const distance = Math.sqrt(
+                            Math.pow(touch.clientX - centerX, 2) + 
+                            Math.pow(touch.clientY - centerY, 2)
+                        );
+                        
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closestTarget = target;
+                        }
+                    });
+                    
+                    newDropTarget = closestTarget;
+                }
+                
+                // Update drop target highlighting
+                if (newDropTarget !== currentDropTarget) {
+                    // Remove highlight from previous target
+                    if (currentDropTarget) {
+                        currentDropTarget.classList.remove('drag-hover');
+                    }
+                    
+                    // Add highlight to new target
+                    if (newDropTarget) {
+                        newDropTarget.classList.add('drag-hover');
+                        // Add subtle vibration when hovering over valid target
+                        if (navigator.vibrate) {
+                            navigator.vibrate(25);
+                        }
+                    }
+                    
+                    currentDropTarget = newDropTarget;
+                }
+            });
             
             e.preventDefault();
+            e.stopPropagation();
         });
         
         animatedCard.addEventListener('touchend', (e) => {
             if (!isDragging) return;
             isDragging = false;
             
-            // Find drop target under touch point
+            // Cancel any pending animation frame
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            
+            // Find final drop target with enhanced detection
             const touch = e.changedTouches[0];
             const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
-            const dropTarget = elementUnder?.closest('.valid-drop-target');
+            let dropTarget = elementUnder?.closest('.valid-drop-target');
+            
+            // Enhanced drop detection for mobile - try nearby targets if no direct hit
+            if (!dropTarget && window.innerWidth <= 1024) {
+                const tolerance = 80; // Larger tolerance on release for easier targeting
+                const dropTargets = document.querySelectorAll('.valid-drop-target');
+                
+                let closestTarget = null;
+                let closestDistance = tolerance;
+                
+                dropTargets.forEach(target => {
+                    const rect = target.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    
+                    const distance = Math.sqrt(
+                        Math.pow(touch.clientX - centerX, 2) + 
+                        Math.pow(touch.clientY - centerY, 2)
+                    );
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestTarget = target;
+                    }
+                });
+                
+                if (closestTarget) {
+                    dropTarget = closestTarget;
+                    // Visual feedback for auto-snapping
+                    if (navigator.vibrate) {
+                        navigator.vibrate([30, 30, 30]); // Triple tap to indicate snap
+                    }
+                }
+            }
+            
+            // Clear any remaining drag-hover states
+            document.querySelectorAll('.drag-hover').forEach(el => {
+                el.classList.remove('drag-hover');
+            });
             
             if (dropTarget) {
+                // Success vibration
+                if (navigator.vibrate) {
+                    navigator.vibrate([50, 50, 100]);
+                }
                 this.handleCardDrop(dropTarget, card, playerId);
             } else {
-                // Snap back to center - reset positioning
+                // Error vibration
+                if (navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100]);
+                }
+                
+                // Snap back to center with animation
+                animatedCard.style.transition = 'all 0.3s ease-out';
                 animatedCard.classList.remove('dragging');
                 animatedCard.style.left = '';
                 animatedCard.style.top = '';
                 animatedCard.style.transform = 'scale(1)';
+                animatedCard.style.position = '';
+                animatedCard.style.zIndex = '';
+                animatedCard.style.pointerEvents = '';
                 
-                // Clean up drag interface if no valid drop (so instructions disappear)
+                // Remove transition after animation
+                setTimeout(() => {
+                    animatedCard.style.transition = '';
+                }, 300);
+                
+                // Clean up drag interface if no valid drop
                 this.cleanupDragInterface();
             }
             
             animatedCard.style.cursor = 'grab';
+            currentDropTarget = null;
         });
         
         // Setup drop zones

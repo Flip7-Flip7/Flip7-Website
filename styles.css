@@ -1221,13 +1221,32 @@ body {
     60% { transform: translateY(-5px); }
 }
 
-/* Valid drop target highlighting */
+/* Enhanced drop target highlighting with better mobile support */
 .valid-drop-target {
     position: relative;
     transition: all 0.3s ease;
-    border: 2px solid rgba(34, 197, 94, 0.6) !important;
-    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4) !important;
-    background: rgba(34, 197, 94, 0.1) !important;
+    border: 3px solid rgba(34, 197, 94, 0.8) !important;
+    box-shadow: 
+        0 0 20px rgba(34, 197, 94, 0.6) !important,
+        inset 0 0 20px rgba(34, 197, 94, 0.1) !important;
+    background: rgba(34, 197, 94, 0.15) !important;
+    animation: dropZoneGlow 2s ease-in-out infinite alternate;
+    border-radius: 8px !important;
+    overflow: visible !important;
+}
+
+.valid-drop-target::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    border: 2px dashed rgba(34, 197, 94, 0.5);
+    border-radius: 12px;
+    animation: dropZonePulse 1.5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
 }
 
 .valid-drop-target::after {
@@ -1236,26 +1255,40 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(34, 197, 94, 0.9);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.95) 0%, rgba(16, 185, 129, 0.95) 100%);
     color: white;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 0.7em;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8em;
     font-weight: bold;
     pointer-events: none;
-    z-index: 100;
+    z-index: 101;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    animation: dropZoneTextBounce 1s ease-in-out infinite alternate;
 }
 
 .valid-drop-target.drag-hover {
-    border-color: #22c55e !important;
-    box-shadow: 0 0 25px rgba(34, 197, 94, 0.8) !important;
-    background: rgba(34, 197, 94, 0.2) !important;
-    transform: scale(1.02);
+    border-color: #10b981 !important;
+    box-shadow: 
+        0 0 35px rgba(16, 185, 129, 1) !important,
+        inset 0 0 25px rgba(16, 185, 129, 0.2) !important;
+    background: rgba(16, 185, 129, 0.25) !important;
+    transform: scale(1.05);
+    animation: dropZoneHover 0.3s ease-in-out infinite alternate;
+}
+
+.valid-drop-target.drag-hover::before {
+    border-color: #10b981;
+    border-width: 3px;
+    animation: dropZoneHoverPulse 0.5s ease-in-out infinite;
 }
 
 .valid-drop-target.drag-hover::after {
-    background: #22c55e;
-    animation: pulse 0.5s infinite alternate;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    animation: dropZoneHoverText 0.4s ease-in-out infinite alternate;
+    transform: translate(-50%, -50%) scale(1.1);
 }
 
 @keyframes pulse {
@@ -1263,7 +1296,76 @@ body {
     to { opacity: 1; }
 }
 
-/* Mobile specific drag styles */
+/* Enhanced drop zone animations */
+@keyframes dropZoneGlow {
+    from { 
+        box-shadow: 
+            0 0 20px rgba(34, 197, 94, 0.6) !important,
+            inset 0 0 20px rgba(34, 197, 94, 0.1) !important;
+    }
+    to { 
+        box-shadow: 
+            0 0 30px rgba(34, 197, 94, 0.8) !important,
+            inset 0 0 25px rgba(34, 197, 94, 0.15) !important;
+    }
+}
+
+@keyframes dropZonePulse {
+    from { 
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    to { 
+        opacity: 0.7;
+        transform: scale(1.02);
+    }
+}
+
+@keyframes dropZoneTextBounce {
+    from { 
+        transform: translate(-50%, -50%) translateY(0px);
+        opacity: 0.9;
+    }
+    to { 
+        transform: translate(-50%, -50%) translateY(-2px);
+        opacity: 1;
+    }
+}
+
+@keyframes dropZoneHover {
+    from { 
+        transform: scale(1.05);
+        filter: brightness(1);
+    }
+    to { 
+        transform: scale(1.08);
+        filter: brightness(1.1);
+    }
+}
+
+@keyframes dropZoneHoverPulse {
+    from { 
+        transform: scale(1);
+        opacity: 0.7;
+    }
+    to { 
+        transform: scale(1.05);
+        opacity: 1;
+    }
+}
+
+@keyframes dropZoneHoverText {
+    from { 
+        filter: brightness(1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    to { 
+        filter: brightness(1.2);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* Enhanced mobile specific drag styles */
 @media (max-width: 1024px) {
     .drag-instructions {
         top: 15%;
@@ -1285,10 +1387,111 @@ body {
         font-size: 1.5em;
     }
     
-    .valid-drop-target::after {
-        font-size: 0.6em;
-        padding: 3px 6px;
+    /* Enhanced mobile drop zones */
+    .valid-drop-target {
+        border-width: 4px !important;
+        margin: 2px !important;
+        padding: 8px !important;
+        min-height: 80px !important;
+        background: rgba(34, 197, 94, 0.2) !important;
+        box-shadow: 
+            0 0 25px rgba(34, 197, 94, 0.8) !important,
+            inset 0 0 25px rgba(34, 197, 94, 0.15) !important;
     }
+    
+    .valid-drop-target::before {
+        top: -15px;
+        left: -15px;
+        right: -15px;
+        bottom: -15px;
+        border-width: 3px;
+        border-radius: 16px;
+    }
+    
+    .valid-drop-target::after {
+        font-size: 0.9em !important;
+        padding: 8px 16px !important;
+        font-weight: 900 !important;
+        border-width: 2px !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+        letter-spacing: 1px;
+    }
+    
+    .valid-drop-target.drag-hover {
+        transform: scale(1.1) !important;
+        border-width: 5px !important;
+        box-shadow: 
+            0 0 40px rgba(16, 185, 129, 1) !important,
+            inset 0 0 30px rgba(16, 185, 129, 0.3) !important;
+        background: rgba(16, 185, 129, 0.3) !important;
+    }
+    
+    .valid-drop-target.drag-hover::after {
+        transform: translate(-50%, -50%) scale(1.2) !important;
+        font-size: 1em !important;
+        padding: 10px 20px !important;
+    }
+    
+    /* Enhanced mobile card dragging styles with preview effect */
+    .card.dragging {
+        box-shadow: 
+            0 12px 40px rgba(0, 0, 0, 0.4) !important,
+            0 4px 16px rgba(0, 0, 0, 0.2) !important,
+            0 0 0 3px rgba(255, 255, 255, 0.9) !important;
+        border: 2px solid rgba(255, 255, 255, 1) !important;
+        filter: brightness(1.2) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3)) saturate(1.1);
+        animation: dragFloating 1.5s ease-in-out infinite alternate;
+    }
+    
+    /* Drag preview shadow effect */
+    .card.dragging::before {
+        content: "";
+        position: absolute;
+        top: 8px;
+        left: 4px;
+        right: -4px;
+        bottom: -8px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: inherit;
+        z-index: -1;
+        filter: blur(8px);
+        opacity: 0.6;
+    }
+    
+    @keyframes dragFloating {
+        from { 
+            filter: brightness(1.2) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3)) saturate(1.1);
+        }
+        to { 
+            filter: brightness(1.3) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4)) saturate(1.2);
+        }
+    }
+}
+
+/* Desktop drag preview effects */
+.card.dragging {
+    position: relative;
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.3) !important,
+        0 2px 10px rgba(0, 0, 0, 0.15) !important;
+    border: 2px solid rgba(255, 255, 255, 0.8) !important;
+    filter: brightness(1.1) saturate(1.1);
+    transform: rotate(-3deg) scale(1.05);
+    z-index: 1000;
+    transition: none !important; /* Disable transitions during drag */
+}
+
+.card.dragging::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 3px;
+    right: -3px;
+    bottom: -6px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: inherit;
+    z-index: -1;
+    filter: blur(6px);
 }
 
 /* AI Bot Drag Animation Styles */
