@@ -16,6 +16,7 @@ class Flip7Game {
         this.pendingInitialDealContinuation = null; // Store continuation for human action cards
         this.actionQueue = [];
         this.isProcessingFlip3 = false;
+        this.flip3CompletionPending = false; // Flag to prevent race conditions during completion
         this.pendingFlip3Queue = []; // Queue for nested Flip 3 cards
         
         // Flag to prevent mobile sync during bust animations
@@ -1299,6 +1300,13 @@ class Flip7Game {
                 return;
             }
             
+            // Safety check: verify target player is still valid
+            if (targetPlayer.status !== 'active' && targetPlayer.status !== 'flip7') {
+                console.log(`⚠️ Target player ${targetPlayer.name} is no longer active (${targetPlayer.status}) - ending Flip 3 early`);
+                // Force end the Flip 3 sequence
+                cardsFlipped = 3;
+            }
+            
             if (cardsFlipped >= 3 || targetPlayer.status !== 'active') {
                 console.log(`🎯 Flip3 sequence ending - cardsFlipped: ${cardsFlipped}, targetPlayer.status: ${targetPlayer.status}, drawnCards: ${drawnCards.length}`);
                 
@@ -1323,8 +1331,8 @@ class Flip7Game {
                 
                 // Flip Three sequence completed - cleanup
                 this.isProcessingFlip3 = false;
-                this.flip3TargetPlayer = null;
-                this.flip3DrawnCards = [];
+                this.flip3CompletionPending = true; // Set completion pending flag
+                // Don't clear other state yet - will be done after completion handler
                 
                 // Check what to do after Flip 3 completes
                 const checkPendingFlip3 = () => {
@@ -1332,6 +1340,7 @@ class Flip7Game {
                     
                     if (onComplete) {
                         console.log(`📞 Calling onComplete callback`);
+                        this.clearFlip3State(); // Clear all state before callback
                         // Let the completion callback handle next steps
                         onComplete();
                     } else {
@@ -1339,9 +1348,11 @@ class Flip7Game {
                         // No callback provided - check for pending Flip 3s
                         if (this.pendingFlip3Queue.length > 0) {
                             console.log(`🔄 Processing pending Flip3 queue`);
+                            this.clearFlip3State(); // Clear state before processing next
                             this.processPendingFlip3Queue();
                         } else {
                             console.log(`✅ Flip3 complete - checking for round end`);
+                            this.clearFlip3State(); // Clear all state before checking round end
                             this.checkForRoundEnd();
                         }
                     }
@@ -1350,6 +1361,12 @@ class Flip7Game {
                 console.log(`⏰ Setting 2-second timeout for Flip3 completion`);
                 setTimeout(checkPendingFlip3, 2000); // Wait for animations
                 return;
+            }
+            
+            // Safety check: ensure deck has cards
+            if (this.deck.length === 0) {
+                console.log('⚠️ Deck empty during Flip 3 - reshuffling');
+                this.reshuffleDeck();
             }
             
             const nextCard = this.drawCard();
@@ -1478,10 +1495,9 @@ class Flip7Game {
                     // Update display to show bust
                     this.updateDisplay();
                     
-                    // End Flip3 sequence and cleanup immediately
+                    // End Flip3 sequence - set flags but don't clear state yet
                     this.isProcessingFlip3 = false;
-                    this.flip3TargetPlayer = null;
-                    this.flip3DrawnCards = [];
+                    this.flip3CompletionPending = true; // Set completion pending flag
                     
                     // Hide popup immediately and continue to next turn
                     setTimeout(() => {
@@ -1490,13 +1506,16 @@ class Flip7Game {
                         // Check what to do after bust
                         setTimeout(() => {
                             if (onComplete) {
+                                this.clearFlip3State(); // Clear all state before callback
                                 // Let the completion callback handle next steps
                                 onComplete();
                             } else {
                                 // No callback - check for pending Flip 3s or continue turn
                                 if (this.pendingFlip3Queue.length > 0) {
+                                    this.clearFlip3State(); // Clear state before processing next
                                     this.processPendingFlip3Queue();
                                 } else {
+                                    this.clearFlip3State(); // Clear all state before next turn
                                     this.nextTurn(); // Go directly to next turn
                                 }
                             }
@@ -1548,20 +1567,23 @@ class Flip7Game {
                                 }, 1000);
                             }
                             
-                            // End Flip 3 sequence and cleanup
+                            // End Flip 3 sequence - set flags but don't clear state yet
                             this.isProcessingFlip3 = false;
-                            this.flip3TargetPlayer = null;
-                            this.flip3DrawnCards = [];
+                            this.flip3CompletionPending = true; // Set completion pending flag
                             
                             // Check what to do after Flip 7
                             const checkPendingFlip3 = () => {
                                 if (onComplete) {
+                                    this.clearFlip3State(); // Clear all state before callback
                                     // Let the completion callback handle next steps
                                     onComplete();
                                 } else {
                                     // No callback - check for pending Flip 3s
                                     if (this.pendingFlip3Queue.length > 0) {
+                                        this.clearFlip3State(); // Clear state before processing next
                                         this.processPendingFlip3Queue();
+                                    } else {
+                                        this.clearFlip3State(); // Clear all state
                                     }
                                     // Round will end automatically due to Flip 7
                                 }
@@ -1619,8 +1641,42 @@ class Flip7Game {
     }
     
     isProcessingAnyFlip3() {
-        // Check if currently processing a Flip 3 or have any queued
-        return this.isProcessingFlip3 || this.pendingFlip3Queue.length > 0;
+        // Check if currently processing a Flip 3, have any queued, or completion is pending
+        return this.isProcessingFlip3 || this.flip3CompletionPending || this.pendingFlip3Queue.length > 0;
+    }
+    
+    clearFlip3State() {
+        // Centralized method to clear all Flip 3 related state
+        console.log('🧹 Clearing Flip3 state');
+        this.isProcessingFlip3 = false;
+        this.flip3CompletionPending = false;
+        this.flip3TargetPlayer = null;
+        this.flip3DrawnCards = [];
+    }
+    
+    reshuffleDeck() {
+        // Reshuffle discard pile back into deck when deck runs out
+        console.log('🔀 Reshuffling discard pile into deck');
+        
+        if (this.discardPile.length === 0) {
+            console.error('❌ Both deck and discard pile are empty!');
+            // Emergency: create a few cards to prevent game halt
+            this.deck = [
+                { type: 'number', value: 5, display: '5' },
+                { type: 'number', value: 8, display: '8' },
+                { type: 'modifier', value: 2, display: '+2' }
+            ];
+            return;
+        }
+        
+        // Move all discard pile cards back to deck
+        this.deck = [...this.discardPile];
+        this.discardPile = [];
+        
+        // Shuffle the deck
+        this.shuffleDeck();
+        
+        console.log(`✅ Reshuffled ${this.deck.length} cards back into deck`);
     }
 
     activateSecondChance(player, duplicateCard) {
@@ -3876,9 +3932,7 @@ class Flip7Game {
             indicator.style.display = 'none';
             indicator.style.animation = ''; // Reset animation
             
-            // Clear stored data
-            this.flip3TargetPlayer = null;
-            this.flip3DrawnCards = [];
+            // State clearing is now handled centrally in clearFlip3State()
         }, 300);
     }
     
