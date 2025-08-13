@@ -1285,10 +1285,14 @@ class Flip7Game {
         this.showFlip3SequenceIndicator(cardOwner, targetPlayer, cardsFlipped);
         
         const processNextCard = () => {
+            console.log(`🔄 processNextCard called - cardsFlipped: ${cardsFlipped}, pendingActions: ${pendingActions.length}, targetPlayer.status: ${targetPlayer.status}`);
+            
             // Check if we need to process pending actions first
             if (pendingActions.length > 0) {
+                console.log(`⏳ Processing pending action: ${pendingActions[0].card?.display}`);
                 const action = pendingActions.shift();
                 this.processQueuedAction(action, () => {
+                    console.log(`✅ Pending action processed, continuing Flip3`);
                     // After processing the action, continue with the next card or action
                     processNextCard();
                 });
@@ -1296,6 +1300,8 @@ class Flip7Game {
             }
             
             if (cardsFlipped >= 3 || targetPlayer.status !== 'active') {
+                console.log(`🎯 Flip3 sequence ending - cardsFlipped: ${cardsFlipped}, targetPlayer.status: ${targetPlayer.status}, drawnCards: ${drawnCards.length}`);
+                
                 // All cards drawn successfully - now add them to the player's hand
                 if (drawnCards.length > 0 && targetPlayer.status === 'active') {
                     drawnCards.forEach(card => {
@@ -1322,43 +1328,55 @@ class Flip7Game {
                 
                 // Check what to do after Flip 3 completes
                 const checkPendingFlip3 = () => {
+                    console.log(`🏁 Flip3 completion handler - onComplete: ${!!onComplete}, pendingQueue: ${this.pendingFlip3Queue.length}`);
+                    
                     if (onComplete) {
+                        console.log(`📞 Calling onComplete callback`);
                         // Let the completion callback handle next steps
                         onComplete();
                     } else {
+                        console.log(`🔍 No onComplete callback - checking queue`);
                         // No callback provided - check for pending Flip 3s
                         if (this.pendingFlip3Queue.length > 0) {
+                            console.log(`🔄 Processing pending Flip3 queue`);
                             this.processPendingFlip3Queue();
                         } else {
+                            console.log(`✅ Flip3 complete - checking for round end`);
                             this.checkForRoundEnd();
                         }
                     }
                 };
                 
+                console.log(`⏰ Setting 2-second timeout for Flip3 completion`);
                 setTimeout(checkPendingFlip3, 2000); // Wait for animations
                 return;
             }
             
             const nextCard = this.drawCard();
             cardsFlipped++;
+            console.log(`🎴 Drew card ${cardsFlipped}: ${nextCard.display} (${nextCard.type})`);
             
             // Preview the card in the popup
             const slotNumber = cardsFlipped;
             let isDuplicate = nextCard.type === 'number' && targetPlayer.uniqueNumbers.has(nextCard.value);
             const hasSecondChance = targetPlayer.hasSecondChance && isDuplicate;
+            console.log(`🔍 Card analysis - isDuplicate: ${isDuplicate}, hasSecondChance: ${hasSecondChance}`);
             
             // Store all cards temporarily (we'll handle them based on outcome)
             this.flip3DrawnCards.push(nextCard);
             
             // Show card preview with animation
+            console.log(`🎬 Starting preview animation for slot ${slotNumber}`);
             setTimeout(() => {
                 this.previewFlip3Card(nextCard, slotNumber);
                 
                 // Update Flip3 progress indicator
                 this.updateFlip3Progress(cardsFlipped);
+                console.log(`📊 Updated progress indicator to ${cardsFlipped}/3`);
                 
                 // Check for action cards that need immediate use
                 if (nextCard.type === 'action' && (nextCard.value === 'flip3' || nextCard.value === 'freeze')) {
+                    console.log(`🎭 Action card drawn during Flip3: ${nextCard.display} - must use immediately`);
                     // Action card drawn during Flip 3 - must use immediately
                     this.addToLog(`${targetPlayer.name} drew ${nextCard.display} during Flip 3 and must use it immediately!`);
                     
@@ -1485,6 +1503,7 @@ class Flip7Game {
                         }, 300); // Brief pause after hiding popup
                     }, 1000); // Show bust message for 1 second
                 } else {
+                    console.log(`✅ Normal card processing - adding ${nextCard.display} to drawnCards`);
                     // Card is not a duplicate - add to drawn cards
                     drawnCards.push(nextCard);
                     
@@ -1554,13 +1573,22 @@ class Flip7Game {
                         }
                     }
                     
+                    console.log(`🎯 Normal flow reached - will continue to next card`);
                     // Continue to next card after showing preview
-                    setTimeout(processNextCard, 1500);
+                    console.log(`⏭️  Scheduling next card in 1.5 seconds (cardsFlipped: ${cardsFlipped}/3)`);
+                    setTimeout(() => {
+                        console.log(`🔄 Timeout fired - calling processNextCard again`);
+                        processNextCard();
+                    }, 1500);
                 }
             }, 600);
         };
         
-        setTimeout(processNextCard, 500);
+        console.log(`🚀 Starting Flip3 sequence in 0.5 seconds`);
+        setTimeout(() => {
+            console.log(`🎯 Initial timeout fired - starting processNextCard`);
+            processNextCard();
+        }, 500);
     }
     
     processPendingFlip3Queue() {
@@ -3866,15 +3894,20 @@ class Flip7Game {
         // Add flipping animation class
         cardDiv.classList.add('flipping');
         
-        // After flip animation, show the card face
+        // After flip animation, show the card face using proper card creation
         setTimeout(() => {
-            cardDiv.className = `card ${card.type}`;
-            if (card.type === 'number') {
-                cardDiv.innerHTML = `<span class="card-value">${card.value}</span>`;
-            } else if (card.type === 'action') {
-                cardDiv.innerHTML = `<span class="card-action">${card.display}</span>`;
-            } else if (card.type === 'modifier') {
-                cardDiv.innerHTML = `<span class="card-modifier">${card.display}</span>`;
+            // Create a properly formatted card element
+            const properCard = this.createCardElement(card);
+            
+            // Copy the proper card styling to the existing div
+            cardDiv.className = properCard.className;
+            cardDiv.innerHTML = properCard.innerHTML;
+            
+            // Copy background image if it exists (for custom images)
+            if (properCard.style.backgroundImage) {
+                cardDiv.style.backgroundImage = properCard.style.backgroundImage;
+                cardDiv.style.backgroundSize = 'cover';
+                cardDiv.style.backgroundPosition = 'center';
             }
             
             // Check if this is a duplicate
@@ -3887,7 +3920,14 @@ class Flip7Game {
             } else {
                 cardDiv.classList.add('success');
             }
+            
+            console.log(`✅ Card ${slotNumber} preview updated with proper styling:`, cardDiv.className);
         }, 300);
+        
+        // Return the duplicate status (calculate it here since we need it synchronously)
+        const isDuplicate = this.flip3TargetPlayer && 
+                           card.type === 'number' && 
+                           this.flip3TargetPlayer.uniqueNumbers.has(card.value);
         
         return isDuplicate;
     }
