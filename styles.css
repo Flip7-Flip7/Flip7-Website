@@ -968,10 +968,23 @@ body {
 
 .special-action-card.dragging {
     cursor: grabbing;
-    opacity: 0.8;
-    transform: scale(1.2);
-    z-index: 100;
-    pointer-events: none;
+    opacity: 0.9 !important;
+    transform: scale(1.3) rotate(-5deg) !important;
+    z-index: 15000 !important;
+    pointer-events: none !important;
+    position: fixed !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    border: 2px solid rgba(255, 215, 0, 0.8) !important;
+    animation: cardDragGlow 1s ease-in-out infinite alternate !important;
+}
+
+@keyframes cardDragGlow {
+    0% { 
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.4); 
+    }
+    100% { 
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 215, 0, 0.8); 
+    }
 }
 
 .special-action-players {
@@ -1031,6 +1044,22 @@ body {
 @keyframes modalDropZoneGlow {
     0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
     100% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.8); }
+}
+
+/* Enhanced drag hover effects for modal */
+.special-action-player.drag-hover {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.1) 100%) !important;
+    border: 3px solid rgba(34, 197, 94, 0.8) !important;
+    box-shadow: 
+        0 0 20px rgba(34, 197, 94, 0.6) !important,
+        inset 0 0 20px rgba(34, 197, 94, 0.1) !important;
+    transform: scale(1.05) !important;
+    animation: modalDragHoverPulse 1s ease-in-out infinite alternate !important;
+}
+
+@keyframes modalDragHoverPulse {
+    0% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.6), inset 0 0 20px rgba(34, 197, 94, 0.1); }
+    100% { box-shadow: 0 0 30px rgba(34, 197, 94, 0.9), inset 0 0 30px rgba(34, 197, 94, 0.2); }
 }
 
 .special-action-player-name {
