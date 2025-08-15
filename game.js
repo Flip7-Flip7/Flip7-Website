@@ -488,7 +488,7 @@ class Flip7Game {
             const isMainPlayer = player.id === 'player';
             const cardContainer = isMainPlayer 
                 ? document.getElementById('player-cards')
-                : container.querySelector('.player-cards');
+                : document.getElementById(player.id).querySelector('.player-cards');
                 
             if (cardContainer) {
                 cardContainer.innerHTML = '';
