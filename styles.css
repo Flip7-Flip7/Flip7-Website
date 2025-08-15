@@ -155,8 +155,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 85px; /* Mobile card size */
-    height: 119px; /* Mobile card size */
+    width: 200px; /* Large enough to center card inside */
+    height: 200px; /* Large enough to center card inside */
     z-index: 9999; /* Much higher z-index to ensure it's on top */
     pointer-events: none;
     display: none; /* Hidden on desktop */
@@ -206,9 +206,9 @@ body {
         left: 50vw;
         transform: translate(-50%, -50%);
         -webkit-transform: translate(-50%, -50%);
-        /* Set to mobile card dimensions */
-        width: 85px;
-        height: 119px;
+        /* Large enough to center card inside */
+        width: 200px;
+        height: 200px;
         /* Force display on mobile */
         display: block !important;
     }
@@ -1167,7 +1167,10 @@ body {
         height: 119px !important; /* Mobile card size */
         font-size: 1.5em !important; /* Mobile font size */
         display: block !important; /* Ensure it's visible */
-        position: relative !important; /* Ensure positioning works */
+        position: absolute !important; /* Position within animation area */
+        top: 50% !important; /* Center vertically */
+        left: 50% !important; /* Center horizontally */
+        transform: translate(-50%, -50%) !important; /* Center the card itself */
         background-size: contain !important; /* Scale background images properly */
         z-index: 10000 !important; /* Ensure it's on top */
     }
