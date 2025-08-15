@@ -481,13 +481,8 @@ class Flip7Game {
             player.status = 'active';
             player.hasSecondChance = false;
             
-            // Clear frozen and busted effects
-            const container = document.getElementById(player.id);
-            container.classList.remove('frozen', 'busted');
-            const frozenIndicator = container.querySelector('.frozen-indicator');
-            if (frozenIndicator) {
-                frozenIndicator.remove();
-            }
+            // Clear all freeze visual effects from both desktop and mobile
+            this.clearAllFreezeEffects(player);
             
             // Clear all visual cards from DOM
             const isMainPlayer = player.id === 'player';
@@ -578,9 +573,9 @@ class Flip7Game {
                     if (this.players[this.currentPlayerIndex].isHuman) {
                         this.enablePlayerActions();
                     } else {
-                        setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 1200); // Standardized timing
+                        setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 800); // Speed optimized timing
                     }
-                }, 1000);
+                }, 600);
                 return;
             }
             
@@ -616,9 +611,9 @@ class Flip7Game {
                         if (this.players[this.currentPlayerIndex].isHuman) {
                             this.enablePlayerActions();
                         } else {
-                            setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 1200); // Standardized timing
+                            setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 800); // Speed optimized timing
                         }
-                    }, 1000);
+                    }, 600);
                 }
                 return;
             }
@@ -634,7 +629,7 @@ class Flip7Game {
                     this.currentDealIndex++;
                     // Check if we need to continue dealing or if the round ended
                     if (this.currentDealIndex < this.players.length && this.gameActive) {
-                        setTimeout(dealNextCard, 1200);
+                        setTimeout(dealNextCard, 800);
                     } else if (this.currentDealIndex >= this.players.length && this.gameActive) {
                         // All cards dealt, start normal gameplay
                         this.isInitialDealing = false;
@@ -658,9 +653,9 @@ class Flip7Game {
                             if (this.players[this.currentPlayerIndex].isHuman) {
                                 this.enablePlayerActions();
                             } else {
-                                setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 1200); // Standardized timing
+                                setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 800); // Speed optimized timing
                             }
-                        }, 1000);
+                        }, 600);
                     }
                 };
                 
@@ -1283,7 +1278,7 @@ class Flip7Game {
                 if (this.currentDealIndex < this.players.length && this.gameActive) {
                     console.log('  ✅ Continuing dealing to player', this.currentDealIndex, '(' + this.players[this.currentDealIndex].name + ')');
                     // Call dealNextCard with the same delay as continueDealing uses
-                    setTimeout(() => this.dealNextCardFunction(), 1200);
+                    setTimeout(() => this.dealNextCardFunction(), 800);
                 } else if (this.currentDealIndex >= this.players.length && this.gameActive) {
                     console.log('  🏁 Initial dealing complete - transitioning to normal gameplay');
                     // All players dealt, finish initial dealing (same as continueDealing does)
@@ -1310,11 +1305,11 @@ class Flip7Game {
                         if (this.players[this.currentPlayerIndex].isHuman) {
                             this.enablePlayerActions();
                         } else {
-                            setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 1200);
+                            setTimeout(() => this.takeAITurn(this.players[this.currentPlayerIndex]), 800);
                         }
-                    }, 1000);
+                    }, 600);
                 }
-            }, 1000);
+            }, 600);
         } else {
             console.log('  🎯 Normal gameplay - calling nextTurn()');
             // Move to next turn after special action completes
@@ -1568,6 +1563,7 @@ class Flip7Game {
         let cardsFlipped = 0;
         let pendingActions = [];
         const drawnCards = [];
+        const deferredActionCards = []; // Action cards drawn during Flip 3 that will be processed after completion
         
         // Show Flip3 sequence indicator
         this.showFlip3SequenceIndicator(cardOwner, targetPlayer, cardsFlipped);
@@ -1620,6 +1616,9 @@ class Flip7Game {
                 this.isProcessingFlip3 = false;
                 this.flip3CompletionPending = true; // Set completion pending flag
                 // Don't clear other state yet - will be done after completion handler
+                
+                // Process deferred action cards before completion
+                this.processDeferredActionCards(deferredActionCards, targetPlayer, drawnCards);
                 
                 // Check what to do after Flip 3 completes
                 const checkPendingFlip3 = () => {
@@ -1686,66 +1685,30 @@ class Flip7Game {
                 this.updateFlip3Progress(cardsFlipped);
                 console.log(`📊 Updated progress indicator to ${cardsFlipped}/3`);
                 
-                // Check for action cards that need immediate use
-                if (nextCard.type === 'action' && (nextCard.value === 'flip3' || nextCard.value === 'freeze')) {
-                    console.log(`🎭 Action card drawn during Flip3: ${nextCard.display} - must use immediately`);
-                    // Action card drawn during Flip 3 - must use immediately
-                    this.addToLog(`${targetPlayer.name} drew ${nextCard.display} during Flip 3 and must use it immediately!`);
+                // Check for action cards that should be deferred until after Flip 3 completes
+                if (nextCard.type === 'action' && (nextCard.value === 'flip3' || nextCard.value === 'freeze' || nextCard.value === 'second_chance')) {
+                    console.log(`🎭 Action card drawn during Flip3: ${nextCard.display} - deferring until completion`);
+                    // Action card drawn during Flip 3 - defer until completion
+                    this.addToLog(`${targetPlayer.name} drew ${nextCard.display} during Flip 3! Will be resolved after completion.`);
                     
-                    // Special handling for nested Flip 3
-                    if (nextCard.value === 'flip3') {
-                        // Queue this Flip 3 to execute after current one completes
-                        this.pendingFlip3Queue.push({
-                            cardOwner: targetPlayer,
-                            card: nextCard
-                        });
-                        
-                        // For nested Flip 3, just select target now but execute later
-                        if (targetPlayer.isHuman) {
-                            // Show target selection for human
-                            this.hideFlip3SequenceIndicator();
-                            const resumeFlip3 = () => {
-                                // Target selected, continue current Flip 3
-                                this.showFlip3SequenceIndicator(cardOwner, targetPlayer, cardsFlipped);
-                                setTimeout(processNextCard, 1000);
-                            };
-                            this.showSpecialActionModal(nextCard, targetPlayer, null, resumeFlip3);
-                        } else {
-                            // AI selects target
-                            const actionTarget = this.determineAITarget(targetPlayer, nextCard);
-                            this.pendingFlip3Queue[this.pendingFlip3Queue.length - 1].target = actionTarget;
-                            this.addToLog(`${targetPlayer.name} will use Flip 3 on ${actionTarget.name} after current Flip 3 completes!`);
-                            
-                            // Continue current Flip 3
-                            setTimeout(processNextCard, 1000);
-                        }
-                        return;
-                    }
+                    // Add to deferred actions to be processed after Flip 3 completes
+                    deferredActionCards.push({
+                        card: nextCard,
+                        drawnBy: targetPlayer,
+                        cardNumber: cardsFlipped // Track which card in sequence this was
+                    });
                     
-                    // For Freeze cards, execute immediately
-                    const resumeFlip3 = () => {
-                        // Continue with next card after action completes
-                        setTimeout(processNextCard, 1000);
-                    };
+                    // Add card to drawn cards for normal processing
+                    drawnCards.push(nextCard);
                     
-                    if (targetPlayer.isHuman) {
-                        // Show drag/drop interface for human
-                        this.hideFlip3SequenceIndicator();
-                        this.showSpecialActionModal(nextCard, targetPlayer, null, resumeFlip3);
-                    } else {
-                        // AI uses card immediately
-                        this.hideFlip3SequenceIndicator();
-                        setTimeout(() => {
-                            const actionTarget = this.determineAITarget(targetPlayer, nextCard);
-                            this.executeSpecialAction(nextCard, targetPlayer, actionTarget);
-                            // Re-show Flip 3 indicator after action
-                            setTimeout(() => {
-                                this.showFlip3SequenceIndicator(cardOwner, targetPlayer, cardsFlipped);
-                                resumeFlip3();
-                            }, 1000);
-                        }, 500);
-                    }
-                    return; // Exit early, will resume after action
+                    console.log(`🎯 Normal flow reached - will continue to next card`);
+                    // Continue to next card after showing preview
+                    console.log(`⏭️  Scheduling next card in 1.5 seconds (cardsFlipped: ${cardsFlipped}/3)`);
+                    setTimeout(() => {
+                        console.log(`🔄 Timeout fired - calling processNextCard again`);
+                        processNextCard();
+                    }, 1500);
+                    return;
                 }
                 
                 // Handle duplicates with Second Chance
@@ -1815,7 +1778,7 @@ class Flip7Game {
                                 }
                             }
                         }, 300); // Brief pause after hiding popup
-                    }, 1000); // Show bust message for 1 second
+                    }, 800); // Show bust message briefly
                 } else {
                     console.log(`✅ Normal card processing - adding ${nextCard.display} to drawnCards`);
                     // Card is not a duplicate - add to drawn cards
@@ -1838,11 +1801,9 @@ class Flip7Game {
                                     targetPlayer.numberCards.sort((a, b) => a.value - b.value);
                                 } else if (card.type === 'modifier') {
                                     targetPlayer.modifierCards.push(card);
-                                } else if (card.type === 'action' && card.value === 'second_chance') {
-                                    if (!targetPlayer.hasSecondChance) {
-                                        targetPlayer.hasSecondChance = true;
-                                        targetPlayer.actionCards.push(card);
-                                    }
+                                } else if (card.type === 'action') {
+                                    // Action cards are now deferred and will be processed after Flip 3 completes
+                                    // Don't add them to player immediately
                                 }
                             });
                             
@@ -1859,7 +1820,7 @@ class Flip7Game {
                                 // For AI, just end the round
                                 setTimeout(() => {
                                     this.endRound();
-                                }, 1000);
+                                }, 600);
                             }
                             
                             // End Flip 3 sequence - set flags but don't clear state yet
@@ -1906,6 +1867,81 @@ class Flip7Game {
             console.log(`🎯 Initial timeout fired - starting processNextCard`);
             processNextCard();
         }, 500);
+    }
+    
+    processDeferredActionCards(deferredActionCards, targetPlayer, drawnCards) {
+        console.log(`🎭 Processing ${deferredActionCards.length} deferred action cards for ${targetPlayer.name}`);
+        
+        // Check if the player busted during the Flip 3
+        const playerBusted = targetPlayer.status === 'busted';
+        
+        if (playerBusted) {
+            // Player busted - nullify all deferred action cards
+            console.log(`💀 ${targetPlayer.name} busted during Flip 3 - nullifying all deferred action cards`);
+            this.addToLog(`${targetPlayer.name} busted during Flip 3! All action cards drawn are discarded.`);
+            
+            // Discard all deferred action cards
+            deferredActionCards.forEach(actionData => {
+                this.discardPile.push(actionData.card);
+                console.log(`🗑️ Discarded ${actionData.card.display} due to bust`);
+            });
+            
+            return; // No further processing needed
+        }
+        
+        // Player didn't bust - process each deferred action card
+        if (deferredActionCards.length > 0) {
+            this.addToLog(`${targetPlayer.name} completed Flip 3 without busting! Processing ${deferredActionCards.length} action card(s):`);
+            
+            deferredActionCards.forEach((actionData, index) => {
+                const { card, drawnBy, cardNumber } = actionData;
+                console.log(`🎯 Processing deferred action ${index + 1}/${deferredActionCards.length}: ${card.display} (drawn as card ${cardNumber})`);
+                
+                if (card.value === 'second_chance') {
+                    // Handle Second Chance
+                    if (!drawnBy.hasSecondChance) {
+                        drawnBy.hasSecondChance = true;
+                        drawnBy.actionCards.push(card);
+                        this.addToLog(`${drawnBy.name} gained a Second Chance!`);
+                    } else {
+                        // Handle duplicate Second Chance
+                        this.handleDuplicateSecondChance(drawnBy, card);
+                    }
+                } else if (card.value === 'flip3') {
+                    // Handle deferred Flip 3 - add to pending queue
+                    this.addToLog(`${drawnBy.name} can now use Flip 3!`);
+                    this.pendingFlip3Queue.push({
+                        cardOwner: drawnBy,
+                        card: card
+                    });
+                    
+                    // If it's a human player, they'll need to select a target when the queue is processed
+                    if (drawnBy.isHuman) {
+                        console.log(`👤 Human player will select Flip 3 target when queue is processed`);
+                    } else {
+                        // AI selects target immediately
+                        const actionTarget = this.determineAITarget(drawnBy, card);
+                        this.pendingFlip3Queue[this.pendingFlip3Queue.length - 1].target = actionTarget;
+                        this.addToLog(`${drawnBy.name} will use Flip 3 on ${actionTarget.name}!`);
+                    }
+                } else if (card.value === 'freeze') {
+                    // Handle deferred Freeze - add it to player's action cards for immediate use
+                    this.addToLog(`${drawnBy.name} can now use Freeze!`);
+                    
+                    if (drawnBy.isHuman) {
+                        // Human player gets the freeze card to use
+                        drawnBy.actionCards.push(card);
+                        this.addToLog(`${drawnBy.name} received a Freeze card to use.`);
+                    } else {
+                        // AI uses freeze immediately
+                        const actionTarget = this.determineAITarget(drawnBy, card);
+                        setTimeout(() => {
+                            this.executeSpecialAction(card, drawnBy, actionTarget);
+                        }, 1000 * (index + 1)); // Stagger AI actions
+                    }
+                }
+            });
+        }
     }
     
     processPendingFlip3Queue() {
@@ -2185,6 +2221,84 @@ class Flip7Game {
         }, 1200);
     }
 
+    animateStay(player) {
+        const playerArea = document.getElementById(player.id);
+        const mobilePlayerArea = document.getElementById(`mobile-${player.id}`);
+        
+        // Apply animation to both desktop and mobile containers
+        const containers = [playerArea, mobilePlayerArea].filter(c => c !== null);
+        
+        containers.forEach(container => {
+            // Add stay animation class
+            container.classList.add('stay-animation');
+            
+            // Create stayed indicator with points
+            const stayedIndicator = document.createElement('div');
+            stayedIndicator.className = 'stayed-indicator';
+            stayedIndicator.innerHTML = `
+                <span class="stayed-icon">✓</span>
+                <span class="stayed-text">STAYED</span>
+                <span class="stayed-points">${player.roundScore} Points Banked!</span>
+            `;
+            
+            // Position indicator at the top of the player area
+            stayedIndicator.style.cssText = `
+                position: absolute;
+                top: -20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1000;
+            `;
+            
+            container.appendChild(stayedIndicator);
+            
+            // Add glow effect to all cards
+            const cards = container.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('stay-glow');
+                }, index * 50); // Stagger the glow effect
+            });
+            
+            // Create points animation
+            const pointsAnimation = document.createElement('div');
+            pointsAnimation.className = 'points-banked-animation';
+            pointsAnimation.textContent = `+${player.roundScore}`;
+            pointsAnimation.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1001;
+            `;
+            container.appendChild(pointsAnimation);
+            
+            // Remove animations after delay
+            setTimeout(() => {
+                container.classList.remove('stay-animation');
+                if (stayedIndicator.parentNode) {
+                    stayedIndicator.remove();
+                }
+                if (pointsAnimation.parentNode) {
+                    pointsAnimation.remove();
+                }
+                
+                // Remove glow from cards
+                cards.forEach(card => {
+                    card.classList.remove('stay-glow');
+                });
+                
+                // Add persistent stayed class for subtle styling
+                container.classList.add('stayed');
+            }, 2500);
+        });
+        
+        // Add to log for mobile if window is mobile size
+        if (window.innerWidth <= 1024) {
+            this.setupMobilePlayerAreas();
+        }
+    }
+
     checkForRoundEnd() {
         // Check if someone got Flip 7
         if (this.players.some(p => p.status === 'flip7')) {
@@ -2202,7 +2316,7 @@ class Flip7Game {
         // If we're still in initial dealing phase, don't start next turn
         // The dealing sequence will handle continuation
         if (this.gameActive && !this.isInitialDealing) {
-            setTimeout(() => this.nextTurn(), 1200); // Standardized timing
+            setTimeout(() => this.nextTurn(), 800); // Speed optimized timing
         }
     }
 
@@ -2292,6 +2406,9 @@ class Flip7Game {
         player.status = 'stayed';
         this.calculateRoundScore(player);
         this.addToLog(`${player.name} stayed with ${player.roundScore} points!`);
+        
+        // Add visual animation for staying
+        this.animateStay(player);
         
         this.updateDisplay();
         this.disablePlayerActions();
@@ -2425,20 +2542,20 @@ class Flip7Game {
                 // Enable actions for human player
                 this.enablePlayerActions();
             } else {
-                // AI turn - first show highlight after brief delay, then AI acts 1 second later
+                // AI turn - faster transitions for better flow
                 setTimeout(() => {
                     // Show whose turn it is
                     this.highlightCurrentPlayer();
                     this.showMessage(`${currentPlayer.name}'s turn...`);
                     
-                    // 1 second later, AI makes decision and draws card
+                    // Reduced AI thinking time from 1000ms to 500ms
                     setTimeout(() => {
                         console.log(`🤖 Taking AI turn for ${currentPlayer.name}`);
                         this.takeAITurn(currentPlayer);
-                    }, 1000);
-                }, 500); // Brief delay after human card animation completes
+                    }, 500); // Reduced from 1000ms
+                }, 300); // Reduced from 500ms
             }
-        }, 800); // Increased delay to let users register the turn highlight
+        }, 400); // Reduced from 800ms - faster turn transitions
     }
 
     takeAITurn(player) {
@@ -2530,6 +2647,10 @@ class Flip7Game {
         player.status = 'stayed';
         this.calculateRoundScore(player);
         this.addToLog(`${player.name} stayed with ${player.roundScore} points!`);
+        
+        // Add visual animation for staying
+        this.animateStay(player);
+        
         this.updateDisplay();
         
         // Move to next player immediately
@@ -3382,8 +3503,8 @@ class Flip7Game {
         // Safety method to clean up freeze visual effects from a specific container
         if (!container) return;
         
-        // Remove frozen classes
-        container.classList.remove('enhanced-frozen', 'frozen-effect');
+        // Remove frozen and stayed classes
+        container.classList.remove('enhanced-frozen', 'frozen-effect', 'frozen', 'busted', 'stayed', 'stay-animation');
         
         // Remove existing freeze indicators
         const existingIndicator = container.querySelector('.frozen-indicator');
@@ -3402,6 +3523,23 @@ class Flip7Game {
         if (statusElement) {
             statusElement.classList.remove('frozen-status');
         }
+    }
+    
+    clearAllFreezeEffects(player) {
+        // Clear freeze effects from desktop container
+        const desktopContainer = document.getElementById(player.id);
+        if (desktopContainer) {
+            this.removeFreezeVisualEffectsFromContainer(desktopContainer);
+        }
+        
+        // Clear freeze effects from mobile container
+        const mobileContainer = document.getElementById(`mobile-${player.id}`);
+        if (mobileContainer) {
+            this.removeFreezeVisualEffectsFromContainer(mobileContainer);
+        }
+        
+        // Also clear the frozen flag
+        player.isFrozen = false;
     }
 
     getTargetCardContainer(playerId, cardType) {
@@ -4344,7 +4482,7 @@ class Flip7Game {
         // Hide indicator after animation
         setTimeout(() => {
             this.hideFlip3SequenceIndicator();
-        }, 1000);
+        }, 600);
     }
     
     handleFlip3Bust(duplicateCard, cardNumber) {
