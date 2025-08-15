@@ -1160,9 +1160,7 @@ body {
 
 /* Mobile card sizing for animation cards */
 @media (max-width: 1024px) {
-    .mobile-center-card-animation-area .animated-card,
-    .mobile-center-card-animation-area .animated-card.card,
-    .mobile-center-card-animation-area .card {
+    .mobile-center-card-animation-area .animated-card {
         width: 85px !important; /* Mobile card size */
         height: 119px !important; /* Mobile card size */
         font-size: 1.5em !important; /* Mobile font size */
@@ -1170,9 +1168,22 @@ body {
         position: absolute !important; /* Position within animation area */
         top: 50% !important; /* Center vertically */
         left: 50% !important; /* Center horizontally */
-        transform: translate(-50%, -50%) !important; /* Center the card itself */
+        margin-top: -59.5px !important; /* Half height for centering */
+        margin-left: -42.5px !important; /* Half width for centering */
         background-size: contain !important; /* Scale background images properly */
         z-index: 10000 !important; /* Ensure it's on top */
+        /* Preserve 3D transform context for flip animation */
+        transform-style: preserve-3d !important;
+    }
+    
+    /* Ensure card-back and card-front work properly on mobile */
+    .mobile-center-card-animation-area .animated-card .card-back,
+    .mobile-center-card-animation-area .animated-card .card-front {
+        width: 100% !important;
+        height: 100% !important;
+        position: absolute !important;
+        backface-visibility: hidden !important;
+        border-radius: 8px !important;
     }
 }
 
