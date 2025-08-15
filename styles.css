@@ -201,14 +201,14 @@ body {
 
 @media (max-width: 1024px) {
     .mobile-center-card-animation-area {
-        /* Keep reliable center positioning with transform */
-        top: 50vh;
+        /* Position higher on screen for better visual impact */
+        top: 35vh;
         left: 50vw;
         transform: translate(-50%, -50%);
         -webkit-transform: translate(-50%, -50%);
-        /* Large enough to center card inside */
-        width: 200px;
-        height: 200px;
+        /* Large enough to center bigger card inside */
+        width: 250px;
+        height: 250px;
         /* Force display on mobile */
         display: block !important;
     }
@@ -1161,15 +1161,15 @@ body {
 /* Mobile card sizing for animation cards */
 @media (max-width: 1024px) {
     .mobile-center-card-animation-area .animated-card {
-        width: 85px !important; /* Mobile card size */
-        height: 119px !important; /* Mobile card size */
-        font-size: 1.5em !important; /* Mobile font size */
+        width: 120px !important; /* Larger initial size for dramatic effect */
+        height: 168px !important; /* Larger initial size (120 * 1.4 ratio) */
+        font-size: 2em !important; /* Larger font for bigger card */
         display: block !important; /* Ensure it's visible */
         position: absolute !important; /* Position within animation area */
         top: 50% !important; /* Center vertically */
         left: 50% !important; /* Center horizontally */
-        margin-top: -59.5px !important; /* Half height for centering */
-        margin-left: -42.5px !important; /* Half width for centering */
+        margin-top: -84px !important; /* Half height for centering (168/2) */
+        margin-left: -60px !important; /* Half width for centering (120/2) */
         background-size: contain !important; /* Scale background images properly */
         z-index: 10000 !important; /* Ensure it's on top */
         /* Preserve 3D transform context for flip animation */

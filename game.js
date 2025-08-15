@@ -2860,9 +2860,9 @@ class Flip7Game {
         
         // Set mobile-specific card size BEFORE getting position
         if (isMobile) {
-            animatedCard.style.width = '85px';
-            animatedCard.style.height = '119px';
-            animatedCard.style.fontSize = '1.5em';
+            animatedCard.style.width = '120px';
+            animatedCard.style.height = '168px';
+            animatedCard.style.fontSize = '2em';
         }
         
         // Get current card position AFTER size changes
@@ -2893,8 +2893,8 @@ class Flip7Game {
         
         if (isMobile) {
             // Simplify mobile targeting - animate to center of player container
-            endX = targetRect.left + (targetRect.width / 2) - (85 / 2);
-            endY = targetRect.top + (targetRect.height / 2) - (119 / 2);
+            endX = targetRect.left + (targetRect.width / 2) - (120 / 2);
+            endY = targetRect.top + (targetRect.height / 2) - (168 / 2);
         } else {
             // Desktop positioning (center of cards container)
             endX = targetRect.left + (targetRect.width / 2) - (animatedCardRect.width / 2);
