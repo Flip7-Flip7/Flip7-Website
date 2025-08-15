@@ -2858,17 +2858,35 @@ class Flip7Game {
     slideCardToPlayerHand(animatedCard, animationArea, card, playerId) {
         const isMobile = window.innerWidth <= 1024;
         
+        // Get current card position BEFORE any modifications
+        const animatedCardRect = animatedCard.getBoundingClientRect();
+        const startX = animatedCardRect.left;
+        const startY = animatedCardRect.top;
+        
+        console.log(`🎴 Card animation start - playerId: ${playerId}, isMobile: ${isMobile}`);
+        console.log(`   Start position: ${startX}, ${startY}`);
+        console.log(`   Card size before: ${animatedCardRect.width}x${animatedCardRect.height}`);
+        
+        // NOW set mobile-specific card size
+        if (isMobile) {
+            animatedCard.style.width = '85px';
+            animatedCard.style.height = '119px';
+            animatedCard.style.fontSize = '1.5em'; // Smaller font for mobile
+        }
+        
         // Get target element based on device type
         let targetElement;
         if (isMobile) {
             // For mobile, target the player area itself since cards are direct children
             targetElement = this.getPlayerAreaElement(playerId);
+            console.log(`📱 Mobile target element for ${playerId}:`, targetElement);
         } else {
             // For desktop, use the cards container
             targetElement = this.getTargetCardContainer(playerId, card.type);
         }
         
         if (!targetElement) {
+            console.log(`❌ No target element found for ${playerId}`);
             // Fallback: just add card directly if no target found
             this.addCardToPlayerHand(card, playerId);
             if (animationArea && animationArea.parentNode) {
@@ -2877,18 +2895,6 @@ class Flip7Game {
             return;
         }
         
-        // Set mobile-specific card size before animation
-        if (isMobile) {
-            animatedCard.style.width = '85px';
-            animatedCard.style.height = '119px';
-            animatedCard.style.fontSize = '1.5em'; // Smaller font for mobile
-        }
-        
-        // Get current card position (center of screen)
-        const animatedCardRect = animatedCard.getBoundingClientRect();
-        const startX = animatedCardRect.left;
-        const startY = animatedCardRect.top;
-        
         // Get target position
         const targetRect = targetElement.getBoundingClientRect();
         let endX, endY;
@@ -2896,11 +2902,15 @@ class Flip7Game {
         if (isMobile) {
             // For mobile, position in the cards area of the player container
             const cardsArea = targetElement.querySelector('.player-cards');
+            console.log(`   Looking for .player-cards in ${targetElement.id}:`, cardsArea);
+            
             if (cardsArea) {
                 const cardsRect = cardsArea.getBoundingClientRect();
+                console.log(`   Cards area found at: ${cardsRect.left}, ${cardsRect.top} (${cardsRect.width}x${cardsRect.height})`);
                 endX = cardsRect.left + 10; // Small offset from left
                 endY = cardsRect.top + 10; // Small offset from top
             } else {
+                console.log(`   No cards area found - using fallback positioning`);
                 // Fallback to player area center
                 endX = targetRect.left + (targetRect.width / 2) - (animatedCardRect.width / 2);
                 endY = targetRect.top + targetRect.height * 0.6; // Position in lower part of player area
@@ -2911,12 +2921,18 @@ class Flip7Game {
             endY = targetRect.top + (targetRect.height / 2) - (animatedCardRect.height / 2);
         }
         
+        console.log(`   Target position: ${endX}, ${endY}`);
+        
         // Calculate slide distance
         const deltaX = endX - startX;
         const deltaY = endY - startY;
         
+        console.log(`   Delta: ${deltaX}, ${deltaY}`);
+        
         // Calculate scale based on device
         const scale = isMobile ? 0.5 : 0.8; // Mobile cards are 50% of animation size
+        
+        console.log(`   Transform: translate(${deltaX}px, ${deltaY}px) scale(${scale})`);
         
         // Apply slide animation
         animatedCard.style.position = 'fixed';
@@ -2928,6 +2944,7 @@ class Flip7Game {
         
         // After slide animation completes, add card to hand and clean up
         setTimeout(() => {
+            console.log(`✅ Animation complete for ${playerId}`);
             this.addCardToPlayerHand(card, playerId);
             
             // Clear animation area
