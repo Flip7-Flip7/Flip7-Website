@@ -204,8 +204,8 @@ body {
         /* Use viewport center with fallbacks for mobile browsers */
         top: 50vh;
         left: 50vw;
-        margin-top: -119px; /* Half of height (238px/2) */
-        margin-left: -85px; /* Half of width (170px/2) */
+        margin-top: -59.5px; /* Half of mobile height (119px/2) */
+        margin-left: -42.5px; /* Half of mobile width (85px/2) */
         transform: none; /* Remove transform to use margins instead */
         /* Ensure proper positioning on mobile Safari */
         -webkit-transform: none;

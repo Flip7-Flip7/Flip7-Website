@@ -2858,17 +2858,17 @@ class Flip7Game {
     slideCardToPlayerHand(animatedCard, animationArea, card, playerId) {
         const isMobile = window.innerWidth <= 1024;
         
-        // Get current card position BEFORE any modifications
-        const animatedCardRect = animatedCard.getBoundingClientRect();
-        const startX = animatedCardRect.left;
-        const startY = animatedCardRect.top;
-        
-        // Set mobile-specific card size
+        // Set mobile-specific card size BEFORE getting position
         if (isMobile) {
             animatedCard.style.width = '85px';
             animatedCard.style.height = '119px';
             animatedCard.style.fontSize = '1.5em';
         }
+        
+        // Get current card position AFTER size changes
+        const animatedCardRect = animatedCard.getBoundingClientRect();
+        const startX = animatedCardRect.left;
+        const startY = animatedCardRect.top;
         
         // Get target element based on device type
         let targetElement;
@@ -2892,13 +2892,9 @@ class Flip7Game {
         let endX, endY;
         
         if (isMobile) {
-            // Account for scroll position on mobile
-            const viewportOffsetX = window.scrollX || 0;
-            const viewportOffsetY = window.scrollY || 0;
-            
             // Simplify mobile targeting - animate to center of player container
-            endX = targetRect.left + (targetRect.width / 2) - (85 / 2) + viewportOffsetX;
-            endY = targetRect.top + (targetRect.height / 2) - (119 / 2) + viewportOffsetY;
+            endX = targetRect.left + (targetRect.width / 2) - (85 / 2);
+            endY = targetRect.top + (targetRect.height / 2) - (119 / 2);
         } else {
             // Desktop positioning (center of cards container)
             endX = targetRect.left + (targetRect.width / 2) - (animatedCardRect.width / 2);
@@ -2917,7 +2913,7 @@ class Flip7Game {
         animatedCard.style.left = startX + 'px';
         animatedCard.style.top = startY + 'px';
         animatedCard.style.zIndex = '10000';
-        animatedCard.style.transformOrigin = 'center center'; // Fix scaling origin
+        animatedCard.style.transformOrigin = isMobile ? 'top left' : 'center center';
         animatedCard.style.transition = `transform ${isMobile ? '0.4s' : '0.6s'} ease-in-out`;
         animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scale})`;
         
@@ -3683,19 +3679,16 @@ class Flip7Game {
         // Handle both numeric (0,1,2,3) and string ('player', 'opponent1') player IDs
         const isMobile = window.innerWidth <= 1024;
         
-        console.log(`🔍 getPlayerAreaElement called with: ${playerId} (type: ${typeof playerId}), isMobile: ${isMobile}`);
         
         if (playerId === 0 || playerId === 'player') {
             const elementId = isMobile ? 'mobile-player' : 'player';
             const element = document.getElementById(elementId);
-            console.log(`👤 Human player - looking for #${elementId}, found:`, element);
             return element;
         } else {
             // Convert numeric player IDs to opponent string format
             const opponentId = typeof playerId === 'number' ? `opponent${playerId}` : playerId;
             const elementId = isMobile ? `mobile-${opponentId}` : opponentId;
             const element = document.getElementById(elementId);
-            console.log(`🤖 AI player - looking for #${elementId}, found:`, element);
             return element;
         }
     }
