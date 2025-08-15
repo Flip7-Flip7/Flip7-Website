@@ -1054,7 +1054,194 @@ export class GameAnimations {
             animatedCard.classList.remove('dragging');
         }, 300);
     }
+
+    // Point Transfer Animation for Round End Scoring
+    animatePointTransfer(player, roundPoints, onComplete) {
+        // Skip animation for players with 0 points (busted players)
+        if (roundPoints <= 0) {
+            if (onComplete) onComplete();
+            return;
+        }
+
+        const isMobile = window.innerWidth <= 1024;
+        const container = isMobile 
+            ? document.getElementById(`mobile-${player.id}`) 
+            : document.getElementById(player.id);
+
+        if (!container) {
+            console.warn(`Container not found for player ${player.id}`);
+            if (onComplete) onComplete();
+            return;
+        }
+
+        // Get round score and total score elements
+        const roundScoreElement = container.querySelector('.player-header .round-value');
+        const totalScoreElement = container.querySelector('.player-header .score-value');
+
+        if (!roundScoreElement || !totalScoreElement) {
+            console.warn(`Score elements not found for player ${player.id}`);
+            if (onComplete) onComplete();
+            return;
+        }
+
+        // Get positions for animation
+        const roundRect = roundScoreElement.getBoundingClientRect();
+        const totalRect = totalScoreElement.getBoundingClientRect();
+
+        // Create flying "+X" points element
+        const flyingPoints = document.createElement('div');
+        flyingPoints.className = 'flying-points';
+        flyingPoints.textContent = `+${roundPoints}`;
+        flyingPoints.style.cssText = `
+            position: fixed;
+            left: ${roundRect.left + (roundRect.width / 2)}px;
+            top: ${roundRect.top - 10}px;
+            font-size: ${isMobile ? '1.4em' : '1.2em'};
+            font-weight: bold;
+            color: #4ade80;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 20000;
+            pointer-events: none;
+            transform: translateX(-50%);
+            opacity: 0;
+        `;
+
+        document.body.appendChild(flyingPoints);
+
+        // Store original total score for counting animation
+        const originalTotalScore = parseInt(totalScoreElement.textContent) || 0;
+        const newTotalScore = originalTotalScore + roundPoints;
+
+        // Animation sequence
+        this.performPointTransferSequence(
+            flyingPoints, 
+            roundRect, 
+            totalRect, 
+            totalScoreElement, 
+            originalTotalScore, 
+            newTotalScore,
+            roundScoreElement,
+            isMobile, 
+            onComplete
+        );
+    }
+
+    performPointTransferSequence(flyingPoints, roundRect, totalRect, totalScoreElement, originalTotal, newTotal, roundScoreElement, isMobile, onComplete) {
+        // Step 1: Show "+X" appearing above round score (500ms)
+        requestAnimationFrame(() => {
+            flyingPoints.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+            flyingPoints.style.opacity = '1';
+            flyingPoints.style.transform = 'translateX(-50%) translateY(-20px) scale(1.2)';
+        });
+
+        setTimeout(() => {
+            // Step 2: Fly from round score to total score (800ms)
+            const deltaX = (totalRect.left + totalRect.width / 2) - (roundRect.left + roundRect.width / 2);
+            const deltaY = (totalRect.top - 10) - (roundRect.top - 10);
+            
+            flyingPoints.style.transition = 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            flyingPoints.style.transform = `translateX(-50%) translate(${deltaX}px, ${deltaY}px) scale(0.9)`;
+            
+            // Add slight rotation for natural movement
+            if (isMobile) {
+                flyingPoints.style.transform += ' rotate(-3deg)';
+            }
+
+            // Step 3: Start counting animation on total score (concurrent with fly)
+            setTimeout(() => {
+                this.animateNumberCounting(totalScoreElement, originalTotal, newTotal, 600);
+                
+                // Add haptic feedback on mobile
+                if (isMobile && navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            }, 200); // Start counting slightly after fly begins
+
+        }, 500); // Wait for appear animation
+
+        setTimeout(() => {
+            // Step 4: Fade out "+X" and round score (300ms)
+            flyingPoints.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+            flyingPoints.style.opacity = '0';
+            flyingPoints.style.transform += ' scale(1.5)'; // Expand as it fades
+
+            // Fade round score to 0 
+            if (roundScoreElement) {
+                roundScoreElement.style.transition = 'all 0.3s ease-out';
+                roundScoreElement.style.opacity = '0.5';
+                roundScoreElement.textContent = '0';
+                
+                setTimeout(() => {
+                    roundScoreElement.style.opacity = '1';
+                }, 300);
+            }
+
+        }, 1300); // After fly animation (500 + 800)
+
+        setTimeout(() => {
+            // Step 5: Cleanup and complete (1900ms total)
+            if (flyingPoints.parentNode) {
+                flyingPoints.parentNode.removeChild(flyingPoints);
+            }
+            
+            if (onComplete) onComplete();
+        }, 1900);
+    }
+
+    animateNumberCounting(element, startValue, endValue, duration) {
+        const startTime = performance.now();
+        
+        const updateNumber = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Use easeOutCubic for smooth counting feel
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            const currentValue = Math.round(startValue + (endValue - startValue) * easeProgress);
+            
+            element.textContent = currentValue;
+            
+            // Add subtle scale effect during counting
+            const scale = 1 + (Math.sin(progress * Math.PI) * 0.1); // Pulse effect
+            element.style.transform = `scale(${scale})`;
+            
+            if (progress < 1) {
+                requestAnimationFrame(updateNumber);
+            } else {
+                // Ensure final value and reset scale
+                element.textContent = endValue;
+                element.style.transform = 'scale(1)';
+            }
+        };
+        
+        requestAnimationFrame(updateNumber);
+    }
+
+    // Animate All Players Point Transfer (called from endRound)
+    animateAllPlayersPointTransfer(players, onAllComplete) {
+        let completedCount = 0;
+        const totalPlayers = players.length;
+        
+        const checkComplete = () => {
+            completedCount++;
+            if (completedCount >= totalPlayers && onAllComplete) {
+                onAllComplete();
+            }
+        };
+
+        // Animate each player with staggered timing (200ms apart)
+        players.forEach((player, index) => {
+            setTimeout(() => {
+                this.animatePointTransfer(player, player.roundScore, checkComplete);
+            }, index * 200); // 200ms stagger between players
+        });
+    }
 }
 
 // Export singleton instance
 export const gameAnimations = new GameAnimations();
+
+// Expose point transfer animation globally for integration with main game
+window.Flip7AnimatePointTransfer = (players, onAllComplete) => {
+    gameAnimations.animateAllPlayersPointTransfer(players, onAllComplete);
+};

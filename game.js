@@ -2699,7 +2699,7 @@ class Flip7Game {
     }
 
     endRound() {
-        // Calculate final scores
+        // Calculate final scores (but don't add to totalScore yet - animation will handle that)
         this.players.forEach(player => {
             if (player.status === 'busted') {
                 player.roundScore = 0;
@@ -2709,9 +2709,42 @@ class Flip7Game {
             } else if (player.status === 'active' || player.status === 'stayed' || player.status === 'flip7' || player.status === 'frozen') {
                 this.calculateRoundScore(player);
             }
-            player.totalScore += player.roundScore;
+            // NOTE: totalScore += roundScore happens in animation, not here
         });
         
+        // Try to use point transfer animations if available
+        this.tryAnimatedPointTransfer();
+    }
+
+    tryAnimatedPointTransfer() {
+        // Try to use the animation module for point transfer
+        try {
+            // Check if we can access the global animation functions
+            if (window.Flip7AnimatePointTransfer) {
+                // Use the global animation function
+                window.Flip7AnimatePointTransfer(this.players, () => {
+                    // After all animations complete, add points to totals and continue
+                    this.players.forEach(player => {
+                        player.totalScore += player.roundScore;
+                    });
+                    this.completeRoundEnd();
+                });
+                return;
+            }
+        } catch (error) {
+            console.log('Animation module not available, using instant update');
+        }
+        
+        // Fallback to instant update
+        this.players.forEach(player => {
+            player.totalScore += player.roundScore;
+        });
+        this.updateDisplay();
+        this.completeRoundEnd();
+    }
+
+    completeRoundEnd() {
+        // Complete the round end process after animations
         this.updateDisplay();
         this.addToLog(`Round ${this.roundNumber} ended!`);
         
