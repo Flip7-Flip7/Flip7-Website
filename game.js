@@ -583,7 +583,11 @@ class Flip7Game {
             
             // Skip frozen or busted players during initial deal
             if (player.status === 'frozen' || player.status === 'busted') {
-                this.addToLog(`${player.name} is ${player.status} and skipped during initial deal.`);
+                if (player.status === 'frozen') {
+                    this.addToLog(`${player.name} is frozen (${player.numberCards.length} cards) and skipped.`);
+                } else {
+                    this.addToLog(`${player.name} is busted and skipped.`);
+                }
                 this.currentDealIndex++;
                 // Continue to next player
                 if (this.currentDealIndex < this.players.length && this.gameActive) {
@@ -1197,10 +1201,20 @@ class Flip7Game {
                 return;
             }
             
-            // Freeze card makes player bank their points (same as staying)
+            // Freeze card logic
             targetPlayer.isFrozen = true;
-            targetPlayer.status = 'stayed';
-            this.calculateRoundScore(targetPlayer);
+            
+            // Check if player has any cards
+            if (targetPlayer.numberCards.length === 0) {
+                // Player frozen before getting any cards - they get 0 points
+                targetPlayer.status = 'frozen';
+                targetPlayer.roundScore = 0;
+                this.addToLog(`${targetPlayer.name} was frozen before receiving any cards! 0 points.`);
+            } else {
+                // Normal freeze - bank their current points
+                targetPlayer.status = 'stayed';
+                this.calculateRoundScore(targetPlayer);
+            }
             
             // Add enhanced freeze visual effects
             this.addFreezeVisualEffects(targetPlayer);
@@ -2662,6 +2676,9 @@ class Flip7Game {
         // Calculate final scores
         this.players.forEach(player => {
             if (player.status === 'busted') {
+                player.roundScore = 0;
+            } else if (player.status === 'frozen' && player.numberCards.length === 0) {
+                // Player was frozen before getting any cards - ensure they stay at 0
                 player.roundScore = 0;
             } else if (player.status === 'active' || player.status === 'stayed' || player.status === 'flip7' || player.status === 'frozen') {
                 this.calculateRoundScore(player);
