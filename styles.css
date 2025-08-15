@@ -1418,6 +1418,30 @@ body {
     }
 }
 
+/* Card floating animation for when finger is lifted */
+@keyframes cardFloating {
+    from {
+        transform: translateY(0px) scale(1.0);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    to {
+        transform: translateY(-8px) scale(1.05);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    }
+}
+
+/* Enhanced drop target glow animation */
+@keyframes dropTargetGlow {
+    from {
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
+        border-color: rgba(34, 197, 94, 0.8);
+    }
+    to {
+        box-shadow: 0 0 35px rgba(34, 197, 94, 1.0);
+        border-color: rgba(34, 197, 94, 1.0);
+    }
+}
+
 /* Enhanced mobile specific drag styles */
 @media (max-width: 1024px) {
     .drag-instructions {

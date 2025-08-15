@@ -2760,6 +2760,68 @@ class Flip7Game {
         }
     }
 
+    // Drag/Drop Game Pause State Management
+    setDragPauseState(isPaused) {
+        this.isDragPaused = isPaused;
+        
+        if (isPaused) {
+            // Disable Hit/Stay buttons
+            const hitBtn = document.getElementById('hit-btn');
+            const stayBtn = document.getElementById('stay-btn');
+            const mobileHitBtn = document.getElementById('mobile-hit-btn');
+            const mobileStayBtn = document.getElementById('mobile-stay-btn');
+            
+            if (hitBtn) hitBtn.disabled = true;
+            if (stayBtn) stayBtn.disabled = true;
+            if (mobileHitBtn) mobileHitBtn.disabled = true;
+            if (mobileStayBtn) mobileStayBtn.disabled = true;
+            
+            // Add visual indicator that game is paused
+            const statusIndicator = document.createElement('div');
+            statusIndicator.id = 'drag-pause-indicator';
+            statusIndicator.innerHTML = '⏸️ Game Paused - Complete Card Action';
+            statusIndicator.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(255, 165, 0, 0.9);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-weight: bold;
+                z-index: 19999;
+                font-size: 0.9em;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            `;
+            document.body.appendChild(statusIndicator);
+            
+            console.log('Game paused for drag/drop action');
+        } else {
+            // Re-enable Hit/Stay buttons (but only if it's the player's turn)
+            const isPlayerTurn = this.players[this.currentPlayerIndex].isHuman;
+            const hitBtn = document.getElementById('hit-btn');
+            const stayBtn = document.getElementById('stay-btn');
+            const mobileHitBtn = document.getElementById('mobile-hit-btn');
+            const mobileStayBtn = document.getElementById('mobile-stay-btn');
+            
+            if (isPlayerTurn) {
+                if (hitBtn) hitBtn.disabled = false;
+                if (stayBtn) stayBtn.disabled = false;
+                if (mobileHitBtn) mobileHitBtn.disabled = false;
+                if (mobileStayBtn) mobileStayBtn.disabled = false;
+            }
+            
+            // Remove pause indicator
+            const statusIndicator = document.getElementById('drag-pause-indicator');
+            if (statusIndicator) {
+                statusIndicator.remove();
+            }
+            
+            console.log('Game unpaused - continuing normal flow');
+        }
+    }
+
     endGame(winner) {
         this.gameActive = false;
         
