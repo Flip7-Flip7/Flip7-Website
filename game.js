@@ -2833,14 +2833,55 @@ class Flip7Game {
                 return;
             }
             
-            // For regular cards, just add to hand and remove animation
+            // For regular cards, slide from center to player hand
+            this.slideCardToPlayerHand(animatedCard, animationArea, card, playerId);
+        }, revealDuration); // Wait for flip to complete
+    }
+
+    slideCardToPlayerHand(animatedCard, animationArea, card, playerId) {
+        
+        // Get target position for the player's hand
+        const targetElement = this.getTargetCardContainer(playerId, card.type);
+        if (!targetElement) {
+            // Fallback: just add card directly if no target found
+            this.addCardToPlayerHand(card, playerId);
+            if (animationArea && animationArea.parentNode) {
+                animationArea.innerHTML = '';
+            }
+            return;
+        }
+        
+        // Get current card position (center of screen)
+        const animatedCardRect = animatedCard.getBoundingClientRect();
+        const startX = animatedCardRect.left;
+        const startY = animatedCardRect.top;
+        
+        // Get target position (player's hand area)
+        const targetRect = targetElement.getBoundingClientRect();
+        const endX = targetRect.left + (targetRect.width / 2) - (animatedCardRect.width / 2);
+        const endY = targetRect.top + (targetRect.height / 2) - (animatedCardRect.height / 2);
+        
+        // Calculate slide distance
+        const deltaX = endX - startX;
+        const deltaY = endY - startY;
+        
+        // Apply slide animation
+        animatedCard.style.position = 'fixed';
+        animatedCard.style.left = startX + 'px';
+        animatedCard.style.top = startY + 'px';
+        animatedCard.style.zIndex = '10000';
+        animatedCard.style.transition = 'transform 0.6s ease-out';
+        animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.8)`;
+        
+        // After slide animation completes, add card to hand and clean up
+        setTimeout(() => {
             this.addCardToPlayerHand(card, playerId);
             
             // Clear animation area
             if (animationArea && animationArea.parentNode) {
                 animationArea.innerHTML = '';
             }
-        }, revealDuration); // Wait for flip to complete
+        }, 600); // Match the transition duration
     }
 
     transitionToInteractiveCard(animatedCard, animationArea, card, playerId) {
