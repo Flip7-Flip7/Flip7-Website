@@ -2874,9 +2874,11 @@ class Flip7Game {
             animatedCard.style.width = '120px';
             animatedCard.style.height = '168px';
             animatedCard.style.fontSize = '2em';
+            // Add sliding class to override CSS positioning conflicts
+            animatedCard.classList.add('sliding');
         }
         
-        // Get current card position AFTER size changes
+        // Get current card position AFTER size changes and class addition
         const animatedCardRect = animatedCard.getBoundingClientRect();
         const startX = animatedCardRect.left;
         const startY = animatedCardRect.top;
@@ -2923,10 +2925,14 @@ class Flip7Game {
         animatedCard.style.position = 'fixed';
         animatedCard.style.left = startX + 'px';
         animatedCard.style.top = startY + 'px';
-        animatedCard.style.zIndex = '10000';
+        animatedCard.style.zIndex = isMobile ? '15000' : '10000'; // Higher z-index for mobile
         animatedCard.style.transformOrigin = 'center center';
-        animatedCard.style.transition = `transform ${isMobile ? '0.4s' : '0.6s'} ease-in-out`;
+        animatedCard.style.transition = `transform ${isMobile ? '0.6s' : '0.6s'} ease-in-out`; // Slower for visibility
         animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scale})`;
+        
+        // Ensure card is visible during animation
+        animatedCard.style.visibility = 'visible';
+        animatedCard.style.opacity = '1';
         
         // After slide animation completes, add card to hand and clean up
         setTimeout(() => {

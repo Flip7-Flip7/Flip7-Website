@@ -1176,6 +1176,16 @@ body {
         transform-style: preserve-3d !important;
     }
     
+    /* During slide animation, remove positioning conflicts */
+    .mobile-center-card-animation-area .animated-card.sliding {
+        position: fixed !important; /* Allow JavaScript to control positioning during slide */
+        top: auto !important; 
+        left: auto !important;
+        margin: 0 !important; /* Remove margin-based centering during slide */
+        transform-style: preserve-3d !important; /* Maintain 3D context */
+        z-index: 15000 !important; /* Higher z-index during slide animation */
+    }
+    
     /* Ensure card-back and card-front work properly on mobile */
     .mobile-center-card-animation-area .animated-card .card-back,
     .mobile-center-card-animation-area .animated-card .card-front {
