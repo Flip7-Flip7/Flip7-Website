@@ -15,6 +15,7 @@ class Flip7Game {
         this.dealNextCardFunction = null; // Store deal function for continuation
         this.pendingInitialDealContinuation = null; // Store continuation for human action cards
         this.initialDealSafetyTimeout = null; // Safety timeout for initial deal
+        this.backdropAutoHideTimeout = null; // Backdrop auto-hide timeout
         this.actionQueue = [];
         this.isProcessingFlip3 = false;
         this.flip3CompletionPending = false; // Flag to prevent race conditions during completion
@@ -2802,15 +2803,25 @@ class Flip7Game {
         const revealDuration = 600; // Quick simple flip
         
         // Show backdrop for focus (mobile only)
+        let backdropTimeout = null;
         if (isMobile) {
             const backdrop = document.getElementById('animation-backdrop');
             if (backdrop) {
                 backdrop.classList.add('show');
                 
-                // Hide backdrop after animation completes
-                setTimeout(() => {
-                    backdrop.classList.remove('show');
-                }, revealDuration + 100); // Just after flip completes
+                // Only set auto-hide timeout for non-interactive cards
+                // Interactive cards (Flip3/Freeze for humans) will manage their own backdrop
+                const willBecomeInteractive = card.type === 'action' && 
+                    (card.value === 'freeze' || card.value === 'flip3') && 
+                    playerId === 'player';
+                
+                if (!willBecomeInteractive) {
+                    // Hide backdrop after animation completes for normal cards
+                    this.backdropAutoHideTimeout = setTimeout(() => {
+                        backdrop.classList.remove('show');
+                        this.backdropAutoHideTimeout = null;
+                    }, revealDuration + 100); // Just after flip completes
+                }
             }
         }
         
@@ -2929,6 +2940,12 @@ class Flip7Game {
     }
 
     transitionToInteractiveCard(animatedCard, animationArea, card, playerId) {
+        // Clear any pending backdrop auto-hide timeout since we're taking control
+        if (this.backdropAutoHideTimeout) {
+            clearTimeout(this.backdropAutoHideTimeout);
+            this.backdropAutoHideTimeout = null;
+        }
+        
         // Remove the reveal animation classes
         animatedCard.classList.remove('flip-reveal', 'mobile-reveal');
         
