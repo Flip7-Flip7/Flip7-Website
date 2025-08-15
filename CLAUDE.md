@@ -44,6 +44,8 @@ python3 -m http.server 8081
 - Repository: https://github.com/Flip7-Flip7/Flip7-Website.git
 - Deployment: GitHub Pages (CDN propagation: 10-15 minutes)
 - Cache busting: Update version parameters in index.html when files change
+- **IMPORTANT**: Always commit and push changes immediately after fixing issues
+- Commit with descriptive messages and push to origin/main for automatic deployment
 
 ## Current Issues & Status
 
