@@ -1684,7 +1684,25 @@ class Flip7Game {
             
             // Preview the card in the popup
             const slotNumber = cardsFlipped;
-            let isDuplicate = nextCard.type === 'number' && targetPlayer.uniqueNumbers.has(nextCard.value);
+            
+            // Check for duplicates: both existing cards AND cards drawn in current Flip 3
+            let isDuplicate = false;
+            if (nextCard.type === 'number') {
+                // Check against existing player cards
+                const existingDuplicate = targetPlayer.uniqueNumbers.has(nextCard.value);
+                
+                // Check against cards already drawn in this Flip 3 sequence
+                const flip3Duplicate = this.flip3DrawnCards.some(card => 
+                    card.type === 'number' && card.value === nextCard.value
+                );
+                
+                isDuplicate = existingDuplicate || flip3Duplicate;
+                
+                if (flip3Duplicate) {
+                    console.log(`🚨 DUPLICATE DETECTED in Flip 3 sequence! Card ${nextCard.value} already drawn in this Flip 3`);
+                }
+            }
+            
             const hasSecondChance = targetPlayer.hasSecondChance && isDuplicate;
             console.log(`🔍 Card analysis - isDuplicate: ${isDuplicate}, hasSecondChance: ${hasSecondChance}`);
             
@@ -1755,12 +1773,13 @@ class Flip7Game {
                 }
                 
                 if (isDuplicate && !hasSecondChance) {
-                    // Handle bust
+                    // Handle immediate bust - critical for Flip 3 duplicate detection
                     targetPlayer.numberCards.push(nextCard);
                     targetPlayer.numberCards.sort((a, b) => a.value - b.value);
                     targetPlayer.status = 'busted';
-                    this.addToLog(`${targetPlayer.name} busted with duplicate ${nextCard.value} during Flip Three!`);
-                    this.calculateRoundScore(targetPlayer);
+                    targetPlayer.roundScore = 0; // Immediate bust = zero points
+                    this.addToLog(`${targetPlayer.name} BUSTED with duplicate ${nextCard.value} during Flip Three! Round score: 0`);
+                    this.calculateRoundScore(targetPlayer); // Ensure proper calculation
                     
                     // Show bust animation in popup briefly
                     this.handleFlip3Bust(nextCard, cardsFlipped);
