@@ -1615,7 +1615,7 @@ body {
         rgba(96, 165, 250, 0.85) 100%);
     backdrop-filter: blur(2px);
     animation: freezePulse 3s ease-in-out infinite;
-    z-index: 9999 !important;
+    z-index: 99999 !important; /* Much higher to be above all animation elements */
     pointer-events: none;
     border-radius: inherit;
 }
@@ -1634,7 +1634,7 @@ body {
         0 2px 4px rgba(0,0,0,0.3);
     animation: frostGlow 1.5s ease-in-out infinite;
     letter-spacing: 0.1em;
-    z-index: 10000 !important;
+    z-index: 100000 !important; /* Even higher for text visibility */
 }
 
 /* Ice crystal pattern background */
@@ -1803,18 +1803,28 @@ body {
     
     /* Mobile freeze overlay adjustments - Make MUCH more visible */
     .freeze-overlay-text {
-        font-size: 3em !important;
+        font-size: 4em !important; /* Even larger text */
+        font-weight: 900 !important; /* Bolder text */
+        z-index: 200000 !important; /* Extremely high z-index for mobile */
         text-shadow: 
-            0 0 30px rgba(255,255,255,1) !important,
-            0 0 60px rgba(96, 165, 250, 1) !important,
-            0 0 90px rgba(147, 197, 253, 1) !important,
-            0 4px 8px rgba(0,0,0,0.8) !important;
+            0 0 40px rgba(255,255,255,1) !important,
+            0 0 80px rgba(96, 165, 250, 1) !important,
+            0 0 120px rgba(147, 197, 253, 1) !important,
+            0 6px 12px rgba(0,0,0,1) !important;
         background: linear-gradient(45deg, #60a5fa, #3b82f6, #93c5fd, #dbeafe) !important;
         -webkit-background-clip: text !important;
         -webkit-text-fill-color: transparent !important;
         background-clip: text !important;
         animation: mobileFreezeText 1s ease-in-out infinite !important;
         filter: drop-shadow(0 0 20px rgba(96, 165, 250, 1)) !important;
+    }
+    
+    /* Ensure freeze overlay is visible on mobile */
+    .freeze-overlay {
+        z-index: 150000 !important; /* Higher than mobile button z-index */
+        background: rgba(30, 58, 138, 0.95) !important; /* More opaque background */
+        backdrop-filter: blur(4px) !important;
+        border: 3px solid rgba(96, 165, 250, 0.8) !important; /* Visible border */
     }
     
     @keyframes mobileFreezeText {

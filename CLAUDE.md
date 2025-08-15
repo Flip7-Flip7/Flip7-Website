@@ -108,3 +108,6 @@ Increment version numbers and update timestamp.
 - Wait 10-15 minutes after git push for GitHub Pages deployment
 - Check browser console for JavaScript errors when debugging
 - Mobile Safari can be more aggressive with caching than Chrome
+
+## Development Focus
+- Everything I tell you is for the mobile version. I could care less how it looks on the desktop version right now but I want the mobile version to be flawless.
