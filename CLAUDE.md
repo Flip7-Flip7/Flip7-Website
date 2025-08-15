@@ -98,6 +98,9 @@ Increment version numbers and update timestamp.
 - [ ] Works in Chrome incognito mode
 - [ ] Responsive on actual mobile devices
 
+## Code Best Practices
+- Always use descriptive variable names
+
 ## Notes
 - Always test in mobile Chrome incognito to avoid cache issues
 - Wait 10-15 minutes after git push for GitHub Pages deployment

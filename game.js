@@ -2839,9 +2839,18 @@ class Flip7Game {
     }
 
     slideCardToPlayerHand(animatedCard, animationArea, card, playerId) {
+        const isMobile = window.innerWidth <= 1024;
         
-        // Get target position for the player's hand
-        const targetElement = this.getTargetCardContainer(playerId, card.type);
+        // Get target element based on device type
+        let targetElement;
+        if (isMobile) {
+            // For mobile, target the player area itself since cards are direct children
+            targetElement = this.getPlayerAreaElement(playerId);
+        } else {
+            // For desktop, use the cards container
+            targetElement = this.getTargetCardContainer(playerId, card.type);
+        }
+        
         if (!targetElement) {
             // Fallback: just add card directly if no target found
             this.addCardToPlayerHand(card, playerId);
@@ -2851,27 +2860,54 @@ class Flip7Game {
             return;
         }
         
+        // Set mobile-specific card size before animation
+        if (isMobile) {
+            animatedCard.style.width = '85px';
+            animatedCard.style.height = '119px';
+            animatedCard.style.fontSize = '1.5em'; // Smaller font for mobile
+        }
+        
         // Get current card position (center of screen)
         const animatedCardRect = animatedCard.getBoundingClientRect();
         const startX = animatedCardRect.left;
         const startY = animatedCardRect.top;
         
-        // Get target position (player's hand area)
+        // Get target position
         const targetRect = targetElement.getBoundingClientRect();
-        const endX = targetRect.left + (targetRect.width / 2) - (animatedCardRect.width / 2);
-        const endY = targetRect.top + (targetRect.height / 2) - (animatedCardRect.height / 2);
+        let endX, endY;
+        
+        if (isMobile) {
+            // For mobile, position in the cards area of the player container
+            const cardsArea = targetElement.querySelector('.player-cards');
+            if (cardsArea) {
+                const cardsRect = cardsArea.getBoundingClientRect();
+                endX = cardsRect.left + 10; // Small offset from left
+                endY = cardsRect.top + 10; // Small offset from top
+            } else {
+                // Fallback to player area center
+                endX = targetRect.left + (targetRect.width / 2) - (animatedCardRect.width / 2);
+                endY = targetRect.top + targetRect.height * 0.6; // Position in lower part of player area
+            }
+        } else {
+            // Desktop positioning (center of cards container)
+            endX = targetRect.left + (targetRect.width / 2) - (animatedCardRect.width / 2);
+            endY = targetRect.top + (targetRect.height / 2) - (animatedCardRect.height / 2);
+        }
         
         // Calculate slide distance
         const deltaX = endX - startX;
         const deltaY = endY - startY;
+        
+        // Calculate scale based on device
+        const scale = isMobile ? 0.5 : 0.8; // Mobile cards are 50% of animation size
         
         // Apply slide animation
         animatedCard.style.position = 'fixed';
         animatedCard.style.left = startX + 'px';
         animatedCard.style.top = startY + 'px';
         animatedCard.style.zIndex = '10000';
-        animatedCard.style.transition = 'transform 0.6s ease-out';
-        animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.8)`;
+        animatedCard.style.transition = `transform ${isMobile ? '0.4s' : '0.6s'} ease-in-out`;
+        animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scale})`;
         
         // After slide animation completes, add card to hand and clean up
         setTimeout(() => {
@@ -2881,7 +2917,7 @@ class Flip7Game {
             if (animationArea && animationArea.parentNode) {
                 animationArea.innerHTML = '';
             }
-        }, 600); // Match the transition duration
+        }, isMobile ? 400 : 600); // Match the transition duration
     }
 
     transitionToInteractiveCard(animatedCard, animationArea, card, playerId) {
