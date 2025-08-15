@@ -222,8 +222,828 @@ export class GameAnimations {
         this.enableCardDrag(animatedCard, card, playerId, animationArea, gameInstance);
     }
 
-    // Placeholder for remaining animation methods - will be filled in next phase
-    // This ensures the module loads without breaking existing functionality
+    // Freeze Visual Effects
+    addFreezeVisualEffects(targetPlayer, gameInstance) {
+        // Enhanced freeze effects (builds on existing system)
+        const isMobile = window.innerWidth <= 1024;
+        
+        // Get containers for both desktop and mobile
+        const desktopContainer = document.getElementById(targetPlayer.id);
+        const mobileContainer = document.getElementById(`mobile-${targetPlayer.id}`);
+        
+        // Always add effects to both containers to ensure visibility
+        const containers = [desktopContainer, mobileContainer].filter(c => c !== null);
+        
+        if (containers.length === 0) {
+            console.warn(`❌ No containers found for player ${targetPlayer.name}`);
+            return;
+        }
+        
+        containers.forEach(container => {
+            // Safety check: Remove any existing freeze effects first to prevent duplication
+            this.removeFreezeVisualEffectsFromContainer(container);
+            
+            // Add enhanced frozen class for additional effects
+            container.classList.add('enhanced-frozen');
+            container.style.position = 'relative';
+            
+            // Create dramatic freeze overlay
+            const freezeOverlay = document.createElement('div');
+            freezeOverlay.className = 'freeze-overlay';
+            
+            // Add ice crystals background
+            const iceCrystals = document.createElement('div');
+            iceCrystals.className = 'ice-crystals';
+            freezeOverlay.appendChild(iceCrystals);
+            
+            // Add FROZEN text
+            const frozenText = document.createElement('div');
+            frozenText.className = 'freeze-overlay-text';
+            frozenText.innerHTML = '❄️ FROZEN ❄️';
+            freezeOverlay.appendChild(frozenText);
+            
+            // Add ice shards border
+            const iceShards = document.createElement('div');
+            iceShards.className = 'freeze-ice-shards';
+            container.appendChild(iceShards);
+            
+            // Add floating ice particles
+            const particlesContainer = document.createElement('div');
+            particlesContainer.className = 'freeze-particles';
+            
+            // Create multiple floating ice particles
+            const particles = ['❄', '❅', '❆', '✦', '✧', '◆'];
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('span');
+                particle.className = 'ice-particle';
+                particle.textContent = particles[Math.floor(Math.random() * particles.length)];
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 3 + 's';
+                particle.style.animationDuration = (2 + Math.random() * 3) + 's';
+                particlesContainer.appendChild(particle);
+            }
+            
+            container.appendChild(particlesContainer);
+            
+            // Add overlay to container
+            container.appendChild(freezeOverlay);
+            
+            console.log(`✅ Added dramatic freeze overlay to container:`, container.id || container.className);
+        });
+        
+        // Create ice particles effect on primary container
+        const primaryContainer = isMobile && mobileContainer ? mobileContainer : desktopContainer;
+        if (primaryContainer) {
+            this.createIceParticles(primaryContainer);
+        }
+    }
+
+    removeFreezeVisualEffectsFromContainer(container) {
+        if (!container) return;
+        
+        // Remove frozen and stayed classes
+        container.classList.remove('enhanced-frozen', 'frozen-effect', 'frozen', 'busted', 'stayed', 'stay-animation');
+        
+        // Remove freeze overlay (new dramatic effect)
+        const freezeOverlay = container.querySelector('.freeze-overlay');
+        if (freezeOverlay) {
+            freezeOverlay.remove();
+        }
+        
+        // Remove ice shards border
+        const iceShards = container.querySelector('.freeze-ice-shards');
+        if (iceShards) {
+            iceShards.remove();
+        }
+        
+        // Remove particles
+        const particles = container.querySelector('.freeze-particles');
+        if (particles) {
+            particles.remove();
+        }
+        
+        // Remove ice particles
+        const iceParticles = container.querySelector('.ice-particles');
+        if (iceParticles) {
+            iceParticles.remove();
+        }
+    }
+
+    clearAllFreezeEffects(player) {
+        // Clear freeze effects from both desktop and mobile containers
+        const desktopContainer = document.getElementById(player.id);
+        const mobileContainer = document.getElementById(`mobile-${player.id}`);
+        
+        if (desktopContainer) {
+            this.removeFreezeVisualEffectsFromContainer(desktopContainer);
+        }
+        
+        if (mobileContainer) {
+            this.removeFreezeVisualEffectsFromContainer(mobileContainer);
+        }
+    }
+
+    createIceParticles(container) {
+        // Create falling ice particle effect
+        const particles = document.createElement('div');
+        particles.className = 'ice-particles';
+        particles.innerHTML = '❄❅❆✦✧◆❄❅❆';
+        container.appendChild(particles);
+        
+        // Remove particles after animation
+        setTimeout(() => {
+            particles.remove();
+        }, 700);
+    }
+
+    // Card Display and Creation
+    displayCard(card, playerId, gameInstance) {
+        // Try animation first, with fallback to direct addition
+        try {
+            this.animateCardFlip(card, playerId, gameInstance);
+        } catch (error) {
+            console.error('Animation failed, adding card directly:', error);
+            gameInstance.addCardToPlayerHand(card, playerId);
+        }
+    }
+
+    createCardElement(card) {
+        const cardElement = document.createElement('div');
+        cardElement.classList.add('card');
+        
+        if (card.type === 'number') {
+            cardElement.classList.add('number-card');
+            cardElement.textContent = card.value;
+            cardElement.style.backgroundColor = this.getCardColor(card.value);
+        } else if (card.type === 'action') {
+            cardElement.classList.add('action-card');
+            cardElement.textContent = card.display;
+            if (card.value === 'freeze') {
+                cardElement.style.background = 'linear-gradient(135deg, #1e3a8a, #3b82f6)';
+            } else if (card.value === 'flip3') {
+                cardElement.style.background = 'linear-gradient(135deg, #7c2d12, #dc2626)';
+            } else if (card.value === 'second_chance') {
+                cardElement.style.background = 'linear-gradient(135deg, #15803d, #22c55e)';
+            }
+        } else if (card.type === 'modifier') {
+            cardElement.classList.add('modifier-card');
+            cardElement.textContent = card.display;
+            cardElement.style.background = 'linear-gradient(135deg, #7c2d12, #f59e0b)';
+        }
+        
+        return cardElement;
+    }
+
+    getCardColor(value) {
+        const colors = [
+            '#1f2937', '#374151', '#4b5563', '#6b7280', '#9ca3af',
+            '#d1d5db', '#e5e7eb', '#f3f4f6', '#f9fafb', '#ffffff',
+            '#fef3c7', '#fde68a', '#f59e0b'
+        ];
+        return colors[value] || '#6b7280';
+    }
+
+    // AI and Transfer Animations
+    animateAICardDrag(card, fromPlayer, toPlayer, callback, gameInstance) {
+        const fromElement = document.getElementById(fromPlayer.id);
+        const toElement = document.getElementById(toPlayer.id);
+        
+        if (!fromElement || !toElement) {
+            if (callback) callback();
+            return;
+        }
+        
+        // Create animated card element
+        const animatedCard = this.createCardElement(card);
+        animatedCard.style.position = 'fixed';
+        animatedCard.style.zIndex = '10000';
+        animatedCard.style.width = '60px';
+        animatedCard.style.height = '84px';
+        animatedCard.style.fontSize = '0.8em';
+        animatedCard.style.pointerEvents = 'none';
+        
+        // Get start and end positions
+        const fromRect = fromElement.getBoundingClientRect();
+        const toRect = toElement.getBoundingClientRect();
+        
+        // Set start position
+        animatedCard.style.left = (fromRect.left + fromRect.width / 2 - 30) + 'px';
+        animatedCard.style.top = (fromRect.top + fromRect.height / 2 - 42) + 'px';
+        
+        document.body.appendChild(animatedCard);
+        
+        // Calculate end position
+        const endX = toRect.left + toRect.width / 2 - 30;
+        const endY = toRect.top + toRect.height / 2 - 42;
+        
+        // Animate movement
+        animatedCard.style.transition = 'all 0.8s ease-in-out';
+        setTimeout(() => {
+            animatedCard.style.left = endX + 'px';
+            animatedCard.style.top = endY + 'px';
+            animatedCard.style.transform = 'scale(0.5)';
+        }, 100);
+        
+        // Cleanup and callback
+        setTimeout(() => {
+            document.body.removeChild(animatedCard);
+            if (callback) callback();
+        }, 800);
+    }
+
+    // Player State Animations
+    animateBust(player) {
+        const playerElement = document.getElementById(player.id);
+        if (playerElement) {
+            playerElement.classList.add('bust-animation');
+            setTimeout(() => {
+                playerElement.classList.remove('bust-animation');
+            }, 1000);
+        }
+    }
+
+    animateStay(player) {
+        const playerElement = document.getElementById(player.id);
+        if (playerElement) {
+            playerElement.classList.add('stay-animation');
+            setTimeout(() => {
+                playerElement.classList.remove('stay-animation');
+            }, 1500);
+        }
+    }
+
+    // Flip 3 Progress and UI Animations
+    showFlip3SequenceIndicator(cardOwner, targetPlayer, currentCard, gameInstance) {
+        console.log(`🔄 Showing Flip3 indicator: ${cardOwner.name} → ${targetPlayer.name}`);
+        
+        const indicator = document.getElementById('flip3-progress-indicator');
+        const targetName = document.getElementById('flip3-target-name');
+        const currentCounter = document.getElementById('flip3-current');
+        const statusDiv = document.getElementById('flip3-status');
+        
+        if (!indicator || !targetName || !currentCounter) {
+            console.warn('Flip3 indicator elements not found');
+            return;
+        }
+        
+        // Set target player name
+        targetName.textContent = targetPlayer.name;
+        
+        // Reset all dots
+        const dots = indicator.querySelectorAll('.flip3-dot');
+        dots.forEach(dot => {
+            dot.classList.remove('filled', 'active');
+        });
+        
+        // Reset card slots to show card backs
+        for (let i = 1; i <= 3; i++) {
+            const slot = document.getElementById(`flip3-card-${i}`);
+            if (slot) {
+                slot.innerHTML = '<div class="card back"></div>';
+            }
+        }
+        
+        // Clear status
+        if (statusDiv) {
+            statusDiv.textContent = '';
+            statusDiv.className = 'flip3-status';
+        }
+        
+        // Set starting state (card 1)
+        currentCounter.textContent = '1';
+        if (dots[0]) dots[0].classList.add('active');
+        
+        // Show the backdrop and indicator
+        const backdrop = document.getElementById('flip3-backdrop');
+        if (backdrop) backdrop.style.display = 'block';
+        indicator.style.display = 'block';
+    }
+
+    updateFlip3Progress(currentCard) {
+        console.log(`🔄 Updating Flip3 progress: card ${currentCard}`);
+        
+        const indicator = document.getElementById('flip3-progress-indicator');
+        const currentCounter = document.getElementById('flip3-current');
+        
+        if (!indicator || !currentCounter) {
+            console.warn('Flip3 indicator elements not found for update');
+            return;
+        }
+        
+        const dots = indicator.querySelectorAll('.flip3-dot');
+        
+        // Update counter
+        currentCounter.textContent = currentCard.toString();
+        
+        // Update dots
+        dots.forEach((dot, index) => {
+            dot.classList.remove('active');
+            if (index < currentCard) {
+                dot.classList.add('filled');
+            }
+        });
+        
+        // Set active dot (next card to be drawn)
+        if (currentCard < 3 && dots[currentCard]) {
+            dots[currentCard].classList.add('active');
+        }
+        
+        // Special handling for completion
+        if (currentCard >= 3) {
+            // All cards drawn - brief "COMPLETE!" message
+            setTimeout(() => {
+                const title = indicator.querySelector('.flip3-title');
+                if (title) {
+                    const originalText = title.textContent;
+                    title.textContent = 'FLIP 3 COMPLETE!';
+                    title.style.color = '#4ade80'; // Green
+                    
+                    setTimeout(() => {
+                        title.textContent = originalText;
+                        title.style.color = '#ffd700'; // Back to gold
+                    }, 1000);
+                }
+            }, 500);
+        }
+    }
+
+    hideFlip3SequenceIndicator() {
+        console.log('🔄 Hiding Flip3 indicator');
+        
+        const indicator = document.getElementById('flip3-progress-indicator');
+        if (!indicator) {
+            console.warn('Flip3 indicator not found for hiding');
+            return;
+        }
+        
+        // Fade out animation
+        indicator.style.animation = 'flip3Appear 0.3s ease-in reverse';
+        
+        setTimeout(() => {
+            // Hide backdrop and indicator
+            const backdrop = document.getElementById('flip3-backdrop');
+            if (backdrop) backdrop.style.display = 'none';
+            indicator.style.display = 'none';
+            indicator.style.animation = ''; // Reset animation
+        }, 300);
+    }
+
+    previewFlip3Card(card, slotNumber, gameInstance) {
+        console.log(`🎴 Previewing Flip3 card ${slotNumber}: ${card.display}`);
+        
+        const slot = document.getElementById(`flip3-card-${slotNumber}`);
+        if (!slot) return;
+        
+        const cardDiv = slot.querySelector('.card');
+        if (!cardDiv) return;
+        
+        // Add flipping animation class
+        cardDiv.classList.add('flipping');
+        
+        // After flip animation, show the card face using proper card creation
+        setTimeout(() => {
+            // Create a properly formatted card element
+            const properCard = this.createCardElement(card);
+            
+            // Copy the proper card styling to the existing div
+            cardDiv.className = properCard.className;
+            cardDiv.innerHTML = properCard.innerHTML;
+            
+            // Copy background image if it exists (for custom images)
+            if (properCard.style.backgroundImage) {
+                cardDiv.style.backgroundImage = properCard.style.backgroundImage;
+                cardDiv.style.backgroundSize = 'cover';
+                cardDiv.style.backgroundPosition = 'center';
+            }
+            
+            console.log(`✅ Card ${slotNumber} preview updated with proper styling:`, cardDiv.className);
+        }, 300);
+    }
+
+    animateFlip3Success() {
+        console.log('✅ Animating Flip3 success - adding cards to hand');
+        
+        // Get all card slots
+        const slots = [];
+        for (let i = 1; i <= 3; i++) {
+            const slot = document.getElementById(`flip3-card-${i}`);
+            if (slot) {
+                const cardDiv = slot.querySelector('.card');
+                if (cardDiv) {
+                    slots.push(cardDiv);
+                }
+            }
+        }
+        
+        // Animate cards flying to player's hand
+        slots.forEach((cardDiv, index) => {
+            setTimeout(() => {
+                cardDiv.style.animation = 'flip3CardFlyToHand 0.5s ease-out forwards';
+            }, index * 100);
+        });
+        
+        // Update status
+        const statusDiv = document.getElementById('flip3-status');
+        if (statusDiv) {
+            statusDiv.textContent = 'All cards added successfully!';
+            statusDiv.className = 'flip3-status success';
+        }
+    }
+
+    // Celebration Animations
+    animateFlip7Celebration(player, gameInstance) {
+        // Starting Flip 7 celebration
+        
+        // Show celebration overlay
+        const celebrationEl = document.getElementById('flip7-celebration');
+        celebrationEl.style.display = 'block';
+        
+        // Stage 1: Card wave animation (2s)
+        this.animateCardWave(player, gameInstance);
+        
+        setTimeout(() => {
+            // Stage 2: Logo drops and spins (2s)
+            this.showFlip7Logo();
+            
+            setTimeout(() => {
+                // Stage 3: Fast spinning top effect (2s)
+                this.spinLogoFast();
+                
+                setTimeout(() => {
+                    // Stage 4: Wobble and finale with glitter (2.5s)
+                    this.wobbleAndExplodeLogo();
+                    
+                    setTimeout(() => {
+                        // Stage 5: Clean up and end round (6.5s total)
+                        this.cleanupFlip7Celebration();
+                        if (gameInstance && gameInstance.endRound) {
+                            gameInstance.endRound();
+                        }
+                    }, 2500);
+                }, 2000);
+            }, 2000);
+        }, 2000);
+    }
+
+    animateCardWave(player, gameInstance) {
+        const cardContainer = gameInstance.getTargetCardContainer(player.id, 'number');
+        const numberCards = cardContainer ? cardContainer.querySelectorAll('.card[data-card-type="number"]') : [];
+        
+        // Clone and animate each card
+        numberCards.forEach((card, index) => {
+            // Create animated clone
+            const cardClone = card.cloneNode(true);
+            cardClone.classList.add('card-wave-up');
+            
+            // Position at original card location
+            const rect = card.getBoundingClientRect();
+            cardClone.style.left = rect.left + 'px';
+            cardClone.style.top = rect.top + 'px';
+            cardClone.style.width = rect.width + 'px';
+            cardClone.style.height = rect.height + 'px';
+            
+            // Add to document
+            document.body.appendChild(cardClone);
+            
+            // Stagger animation start (200ms delay between cards)
+            setTimeout(() => {
+                cardClone.style.animationDelay = '0s';
+            }, index * 200);
+            
+            // Remove clone after animation
+            setTimeout(() => {
+                if (cardClone.parentNode) {
+                    cardClone.parentNode.removeChild(cardClone);
+                }
+            }, 2500 + (index * 200));
+        });
+        
+        // Hide original cards during animation
+        setTimeout(() => {
+            if (cardContainer) {
+                cardContainer.style.opacity = '0.3';
+            }
+        }, 200);
+    }
+
+    showFlip7Logo() {
+        const logo = document.getElementById('flip7-celebration-logo');
+        if (logo) {
+            logo.classList.add('drop-spin');
+        }
+    }
+
+    spinLogoFast() {
+        const logo = document.getElementById('flip7-celebration-logo');
+        if (logo) {
+            logo.classList.add('fast-spin');
+        }
+    }
+
+    wobbleAndExplodeLogo() {
+        const logo = document.getElementById('flip7-celebration-logo');
+        if (logo) {
+            logo.classList.add('wobble-explode');
+        }
+    }
+
+    cleanupFlip7Celebration() {
+        const celebrationEl = document.getElementById('flip7-celebration');
+        if (celebrationEl) {
+            celebrationEl.style.display = 'none';
+        }
+    }
+
+    // Transfer Animations
+    animateSecondChanceTransfer(fromPlayer, toPlayer, onComplete) {
+        // Create animated card element
+        const animatedCard = document.createElement('div');
+        animatedCard.className = 'card back transfer-card';
+        animatedCard.style.position = 'absolute';
+        animatedCard.style.zIndex = '1000';
+        animatedCard.style.pointerEvents = 'none';
+        
+        // Get positions
+        const fromElement = document.getElementById(fromPlayer.isHuman ? 'player' : fromPlayer.id);
+        const toElement = document.getElementById(toPlayer.isHuman ? 'player' : toPlayer.id);
+        const fromRect = fromElement.getBoundingClientRect();
+        const toRect = toElement.getBoundingClientRect();
+        
+        // Start position (center of from player)
+        animatedCard.style.left = (fromRect.left + fromRect.width / 2 - 30) + 'px';
+        animatedCard.style.top = (fromRect.top + fromRect.height / 2 - 42) + 'px';
+        
+        document.body.appendChild(animatedCard);
+        
+        // Animate to target position
+        setTimeout(() => {
+            animatedCard.style.transition = 'all 0.8s ease-in-out';
+            animatedCard.style.left = (toRect.left + toRect.width / 2 - 30) + 'px';
+            animatedCard.style.top = (toRect.top + toRect.height / 2 - 42) + 'px';
+            animatedCard.style.transform = 'scale(0.8)';
+            
+            setTimeout(() => {
+                document.body.removeChild(animatedCard);
+                if (onComplete) onComplete();
+            }, 800);
+        }, 100);
+    }
+
+    animateFreezeTransfer(cardOwner, targetPlayer, onComplete) {
+        // Find the freeze card in the card owner's hand
+        const ownerContainer = document.getElementById(cardOwner.id);
+        const ownerCardContainer = cardOwner.isHuman 
+            ? document.getElementById('player-cards')
+            : ownerContainer.querySelector('.player-cards');
+        
+        const freezeCard = Array.from(ownerCardContainer.children).find(card => 
+            card.dataset.cardValue === 'freeze'
+        );
+        
+        if (!freezeCard) {
+            // Fallback if freeze card not found
+            if (onComplete) onComplete();
+            return;
+        }
+        
+        // Get target player container position
+        const targetContainer = document.getElementById(targetPlayer.id);
+        const freezeRect = freezeCard.getBoundingClientRect();
+        const targetRect = targetContainer.getBoundingClientRect();
+        
+        // Calculate transfer distance
+        const transferX = targetRect.left - freezeRect.left + (targetRect.width / 2);
+        const transferY = targetRect.top - freezeRect.top + (targetRect.height / 2);
+        
+        // Set CSS variables for animation
+        freezeCard.style.setProperty('--transfer-x', `${transferX}px`);
+        freezeCard.style.setProperty('--transfer-y', `${transferY}px`);
+        
+        // Start animation
+        freezeCard.classList.add('freeze-transfer');
+        
+        // Remove freeze card and complete after animation
+        setTimeout(() => {
+            if (freezeCard.parentNode) {
+                freezeCard.parentNode.removeChild(freezeCard);
+            }
+            
+            if (onComplete) onComplete();
+        }, 1200);
+    }
+
+    // Drag and Drop Functionality
+    enableCardDrag(animatedCard, card, playerId, animationArea, gameInstance) {
+        // Make card draggable
+        animatedCard.draggable = true;
+        animatedCard.style.cursor = 'grab';
+        
+        // Add touch support for mobile
+        let isDragging = false;
+        let startX, startY;
+        let currentX = 0, currentY = 0;
+        
+        // Desktop drag events
+        animatedCard.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', JSON.stringify({ card, playerId }));
+            animatedCard.style.opacity = '0.7';
+        });
+        
+        animatedCard.addEventListener('dragend', (e) => {
+            animatedCard.style.opacity = '1';
+        });
+        
+        // Enhanced mobile touch events with better finger tracking
+        let currentDropTarget = null;
+        let animationFrameId = null;
+        
+        animatedCard.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            const touch = e.touches[0];
+            
+            // Get the card's current position relative to the viewport
+            const rect = animatedCard.getBoundingClientRect();
+            
+            // Calculate offset from touch point to card position
+            startX = touch.clientX - rect.left;
+            startY = touch.clientY - rect.top;
+            
+            // Enable dragging positioning with improved setup
+            animatedCard.classList.add('dragging');
+            animatedCard.style.cursor = 'grabbing';
+            animatedCard.style.position = 'fixed';
+            animatedCard.style.left = rect.left + 'px';
+            animatedCard.style.top = rect.top + 'px';
+            animatedCard.style.zIndex = '15000';
+            animatedCard.style.pointerEvents = 'none';
+            
+            // Add haptic feedback if available
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+            
+            currentX = 0;
+            currentY = 0;
+            currentDropTarget = null;
+            
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        
+        animatedCard.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            
+            const touch = e.touches[0];
+            
+            // Use requestAnimationFrame for smoother movement
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            
+            animationFrameId = requestAnimationFrame(() => {
+                // Position card maintaining the original touch offset
+                const newLeft = touch.clientX - startX;
+                const newTop = touch.clientY - startY;
+                
+                animatedCard.style.left = newLeft + 'px';
+                animatedCard.style.top = newTop + 'px';
+                animatedCard.style.transform = 'scale(1.3) rotate(-5deg)';
+                
+                // Enhanced drop target detection with expanded hit areas
+                const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+                let newDropTarget = elementUnder?.closest('.valid-drop-target');
+                
+                // If no direct hit, search for nearby drop targets (mobile forgiveness)
+                if (!newDropTarget && window.innerWidth <= 1024) {
+                    const tolerance = 60;
+                    const dropTargets = document.querySelectorAll('.valid-drop-target');
+                    
+                    let closestTarget = null;
+                    let closestDistance = tolerance;
+                    
+                    dropTargets.forEach(target => {
+                        const rect = target.getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
+                        const centerY = rect.top + rect.height / 2;
+                        
+                        const distance = Math.sqrt(
+                            Math.pow(touch.clientX - centerX, 2) + 
+                            Math.pow(touch.clientY - centerY, 2)
+                        );
+                        
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closestTarget = target;
+                        }
+                    });
+                    
+                    newDropTarget = closestTarget;
+                }
+                
+                // Update drop target highlighting
+                if (newDropTarget !== currentDropTarget) {
+                    // Remove highlight from previous target
+                    if (currentDropTarget) {
+                        currentDropTarget.classList.remove('drag-hover');
+                    }
+                    
+                    // Add highlight to new target
+                    if (newDropTarget) {
+                        newDropTarget.classList.add('drag-hover');
+                        // Add subtle vibration when hovering over valid target
+                        if (navigator.vibrate) {
+                            navigator.vibrate(25);
+                        }
+                    }
+                    
+                    currentDropTarget = newDropTarget;
+                }
+            });
+            
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        
+        animatedCard.addEventListener('touchend', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            // Cancel any pending animation frame
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            
+            // Find final drop target with enhanced detection
+            const touch = e.changedTouches[0];
+            const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+            let dropTarget = elementUnder?.closest('.valid-drop-target');
+            
+            // Enhanced drop detection for mobile
+            if (!dropTarget && window.innerWidth <= 1024) {
+                const tolerance = 80;
+                const dropTargets = document.querySelectorAll('.valid-drop-target');
+                
+                let closestTarget = null;
+                let closestDistance = tolerance;
+                
+                dropTargets.forEach(target => {
+                    const rect = target.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    
+                    const distance = Math.sqrt(
+                        Math.pow(touch.clientX - centerX, 2) + 
+                        Math.pow(touch.clientY - centerY, 2)
+                    );
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestTarget = target;
+                    }
+                });
+                
+                dropTarget = closestTarget;
+            }
+            
+            // Handle drop
+            if (dropTarget && gameInstance) {
+                const targetPlayerId = dropTarget.getAttribute('data-player-id');
+                if (targetPlayerId) {
+                    gameInstance.handleSpecialCardDrop(card, targetPlayerId, playerId);
+                } else {
+                    // Animate back to original position
+                    this.animateCardSnapBack(animatedCard, animationArea);
+                }
+            } else {
+                // Animate back to original position
+                this.animateCardSnapBack(animatedCard, animationArea);
+            }
+            
+            // Clean up drag state
+            document.querySelectorAll('.valid-drop-target').forEach(target => {
+                target.classList.remove('drag-hover');
+            });
+            
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    }
+
+    animateCardSnapBack(animatedCard, animationArea) {
+        if (!animationArea) return;
+        
+        const areaRect = animationArea.getBoundingClientRect();
+        animatedCard.style.transition = 'all 0.3s ease-out';
+        animatedCard.style.left = areaRect.left + 'px';
+        animatedCard.style.top = areaRect.top + 'px';
+        animatedCard.style.transform = 'scale(1) rotate(0deg)';
+        
+        setTimeout(() => {
+            animatedCard.style.cursor = 'grab';
+            animatedCard.classList.remove('dragging');
+        }, 300);
+    }
 }
 
 // Export singleton instance
