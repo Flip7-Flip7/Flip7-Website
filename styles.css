@@ -1591,7 +1591,7 @@ body {
         rgba(96, 165, 250, 0.85) 100%);
     backdrop-filter: blur(2px);
     animation: freezePulse 3s ease-in-out infinite;
-    z-index: 100;
+    z-index: 9999 !important;
     pointer-events: none;
     border-radius: inherit;
 }
@@ -1610,6 +1610,7 @@ body {
         0 2px 4px rgba(0,0,0,0.3);
     animation: frostGlow 1.5s ease-in-out infinite;
     letter-spacing: 0.1em;
+    z-index: 10000 !important;
 }
 
 /* Ice crystal pattern background */
@@ -1664,6 +1665,78 @@ body {
     }
 }
 
+/* Dramatic Ice Shards Border Effect */
+.freeze-ice-shards {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border: 4px solid rgba(147, 197, 253, 0.9);
+    border-radius: inherit;
+    z-index: 9998 !important;
+    pointer-events: none;
+    animation: iceShardsPulse 2s ease-in-out infinite;
+    box-shadow: 
+        0 0 20px rgba(96, 165, 250, 0.8),
+        inset 0 0 20px rgba(255, 255, 255, 0.3),
+        0 0 40px rgba(147, 197, 253, 0.6);
+}
+
+/* Floating Ice Particles */
+.freeze-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9997 !important;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.freeze-particle {
+    position: absolute;
+    color: rgba(147, 197, 253, 0.8);
+    font-size: 1.2em;
+    animation: floatingIce linear infinite;
+    pointer-events: none;
+}
+
+@keyframes iceShardsPulse {
+    0%, 100% { 
+        border-color: rgba(147, 197, 253, 0.9);
+        box-shadow: 
+            0 0 20px rgba(96, 165, 250, 0.8),
+            inset 0 0 20px rgba(255, 255, 255, 0.3),
+            0 0 40px rgba(147, 197, 253, 0.6);
+    }
+    50% { 
+        border-color: rgba(96, 165, 250, 1);
+        box-shadow: 
+            0 0 40px rgba(96, 165, 250, 1),
+            inset 0 0 30px rgba(255, 255, 255, 0.5),
+            0 0 60px rgba(147, 197, 253, 0.8);
+    }
+}
+
+@keyframes floatingIce {
+    0% {
+        transform: translateY(-10px) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(calc(100% + 20px)) rotate(360deg);
+        opacity: 0;
+    }
+}
+
 .enhanced-frozen::before {
     content: "";
     position: absolute;
@@ -1704,9 +1777,31 @@ body {
         font-size: 10px;
     }
     
-    /* Mobile freeze overlay adjustments */
+    /* Mobile freeze overlay adjustments - Make MUCH more visible */
     .freeze-overlay-text {
-        font-size: 1.8em;
+        font-size: 3em !important;
+        text-shadow: 
+            0 0 30px rgba(255,255,255,1) !important,
+            0 0 60px rgba(96, 165, 250, 1) !important,
+            0 0 90px rgba(147, 197, 253, 1) !important,
+            0 4px 8px rgba(0,0,0,0.8) !important;
+        background: linear-gradient(45deg, #60a5fa, #3b82f6, #93c5fd, #dbeafe) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+        animation: mobileFreezeText 1s ease-in-out infinite !important;
+        filter: drop-shadow(0 0 20px rgba(96, 165, 250, 1)) !important;
+    }
+    
+    @keyframes mobileFreezeText {
+        0%, 100% { 
+            transform: translate(-50%, -50%) scale(1);
+            filter: drop-shadow(0 0 20px rgba(96, 165, 250, 1));
+        }
+        50% { 
+            transform: translate(-50%, -50%) scale(1.1);
+            filter: drop-shadow(0 0 40px rgba(147, 197, 253, 1));
+        }
     }
     
     .ice-crystals {

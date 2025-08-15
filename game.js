@@ -3542,6 +3542,28 @@ class Flip7Game {
             frozenText.innerHTML = '❄️ FROZEN ❄️';
             freezeOverlay.appendChild(frozenText);
             
+            // Add ice shards border
+            const iceShards = document.createElement('div');
+            iceShards.className = 'freeze-ice-shards';
+            container.appendChild(iceShards);
+            
+            // Add floating ice particles
+            const particlesContainer = document.createElement('div');
+            particlesContainer.className = 'freeze-particles';
+            
+            // Create multiple floating ice particles
+            const particles = ['❄', '❅', '❆', '✦', '✧', '◆'];
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'freeze-particle';
+                particle.textContent = particles[Math.floor(Math.random() * particles.length)];
+                particle.style.left = Math.random() * 80 + 10 + '%';
+                particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                particle.style.animationDelay = Math.random() * 2 + 's';
+                particlesContainer.appendChild(particle);
+            }
+            container.appendChild(particlesContainer);
+            
             // Add overlay to container
             container.appendChild(freezeOverlay);
             
@@ -3594,6 +3616,18 @@ class Flip7Game {
         const freezeOverlay = container.querySelector('.freeze-overlay');
         if (freezeOverlay) {
             freezeOverlay.remove();
+        }
+        
+        // Remove ice shards border
+        const iceShards = container.querySelector('.freeze-ice-shards');
+        if (iceShards) {
+            iceShards.remove();
+        }
+        
+        // Remove floating particles
+        const particles = container.querySelector('.freeze-particles');
+        if (particles) {
+            particles.remove();
         }
         
         // Remove existing freeze indicators (legacy)
