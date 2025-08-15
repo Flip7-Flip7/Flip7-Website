@@ -3513,33 +3513,27 @@ class Flip7Game {
             
             // Add enhanced frozen class for additional effects
             container.classList.add('enhanced-frozen');
-            
-            // Add clear frozen indicator with stronger styling
-            const frozenIndicator = document.createElement('div');
-            frozenIndicator.className = 'frozen-indicator';
-            frozenIndicator.innerHTML = '❄️ FROZEN ❄️';
-            frozenIndicator.style.cssText = `
-                position: absolute !important;
-                top: 50% !important;
-                left: 50% !important;
-                transform: translate(-50%, -50%) !important;
-                background: rgba(59, 130, 246, 0.95) !important;
-                color: white !important;
-                padding: 6px 12px !important;
-                border-radius: 8px !important;
-                font-weight: bold !important;
-                font-size: 12px !important;
-                z-index: 9999 !important;
-                pointer-events: none !important;
-                text-shadow: 0 1px 2px rgba(0,0,0,0.8) !important;
-                animation: freezePulse 1.5s infinite !important;
-                border: 2px solid rgba(255,255,255,0.8) !important;
-                box-shadow: 0 0 10px rgba(59, 130, 246, 0.8) !important;
-            `;
             container.style.position = 'relative';
-            container.appendChild(frozenIndicator);
             
-            console.log(`✅ Added freeze indicator to container:`, container.id || container.className);
+            // Create dramatic freeze overlay
+            const freezeOverlay = document.createElement('div');
+            freezeOverlay.className = 'freeze-overlay';
+            
+            // Add ice crystals background
+            const iceCrystals = document.createElement('div');
+            iceCrystals.className = 'ice-crystals';
+            freezeOverlay.appendChild(iceCrystals);
+            
+            // Add FROZEN text
+            const frozenText = document.createElement('div');
+            frozenText.className = 'freeze-overlay-text';
+            frozenText.innerHTML = '❄️ FROZEN ❄️';
+            freezeOverlay.appendChild(frozenText);
+            
+            // Add overlay to container
+            container.appendChild(freezeOverlay);
+            
+            console.log(`✅ Added dramatic freeze overlay to container:`, container.id || container.className);
         });
         
         // Create ice particles effect on primary container
@@ -3584,7 +3578,13 @@ class Flip7Game {
         // Remove frozen and stayed classes
         container.classList.remove('enhanced-frozen', 'frozen-effect', 'frozen', 'busted', 'stayed', 'stay-animation');
         
-        // Remove existing freeze indicators
+        // Remove freeze overlay (new dramatic effect)
+        const freezeOverlay = container.querySelector('.freeze-overlay');
+        if (freezeOverlay) {
+            freezeOverlay.remove();
+        }
+        
+        // Remove existing freeze indicators (legacy)
         const existingIndicator = container.querySelector('.frozen-indicator');
         if (existingIndicator) {
             existingIndicator.remove();
