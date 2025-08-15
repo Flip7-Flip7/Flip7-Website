@@ -3211,7 +3211,7 @@ body {
         height: calc(100vh - 20px) !important;
         overflow: hidden !important;
         padding: 0 6px 20px 6px !important; /* Increased bottom padding from 6px to 20px */
-        padding-bottom: env(safe-area-inset-bottom, 6px) !important; /* iOS safe area */
+        padding-bottom: 6px !important; /* Fixed padding - no safe area adjustment */
         gap: 0 !important;
         background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, transparent 100%) !important;
     }
@@ -3298,7 +3298,7 @@ body {
         justify-content: space-around !important;
         align-items: center !important;
         padding: 4px 16px !important;
-        padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px)) !important; /* iOS safe area */
+        padding-bottom: 4px !important; /* Fixed padding - no safe area adjustment */
         width: 100% !important;
         height: 40px !important; /* Reduced from 45px to 40px */
         background: transparent !important;
@@ -3443,6 +3443,16 @@ body {
         cursor: not-allowed !important;
         transform: none !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* Safari-specific fix to match Chrome button positioning */
+    @supports (-webkit-appearance: none) and (not (overflow: -webkit-marquee)) {
+        .mobile-bottom-section {
+            padding-bottom: 4px !important;
+            margin-bottom: 0 !important;
+            position: relative !important;
+            bottom: 0 !important;
+        }
     }
     
     /* MOBILE PLAYERS CONTAINER - Flexible middle section */
