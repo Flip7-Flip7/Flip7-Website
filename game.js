@@ -2913,7 +2913,7 @@ class Flip7Game {
         animatedCard.style.left = startX + 'px';
         animatedCard.style.top = startY + 'px';
         animatedCard.style.zIndex = '10000';
-        animatedCard.style.transformOrigin = isMobile ? 'top left' : 'center center';
+        animatedCard.style.transformOrigin = 'center center';
         animatedCard.style.transition = `transform ${isMobile ? '0.4s' : '0.6s'} ease-in-out`;
         animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scale})`;
         
