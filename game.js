@@ -1745,7 +1745,7 @@ class Flip7Game {
                     targetPlayer.numberCards.sort((a, b) => a.value - b.value);
                     targetPlayer.status = 'busted';
                     this.addToLog(`${targetPlayer.name} busted with duplicate ${nextCard.value} during Flip Three!`);
-                    this.calculateScore(targetPlayer);
+                    this.calculateRoundScore(targetPlayer);
                     
                     // Show bust animation in popup briefly
                     this.handleFlip3Bust(nextCard, cardsFlipped);
@@ -1779,6 +1779,7 @@ class Flip7Game {
                             }
                         }, 300); // Brief pause after hiding popup
                     }, 800); // Show bust message briefly
+                    return; // CRITICAL: Stop Flip 3 sequence immediately on bust
                 } else {
                     console.log(`✅ Normal card processing - adding ${nextCard.display} to drawnCards`);
                     // Card is not a duplicate - add to drawn cards
