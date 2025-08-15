@@ -98,20 +98,6 @@ export class GameAnimations {
     slideCardToPlayerHand(animatedCard, animationArea, card, playerId, gameInstance) {
         const isMobile = window.innerWidth <= 1024;
         
-        // Set mobile-specific card size BEFORE getting position
-        if (isMobile) {
-            animatedCard.style.width = '120px';
-            animatedCard.style.height = '168px';
-            animatedCard.style.fontSize = '2em';
-            // Add sliding class to override CSS positioning conflicts
-            animatedCard.classList.add('sliding');
-        }
-        
-        // Get current card position AFTER size changes and class addition
-        const animatedCardRect = animatedCard.getBoundingClientRect();
-        const startX = animatedCardRect.left;
-        const startY = animatedCardRect.top;
-        
         // Get target element based on device type
         let targetElement;
         if (isMobile) {
@@ -129,49 +115,73 @@ export class GameAnimations {
             return;
         }
         
-        // Get target position
-        const targetRect = targetElement.getBoundingClientRect();
-        let endX, endY;
+        // Brief pause after flip for visual clarity
+        setTimeout(() => {
+            this.performSeamlessSlide(animatedCard, animationArea, targetElement, card, playerId, gameInstance, isMobile);
+        }, 150); // Short pause to let flip settle
+    }
+
+    performSeamlessSlide(animatedCard, animationArea, targetElement, card, playerId, gameInstance, isMobile) {
+        // Get current card position (center of animation area)
+        const animatedCardRect = animatedCard.getBoundingClientRect();
+        const currentCenterX = animatedCardRect.left + (animatedCardRect.width / 2);
+        const currentCenterY = animatedCardRect.top + (animatedCardRect.height / 2);
         
+        // Get target position (center of target element)
+        const targetRect = targetElement.getBoundingClientRect();
+        const targetCenterX = targetRect.left + (targetRect.width / 2);
+        const targetCenterY = targetRect.top + (targetRect.height / 2);
+        
+        // Calculate transform distance (center to center)
+        const deltaX = targetCenterX - currentCenterX;
+        const deltaY = targetCenterY - currentCenterY;
+        
+        // Enhanced mobile animation setup
         if (isMobile) {
-            // Simplify mobile targeting - animate to center of player container
-            endX = targetRect.left + (targetRect.width / 2) - (120 / 2);
-            endY = targetRect.top + (targetRect.height / 2) - (168 / 2);
-        } else {
-            // Desktop positioning (center of cards container)
-            endX = targetRect.left + (targetRect.width / 2) - (animatedCardRect.width / 2);
-            endY = targetRect.top + (targetRect.height / 2) - (animatedCardRect.height / 2);
+            // Start bigger for dramatic effect, will scale down during slide
+            animatedCard.style.transform = 'scale(1.2)';
+            animatedCard.classList.add('sliding');
         }
         
-        // Calculate slide distance
-        const deltaX = endX - startX;
-        const deltaY = endY - startY;
-        
-        // Calculate scale based on device
-        const scale = isMobile ? 0.5 : 0.8;
-        
-        // Apply slide animation with proper transform origin
-        animatedCard.style.position = 'fixed';
-        animatedCard.style.left = startX + 'px';
-        animatedCard.style.top = startY + 'px';
-        animatedCard.style.zIndex = isMobile ? '15000' : '10000'; // Higher z-index for mobile
+        // Set up transform-only animation (no position changes)
+        animatedCard.style.zIndex = isMobile ? '15000' : '10000';
         animatedCard.style.transformOrigin = 'center center';
-        animatedCard.style.transition = `transform ${isMobile ? '0.6s' : '0.6s'} ease-in-out`; // Slower for visibility
-        animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scale})`;
+        animatedCard.style.pointerEvents = 'none';
         
-        // Ensure card is visible during animation
-        animatedCard.style.visibility = 'visible';
-        animatedCard.style.opacity = '1';
+        // Add subtle shadow that will move with the card
+        animatedCard.style.boxShadow = isMobile 
+            ? '0 8px 25px rgba(0, 0, 0, 0.3)' 
+            : '0 4px 15px rgba(0, 0, 0, 0.2)';
         
-        // After slide animation completes, add card to hand and clean up
+        // Use requestAnimationFrame for smooth timing
+        requestAnimationFrame(() => {
+            // Mobile-optimized animation
+            if (isMobile) {
+                // Smooth transition with mobile-tuned easing
+                animatedCard.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.8s ease-out';
+                // Slide with scale down and subtle rotation for natural feel
+                animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5) rotate(3deg)`;
+                // Shadow moves and fades during animation
+                animatedCard.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+            } else {
+                // Desktop animation
+                animatedCard.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), box-shadow 0.6s ease-out';
+                animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.8)`;
+                animatedCard.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+            }
+        });
+        
+        // Complete animation and clean up
+        const animationDuration = isMobile ? 800 : 600;
         setTimeout(() => {
+            // Add card to player hand
             gameInstance.addCardToPlayerHand(card, playerId);
             
             // Clear animation area
             if (animationArea && animationArea.parentNode) {
                 animationArea.innerHTML = '';
             }
-        }, isMobile ? 600 : 600);
+        }, animationDuration);
     }
 
     transitionToInteractiveCard(animatedCard, animationArea, card, playerId, gameInstance) {
