@@ -2492,6 +2492,12 @@ class Flip7Game {
     
     calculateCurrentRoundScore(player) {
         // Real-time calculation for display purposes (includes modifier cards)
+        
+        // IMPORTANT: Busted players always have 0 round score
+        if (player.status === 'busted') {
+            return 0;
+        }
+        
         let score = 0;
         
         // Step 1: Sum all number cards
