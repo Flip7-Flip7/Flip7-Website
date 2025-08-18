@@ -98,15 +98,19 @@ export class GameAnimations {
     slideCardToPlayerHand(animatedCard, animationArea, card, playerId, gameInstance) {
         const isMobile = window.innerWidth <= 1024;
         
-        // Get target element based on device type
+        // Get target element based on device type with debug logging
+        console.log(`🎯 Card animation targeting playerId: ${playerId}, isMobile: ${isMobile}`);
         let targetElement;
         if (isMobile) {
             targetElement = gameInstance.getPlayerAreaElement(playerId);
+            console.log(`📱 Mobile target element:`, targetElement?.id || 'NOT FOUND');
         } else {
             targetElement = gameInstance.getTargetCardContainer(playerId, card.type);
+            console.log(`🖥️ Desktop target element:`, targetElement?.id || 'NOT FOUND');
         }
         
         if (!targetElement) {
+            console.warn(`❌ No target element found for playerId: ${playerId}`);
             // Fallback: just add card directly if no target found
             gameInstance.addCardToPlayerHand(card, playerId);
             if (animationArea && animationArea.parentNode) {
@@ -115,9 +119,13 @@ export class GameAnimations {
             return;
         }
         
-        // Clean up animation classes before slide and start immediately
-        animatedCard.classList.remove('flip-reveal', 'mobile-reveal');
-        this.performSeamlessSlide(animatedCard, animationArea, targetElement, card, playerId, gameInstance, isMobile);
+        // Clean up animation classes and wait for layout to stabilize
+        animatedCard.classList.remove('flip-reveal', 'mobile-reveal', 'slide-to-hand');
+        
+        // Wait for coordinate calculation stability after class removal
+        requestAnimationFrame(() => {
+            this.performSeamlessSlide(animatedCard, animationArea, targetElement, card, playerId, gameInstance, isMobile);
+        });
     }
 
     performSeamlessSlide(animatedCard, animationArea, targetElement, card, playerId, gameInstance, isMobile) {
@@ -135,41 +143,35 @@ export class GameAnimations {
         const deltaX = targetCenterX - currentCenterX;
         const deltaY = targetCenterY - currentCenterY;
         
-        // Set up optimized animation with will-change for performance
-        animatedCard.style.willChange = 'transform, box-shadow';
+        // GPU-optimized animation setup
+        animatedCard.style.willChange = 'transform';
         animatedCard.style.zIndex = isMobile ? '15000' : '10000';
         animatedCard.style.transformOrigin = 'center center';
         animatedCard.style.pointerEvents = 'none';
         
-        if (isMobile) {
-            animatedCard.classList.add('sliding');
-            // Start at current scale (from flip animation end)
-            animatedCard.style.transform = 'scale(1.0)';
-        }
+        // DON'T add .sliding class to avoid position changes during animation
+        // Set initial transform with translate3d for GPU acceleration
+        const initialTransform = 'translate3d(0, 0, 0) scale(1.0)';
+        animatedCard.style.transform = initialTransform;
         
-        // Set initial shadow
+        // Simplified shadow that doesn't change during animation (performance)
         animatedCard.style.boxShadow = isMobile 
-            ? '0 6px 20px rgba(0, 0, 0, 0.25)' 
-            : '0 4px 15px rgba(0, 0, 0, 0.2)';
+            ? '0 4px 15px rgba(0, 0, 0, 0.2)' 
+            : '0 2px 10px rgba(0, 0, 0, 0.15)';
         
-        // Force layout calculation to ensure initial state is applied
-        animatedCard.offsetHeight;
-        
-        // Start smooth animation immediately
+        // Start smooth animation with optimized timing
         if (isMobile) {
-            // Smoother mobile animation with better easing and intermediate scaling
-            animatedCard.style.transition = 'transform 0.7s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.7s ease-out';
-            animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.75) rotate(2deg)`;
-            animatedCard.style.boxShadow = '0 3px 12px rgba(0, 0, 0, 0.15)';
+            // Mobile: 60fps optimized easing with GPU acceleration
+            animatedCard.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            animatedCard.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0) scale(0.8) rotate(1deg)`;
         } else {
             // Desktop animation
-            animatedCard.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), box-shadow 0.6s ease-out';
-            animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.8)`;
-            animatedCard.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+            animatedCard.style.transition = 'transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)';
+            animatedCard.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0) scale(0.85)`;
         }
         
         // Complete animation and clean up
-        const animationDuration = isMobile ? 700 : 600;
+        const animationDuration = isMobile ? 600 : 500;
         setTimeout(() => {
             // Clean up animation optimizations
             animatedCard.style.willChange = 'auto';
