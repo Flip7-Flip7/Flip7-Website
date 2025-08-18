@@ -2863,7 +2863,10 @@ class Flip7Game {
             return;
         }
         
-        // Add glow effect to all active players
+        // Show prominent banner
+        this.showActionTargetingBanner(card);
+        
+        // Add glow effect and tap indicators to all active players
         activePlayers.forEach(targetPlayer => {
             const isMobile = window.innerWidth <= 1024;
             const elementId = targetPlayer.isHuman ? 
@@ -2874,15 +2877,23 @@ class Flip7Game {
             if (playerElement) {
                 playerElement.classList.add('action-target-glow');
                 
+                // Add tap here indicator
+                const tapIndicator = document.createElement('div');
+                tapIndicator.className = 'tap-here-indicator';
+                tapIndicator.innerHTML = '<span>TAP HERE</span>';
+                playerElement.style.position = 'relative'; // Ensure positioning context
+                playerElement.appendChild(tapIndicator);
+                
                 // Add click handler
-                playerElement.addEventListener('click', () => {
+                const clickHandler = () => {
                     this.selectActionTarget(targetPlayer);
-                }, { once: true }); // Auto-remove after first click
+                };
+                playerElement.addEventListener('click', clickHandler, { once: true });
+                
+                // Store handler for cleanup
+                playerElement._clickHandler = clickHandler;
             }
         });
-        
-        // Show targeting message
-        this.showMessage(`Choose target for ${card.display}`);
         
         // Disable game controls
         this.disablePlayerActions();
@@ -2891,12 +2902,24 @@ class Flip7Game {
     selectActionTarget(targetPlayer) {
         console.log(`Target selected: ${targetPlayer.name}`);
         
-        // Remove all glow effects and click handlers
+        // Remove banner
+        this.removeActionTargetingBanner();
+        
+        // Remove all glow effects, tap indicators and click handlers
         document.querySelectorAll('.action-target-glow').forEach(el => {
             el.classList.remove('action-target-glow');
-            // Remove click handlers by cloning
-            const newEl = el.cloneNode(true);
-            el.parentNode.replaceChild(newEl, el);
+            
+            // Remove tap indicator
+            const tapIndicator = el.querySelector('.tap-here-indicator');
+            if (tapIndicator) {
+                tapIndicator.remove();
+            }
+            
+            // Remove click handler
+            if (el._clickHandler) {
+                el.removeEventListener('click', el._clickHandler);
+                delete el._clickHandler;
+            }
         });
         
         // Get the card from player's hand
@@ -4748,6 +4771,45 @@ class Flip7Game {
         if (mobileGameInfo && this.gameActive && !message.includes('turn')) {
             // Show recent game actions briefly
             mobileGameInfo.textContent = message;
+        }
+    }
+
+    showActionTargetingBanner(card) {
+        // Remove any existing banner
+        const existingBanner = document.getElementById('action-targeting-banner');
+        if (existingBanner) {
+            existingBanner.remove();
+        }
+        
+        // Create new banner
+        const banner = document.createElement('div');
+        banner.id = 'action-targeting-banner';
+        banner.className = 'action-targeting-banner';
+        
+        // Set message based on card type
+        const actionText = card.value === 'freeze' ? 'FREEZE' : 'FLIP 3';
+        banner.innerHTML = `
+            <div class="banner-content">
+                <span class="banner-icon">👆</span>
+                <span class="banner-text">Choose a target to ${actionText}!</span>
+                <span class="banner-icon">👆</span>
+            </div>
+        `;
+        
+        // Add to body
+        document.body.appendChild(banner);
+        
+        // Animate in
+        requestAnimationFrame(() => {
+            banner.classList.add('show');
+        });
+    }
+    
+    removeActionTargetingBanner() {
+        const banner = document.getElementById('action-targeting-banner');
+        if (banner) {
+            banner.classList.remove('show');
+            setTimeout(() => banner.remove(), 300); // Wait for animation
         }
     }
 
