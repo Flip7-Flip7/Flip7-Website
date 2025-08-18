@@ -3596,6 +3596,38 @@ body {
         opacity: 0.85 !important; /* Slightly less prominent */
     }
 
+    /* Action Target Glow Effect */
+    .action-target-glow {
+        animation: targetGlow 1.5s ease-in-out infinite !important;
+        cursor: pointer !important;
+        position: relative !important;
+    }
+    
+    @keyframes targetGlow {
+        0%, 100% {
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8),
+                        0 0 40px rgba(255, 215, 0, 0.6),
+                        0 0 60px rgba(255, 215, 0, 0.4),
+                        inset 0 0 20px rgba(255, 215, 0, 0.2) !important;
+            transform: scale(1.02);
+        }
+        50% {
+            box-shadow: 0 0 30px rgba(255, 215, 0, 1),
+                        0 0 60px rgba(255, 215, 0, 0.8),
+                        0 0 80px rgba(255, 215, 0, 0.6),
+                        inset 0 0 30px rgba(255, 215, 0, 0.3) !important;
+            transform: scale(1.05);
+        }
+    }
+    
+    /* Mobile specific glow adjustments */
+    @media (max-width: 768px) {
+        .mobile-player-box.action-target-glow,
+        .mobile-opponent-box.action-target-glow {
+            border: 2px solid rgba(255, 215, 0, 0.8) !important;
+        }
+    }
+
     /* Button Interactive States */
     .mobile-bottom-section .mobile-action-btn.primary:hover:not(:disabled) {
         animation: none !important; /* Stop pulse on hover */

@@ -1439,9 +1439,10 @@ class Flip7Game {
                         this.showSpecialActionModal(card, player);
                         return { endTurn: false, busted: false, waitingForModal: true };
                     } else {
-                        // For human players, let the animation system handle it via transitionToInteractiveCard
+                        // For human players, add to hand and targeting will start after animation
                         this.addToLog(`${player.name} drew ${card.display}! Must use immediately.`);
-                        return { endTurn: false, busted: false, waitingForAnimation: true };
+                        player.actionCards.push(card); // Add to action cards array
+                        return { endTurn: false, busted: false, waitingForTargeting: true };
                     }
                 }
             } else {
@@ -2533,7 +2534,14 @@ class Flip7Game {
     }
 
     nextTurn() {
-        // Don't advance turn if game is paused for drag/drop
+        // Don't advance turn if game is paused for targeting
+        if (this.isTargetingAction) {
+            console.log('⏸️ Game paused for action targeting - blocking turn advancement');
+            this.pendingNextTurn = true; // Flag to resume when targeting completes
+            return;
+        }
+        
+        // Don't advance turn if game is paused for drag/drop (keeping for now, will remove later)
         if (this.isDragPaused) {
             console.log('⏸️ Game paused for drag/drop - blocking turn advancement');
             this.pendingNextTurn = true; // Flag to resume when unpaused
@@ -2672,7 +2680,7 @@ class Flip7Game {
             }
             
             // Check if waiting for special action (Flip3/Freeze modal or animation)
-            if (result.waitingForModal || result.waitingForAnimation) {
+            if (result.waitingForModal || result.waitingForAnimation || result.waitingForTargeting) {
                 // Special action card - let the modal/animation system handle continuation
                 // Don't call nextTurn() here - the special action will handle it
                 this.updateDisplay();
@@ -2837,6 +2845,147 @@ class Flip7Game {
         }
     }
 
+    startActionTargeting(card, player) {
+        console.log(`Starting action targeting for ${card.display}`);
+        
+        // Set targeting state
+        this.isTargetingAction = true;
+        this.targetingCard = card;
+        this.targetingPlayer = player;
+        
+        // Get all active players
+        const activePlayers = this.players.filter(p => p.status === 'active');
+        
+        // Check for auto-target scenario
+        if (activePlayers.length === 1 && activePlayers[0] === player) {
+            console.log('Auto-targeting self - only active player remaining');
+            this.selectActionTarget(player);
+            return;
+        }
+        
+        // Add glow effect to all active players
+        activePlayers.forEach(targetPlayer => {
+            const isMobile = window.innerWidth <= 1024;
+            const elementId = targetPlayer.isHuman ? 
+                (isMobile ? 'mobile-player' : 'player') : 
+                (isMobile ? `mobile-opponent${targetPlayer.id.replace('opponent', '')}` : targetPlayer.id);
+            
+            const playerElement = document.getElementById(elementId);
+            if (playerElement) {
+                playerElement.classList.add('action-target-glow');
+                
+                // Add click handler
+                playerElement.addEventListener('click', () => {
+                    this.selectActionTarget(targetPlayer);
+                }, { once: true }); // Auto-remove after first click
+            }
+        });
+        
+        // Show targeting message
+        this.showMessage(`Choose target for ${card.display}`);
+        
+        // Disable game controls
+        this.disablePlayerActions();
+    }
+
+    selectActionTarget(targetPlayer) {
+        console.log(`Target selected: ${targetPlayer.name}`);
+        
+        // Remove all glow effects and click handlers
+        document.querySelectorAll('.action-target-glow').forEach(el => {
+            el.classList.remove('action-target-glow');
+            // Remove click handlers by cloning
+            const newEl = el.cloneNode(true);
+            el.parentNode.replaceChild(newEl, el);
+        });
+        
+        // Get the card from player's hand
+        const card = this.targetingCard;
+        const fromPlayer = this.targetingPlayer;
+        
+        // Remove card from player's action cards
+        const cardIndex = fromPlayer.actionCards.findIndex(c => 
+            c.type === card.type && c.value === card.value
+        );
+        if (cardIndex !== -1) {
+            fromPlayer.actionCards.splice(cardIndex, 1);
+        }
+        
+        // Clear targeting state
+        this.isTargetingAction = false;
+        this.targetingCard = null;
+        this.targetingPlayer = null;
+        
+        // Animate card to target
+        this.animateActionCardToTarget(card, fromPlayer, targetPlayer);
+    }
+
+    animateActionCardToTarget(card, fromPlayer, targetPlayer) {
+        console.log(`Animating ${card.display} from ${fromPlayer.name} to ${targetPlayer.name}`);
+        
+        // Update display to remove card from hand
+        this.updateDisplay();
+        
+        // Create animated card element
+        const animatedCard = document.createElement('div');
+        animatedCard.className = 'animated-card action-card-animation';
+        
+        // Create card visual
+        const cardElement = this.createCardElement(card);
+        animatedCard.appendChild(cardElement);
+        
+        // Get positions
+        const isMobile = window.innerWidth <= 1024;
+        
+        // Get from position (player's hand area)
+        const fromElementId = fromPlayer.isHuman ? 
+            (isMobile ? 'mobile-player' : 'player') : 
+            (isMobile ? `mobile-opponent${fromPlayer.id.replace('opponent', '')}` : fromPlayer.id);
+        const fromElement = document.getElementById(fromElementId);
+        const fromRect = fromElement.getBoundingClientRect();
+        
+        // Get to position (target's container)
+        const toElementId = targetPlayer.isHuman ? 
+            (isMobile ? 'mobile-player' : 'player') : 
+            (isMobile ? `mobile-opponent${targetPlayer.id.replace('opponent', '')}` : targetPlayer.id);
+        const toElement = document.getElementById(toElementId);
+        const toRect = toElement.getBoundingClientRect();
+        
+        // Position at start
+        animatedCard.style.position = 'fixed';
+        animatedCard.style.left = `${fromRect.left + fromRect.width / 2 - 60}px`;
+        animatedCard.style.top = `${fromRect.top + fromRect.height / 2 - 84}px`;
+        animatedCard.style.width = '120px';
+        animatedCard.style.height = '168px';
+        animatedCard.style.zIndex = '20000';
+        
+        document.body.appendChild(animatedCard);
+        
+        // Calculate animation
+        const deltaX = (toRect.left + toRect.width / 2) - (fromRect.left + fromRect.width / 2);
+        const deltaY = (toRect.top + toRect.height / 2) - (fromRect.top + fromRect.height / 2);
+        
+        // Animate to target
+        requestAnimationFrame(() => {
+            animatedCard.style.transition = 'transform 0.8s ease-in-out, opacity 0.3s ease-in 0.5s';
+            animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.7)`;
+            animatedCard.style.opacity = '0';
+        });
+        
+        // Execute action after animation
+        setTimeout(() => {
+            animatedCard.remove();
+            this.executeSpecialAction(card, fromPlayer, targetPlayer);
+            
+            // Check if we had a pending next turn
+            if (this.pendingNextTurn) {
+                console.log('Resuming pending turn after action targeting');
+                this.pendingNextTurn = false;
+                // continueAfterSpecialAction will handle calling nextTurn
+            }
+        }, 800);
+    }
+
     endGame(winner) {
         this.gameActive = false;
         
@@ -2985,19 +3134,20 @@ class Flip7Game {
         
         // After flip completes, handle the card
         setTimeout(() => {
-            // Check if this is a special action card that should show modal instead
-            // IMPORTANT: Only show interactive modal for human players (playerId === 'player')
-            const isHumanPlayer = playerId === 'player';
-            const shouldShowModal = card.type === 'action' && (card.value === 'freeze' || card.value === 'flip3') && isHumanPlayer;
-            
-            if (shouldShowModal) {
-                // For special action cards from human player, transition to interactive drag & drop
-                this.transitionToInteractiveCard(animatedCard, animationArea, card, playerId);
-                return;
-            }
-            
-            // For regular cards, slide from center to player hand
+            // Always slide card to player hand first
             this.slideCardToPlayerHand(animatedCard, animationArea, card, playerId);
+            
+            // For human Freeze/Flip3 cards, start targeting after card reaches hand
+            const isHumanPlayer = playerId === 'player';
+            const isActionCard = card.type === 'action' && (card.value === 'freeze' || card.value === 'flip3');
+            
+            if (isActionCard && isHumanPlayer) {
+                // Wait for slide animation to complete, then start targeting
+                const slideDelay = window.innerWidth <= 1024 ? 600 : 600;
+                setTimeout(() => {
+                    this.startActionTargeting(card, this.players[0]); // Human is always player 0
+                }, slideDelay + 100); // Small extra delay for visual clarity
+            }
         }, revealDuration); // Wait for flip to complete
     }
 
@@ -3094,13 +3244,11 @@ class Flip7Game {
         }, isMobile ? 400 : 600);
     }
 
+    // DEPRECATED - Replaced by startActionTargeting
     transitionToInteractiveCard(animatedCard, animationArea, card, playerId) {
-        // Use the enhanced animation module if available
-        if (window.gameAnimations && window.gameAnimations.transitionToInteractiveCard) {
-            // Delegate to the enhanced animation module
-            window.gameAnimations.transitionToInteractiveCard(animatedCard, animationArea, card, playerId, this);
-            return;
-        }
+        // This function is no longer used - keeping for backward compatibility
+        console.warn('transitionToInteractiveCard is deprecated, use startActionTargeting instead');
+        return;
         
         // Fallback: Use enhanced local implementation
         // Clear any pending backdrop auto-hide timeout since we're taking control
@@ -4433,8 +4581,13 @@ class Flip7Game {
         });
         allCards.push(...sortedModifiers);
         
-        // Add Second Chance at the end
-        if (player.hasSecondChance) {
+        // Add action cards (Freeze, Flip3, Second Chance)
+        if (player.actionCards) {
+            allCards.push(...player.actionCards);
+        }
+        
+        // Add Second Chance separately if player has it (for backward compatibility)
+        if (player.hasSecondChance && (!player.actionCards || !player.actionCards.some(c => c.value === 'second_chance'))) {
             allCards.push({
                 type: 'action',
                 value: 'second_chance',
