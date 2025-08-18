@@ -3361,9 +3361,8 @@ body {
         bottom: 0 !important;
         width: 100vw !important;
         height: calc(100vh - 20px) !important;
-        overflow: hidden !important;
-        padding: 0 6px 20px 6px !important; /* Increased bottom padding from 6px to 20px */
-        padding-bottom: 6px !important; /* Fixed padding - no safe area adjustment */
+        overflow: visible !important;
+        padding: 0 6px 30px 6px !important; /* Increased bottom padding for button space */
         gap: 0 !important;
         background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, transparent 100%) !important;
     }
@@ -3452,14 +3451,14 @@ body {
         padding: 4px 16px !important;
         padding-bottom: 4px !important; /* Fixed padding - no safe area adjustment */
         width: 100% !important;
-        height: 40px !important; /* Reduced from 45px to 40px */
+        height: 60px !important; /* Increased to accommodate 48px buttons */
         background: transparent !important;
         border: none !important;
         border-radius: 0 !important;
         box-shadow: none !important;
         flex-shrink: 0 !important;
         margin-top: 0px !important; /* No gap - can overlap with AI Bot 3 */
-        margin-bottom: 25px !important; /* Reduced from 75px - moves buttons up significantly */
+        margin-bottom: 5px !important; /* Minimal margin to keep buttons in viewport */
         backdrop-filter: none !important;
         position: relative !important;
         z-index: 10 !important;
