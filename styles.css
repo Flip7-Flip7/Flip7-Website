@@ -3451,7 +3451,7 @@ body {
         padding: 12px 24px !important;
         font-size: 18px !important;
         font-weight: 600 !important;
-        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border: none !important;
         border-radius: 16px !important;
         color: white !important;
         cursor: pointer !important;
@@ -3465,6 +3465,10 @@ body {
         backdrop-filter: blur(15px) !important;
         -webkit-backdrop-filter: blur(15px) !important;
         box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37) !important;
+        /* Center text perfectly */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     
     /* Chrome mobile fallback - Remove backdrop-filter if not supported */
@@ -3481,10 +3485,18 @@ body {
                 rgba(34, 197, 94, 1) 0%,   /* Solid green for visibility */
                 rgba(16, 185, 129, 1) 50%,
                 rgba(132, 204, 22, 1) 100%) !important;
+            /* Center text */
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         
         .mobile-bottom-section .mobile-action-btn.secondary {
             background: linear-gradient(145deg, rgba(200, 113, 122, 1) 0%, rgba(168, 86, 96, 1) 100%) !important;
+            /* Center text */
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
     }
     
@@ -3503,7 +3515,7 @@ body {
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
             /* Use solid backgrounds instead of semi-transparent */
-            border: 3px solid rgba(255, 255, 255, 0.8) !important;
+            border: none !important;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 
                         0 2px 8px rgba(0, 0, 0, 0.2) !important;
         }
@@ -3516,6 +3528,10 @@ body {
                 rgba(34, 197, 94, 1) 0%,   /* Solid green */
                 rgba(16, 185, 129, 1) 50%,
                 rgba(132, 204, 22, 1) 100%) !important;
+            /* Center text */
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         
         /* Force Stay button visible with ID specificity */
@@ -3525,6 +3541,10 @@ body {
             background: linear-gradient(135deg, 
                 rgba(200, 113, 122, 1) 0%,   /* Solid red */
                 rgba(168, 86, 96, 1) 100%) !important;
+            /* Center text */
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         
         /* Override disabled state - keep buttons visible even when disabled */
