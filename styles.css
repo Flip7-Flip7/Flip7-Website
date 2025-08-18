@@ -3335,7 +3335,6 @@ body {
     .mobile-game-board, .mobile-status-banner {
         display: flex !important;
         visibility: visible !important;
-        position: relative !important;
     }
     
     /* Hide mobile info panel to prevent game log/scoreboard overlay */
