@@ -3510,14 +3510,17 @@ body {
         }
     }
     
-    /* Universal Chrome mobile compatibility - Force visibility */
-    @media screen and (-webkit-min-device-pixel-ratio: 0) and (max-width: 1024px) {
-        .mobile-bottom-section .mobile-action-btn {
+    /* FORCE MOBILE BUTTONS VISIBLE - Maximum specificity */
+    @media (max-width: 1024px) {
+        .mobile-bottom-section .mobile-action-btn,
+        #mobile-hit-btn,
+        #mobile-stay-btn {
             display: flex !important;
             visibility: visible !important;
             opacity: 1 !important;
             z-index: 9999999 !important; /* Much higher than any animation element */
             min-height: 48px !important;
+            position: relative !important;
             /* Remove problematic backdrop-filter for Chrome */
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
@@ -3527,19 +3530,32 @@ body {
                         0 2px 8px rgba(0, 0, 0, 0.2) !important;
         }
         
-        /* Solid Hit button for Chrome mobile */
-        .mobile-bottom-section .mobile-action-btn.primary {
+        /* Force Hit button visible with ID specificity */
+        .mobile-bottom-section .mobile-action-btn.primary,
+        #mobile-hit-btn {
+            display: flex !important;
             background: linear-gradient(135deg, 
                 rgba(34, 197, 94, 1) 0%,   /* Solid green */
                 rgba(16, 185, 129, 1) 50%,
                 rgba(132, 204, 22, 1) 100%) !important;
         }
         
-        /* Solid Stay button for Chrome mobile */
-        .mobile-bottom-section .mobile-action-btn.secondary {
+        /* Force Stay button visible with ID specificity */
+        .mobile-bottom-section .mobile-action-btn.secondary,
+        #mobile-stay-btn {
+            display: flex !important;
             background: linear-gradient(135deg, 
                 rgba(200, 113, 122, 1) 0%,   /* Solid red */
                 rgba(168, 86, 96, 1) 100%) !important;
+        }
+        
+        /* Override disabled state - keep buttons visible even when disabled */
+        .mobile-bottom-section .mobile-action-btn:disabled,
+        #mobile-hit-btn:disabled,
+        #mobile-stay-btn:disabled {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 0.6 !important; /* Reduced but still visible */
         }
     }
 
