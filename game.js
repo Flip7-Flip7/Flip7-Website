@@ -3166,10 +3166,10 @@ class Flip7Game {
             
             if (isActionCard && isHumanPlayer) {
                 // Wait for slide animation to complete, then start targeting
-                const slideDelay = window.innerWidth <= 1024 ? 300 : 250;
+                const slideDelay = window.innerWidth <= 1024 ? 500 : 400;
                 setTimeout(() => {
                     this.startActionTargeting(card, this.players[0]); // Human is always player 0
-                }, slideDelay + 50); // Small extra delay for visual clarity
+                }, slideDelay + 100); // Small extra delay for visual clarity
             }
         }, revealDuration); // Wait for flip to complete
     }
@@ -3180,9 +3180,14 @@ class Flip7Game {
         
         // Use the enhanced animation module if available
         if (window.gameAnimations && window.gameAnimations.slideCardToPlayerHand) {
-            console.log(`[slideCardToPlayerHand] Delegating to animation module`);
+            console.log(`[slideCardToPlayerHand] ✅ Delegating to animation module`);
             window.gameAnimations.slideCardToPlayerHand(animatedCard, animationArea, card, playerId, this);
             return;
+        } else {
+            console.log(`[slideCardToPlayerHand] ❌ Animation module not available:`, {
+                gameAnimations: !!window.gameAnimations,
+                slideMethod: !!(window.gameAnimations && window.gameAnimations.slideCardToPlayerHand)
+            });
         }
         
         console.log(`[slideCardToPlayerHand] Using fallback implementation`);
@@ -3249,7 +3254,7 @@ class Flip7Game {
         animatedCard.style.top = startY + 'px';
         animatedCard.style.zIndex = isMobile ? '15000' : '10000'; // Higher z-index for mobile
         animatedCard.style.transformOrigin = 'center center';
-        animatedCard.style.transition = `transform ${isMobile ? '0.3s' : '0.25s'} ease-in-out`; // Faster for quicker gameplay
+        animatedCard.style.transition = `transform ${isMobile ? '0.5s' : '0.4s'} ease-in-out`; // Visible but fast
         animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scale})`;
         
         // Ensure card is visible during animation
@@ -3264,7 +3269,7 @@ class Flip7Game {
             if (animationArea && animationArea.parentNode) {
                 animationArea.innerHTML = '';
             }
-        }, isMobile ? 300 : 250);
+        }, isMobile ? 500 : 400);
     }
 
     // DEPRECATED - Replaced by startActionTargeting
