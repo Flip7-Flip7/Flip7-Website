@@ -115,10 +115,9 @@ export class GameAnimations {
             return;
         }
         
-        // Brief pause after flip for visual clarity
-        setTimeout(() => {
-            this.performSeamlessSlide(animatedCard, animationArea, targetElement, card, playerId, gameInstance, isMobile);
-        }, 150); // Short pause to let flip settle
+        // Clean up animation classes before slide and start immediately
+        animatedCard.classList.remove('flip-reveal', 'mobile-reveal');
+        this.performSeamlessSlide(animatedCard, animationArea, targetElement, card, playerId, gameInstance, isMobile);
     }
 
     performSeamlessSlide(animatedCard, animationArea, targetElement, card, playerId, gameInstance, isMobile) {
@@ -136,44 +135,45 @@ export class GameAnimations {
         const deltaX = targetCenterX - currentCenterX;
         const deltaY = targetCenterY - currentCenterY;
         
-        // Enhanced mobile animation setup
-        if (isMobile) {
-            // Start bigger for dramatic effect, will scale down during slide
-            animatedCard.style.transform = 'scale(1.2)';
-            animatedCard.classList.add('sliding');
-        }
-        
-        // Set up transform-only animation (no position changes)
+        // Set up optimized animation with will-change for performance
+        animatedCard.style.willChange = 'transform, box-shadow';
         animatedCard.style.zIndex = isMobile ? '15000' : '10000';
         animatedCard.style.transformOrigin = 'center center';
         animatedCard.style.pointerEvents = 'none';
         
-        // Add subtle shadow that will move with the card
+        if (isMobile) {
+            animatedCard.classList.add('sliding');
+            // Start at current scale (from flip animation end)
+            animatedCard.style.transform = 'scale(1.0)';
+        }
+        
+        // Set initial shadow
         animatedCard.style.boxShadow = isMobile 
-            ? '0 8px 25px rgba(0, 0, 0, 0.3)' 
+            ? '0 6px 20px rgba(0, 0, 0, 0.25)' 
             : '0 4px 15px rgba(0, 0, 0, 0.2)';
         
-        // Use requestAnimationFrame for smooth timing
-        requestAnimationFrame(() => {
-            // Mobile-optimized animation
-            if (isMobile) {
-                // Smooth transition with mobile-tuned easing
-                animatedCard.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.8s ease-out';
-                // Slide with scale down and subtle rotation for natural feel
-                animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.5) rotate(3deg)`;
-                // Shadow moves and fades during animation
-                animatedCard.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-            } else {
-                // Desktop animation
-                animatedCard.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), box-shadow 0.6s ease-out';
-                animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.8)`;
-                animatedCard.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
-            }
-        });
+        // Force layout calculation to ensure initial state is applied
+        animatedCard.offsetHeight;
+        
+        // Start smooth animation immediately
+        if (isMobile) {
+            // Smoother mobile animation with better easing and intermediate scaling
+            animatedCard.style.transition = 'transform 0.7s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.7s ease-out';
+            animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.75) rotate(2deg)`;
+            animatedCard.style.boxShadow = '0 3px 12px rgba(0, 0, 0, 0.15)';
+        } else {
+            // Desktop animation
+            animatedCard.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), box-shadow 0.6s ease-out';
+            animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.8)`;
+            animatedCard.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+        }
         
         // Complete animation and clean up
-        const animationDuration = isMobile ? 800 : 600;
+        const animationDuration = isMobile ? 700 : 600;
         setTimeout(() => {
+            // Clean up animation optimizations
+            animatedCard.style.willChange = 'auto';
+            
             // Add card to player hand
             gameInstance.addCardToPlayerHand(card, playerId);
             
