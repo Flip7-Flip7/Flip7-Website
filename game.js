@@ -2533,6 +2533,13 @@ class Flip7Game {
     }
 
     nextTurn() {
+        // Don't advance turn if game is paused for drag/drop
+        if (this.isDragPaused) {
+            console.log('⏸️ Game paused for drag/drop - blocking turn advancement');
+            this.pendingNextTurn = true; // Flag to resume when unpaused
+            return;
+        }
+        
         // Don't advance turn if still processing Flip 3
         if (this.isProcessingAnyFlip3()) {
             console.log('⏸️ Flip 3 in progress - delaying next turn');
@@ -2819,6 +2826,14 @@ class Flip7Game {
             }
             
             console.log('Game unpaused - continuing normal flow');
+            
+            // Resume pending turn if there was one
+            if (this.pendingNextTurn) {
+                console.log('Resuming pending turn after drag/drop completion');
+                this.pendingNextTurn = false;
+                // Small delay to ensure UI updates before continuing
+                setTimeout(() => this.nextTurn(), 100);
+            }
         }
     }
 
