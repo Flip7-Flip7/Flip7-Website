@@ -161,17 +161,17 @@ export class GameAnimations {
         
         // Start smooth animation with optimized timing
         if (isMobile) {
-            // Mobile: 60fps optimized easing with GPU acceleration
-            animatedCard.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            // Mobile: 60fps optimized easing with GPU acceleration - faster for gameplay
+            animatedCard.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
             animatedCard.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0) scale(0.8) rotate(1deg)`;
         } else {
-            // Desktop animation
-            animatedCard.style.transition = 'transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)';
+            // Desktop animation - faster for gameplay
+            animatedCard.style.transition = 'transform 0.25s cubic-bezier(0.4, 0.0, 0.2, 1)';
             animatedCard.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0) scale(0.85)`;
         }
         
         // Complete animation and clean up
-        const animationDuration = isMobile ? 600 : 500;
+        const animationDuration = isMobile ? 300 : 250;
         setTimeout(() => {
             // Clean up animation optimizations
             animatedCard.style.willChange = 'auto';

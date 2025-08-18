@@ -2990,7 +2990,7 @@ class Flip7Game {
         
         // Animate to target
         requestAnimationFrame(() => {
-            animatedCard.style.transition = 'transform 0.8s ease-in-out, opacity 0.3s ease-in 0.5s';
+            animatedCard.style.transition = 'transform 0.5s ease-in-out, opacity 0.2s ease-in 0.3s';
             animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.7)`;
             animatedCard.style.opacity = '0';
         });
@@ -3006,7 +3006,7 @@ class Flip7Game {
                 this.pendingNextTurn = false;
                 // continueAfterSpecialAction will handle calling nextTurn
             }
-        }, 800);
+        }, 500);
     }
 
     endGame(winner) {
@@ -3107,7 +3107,7 @@ class Flip7Game {
         }
         
         // Define reveal duration for simple flip
-        const revealDuration = 600; // Quick simple flip
+        const revealDuration = 400; // Faster flip for quicker gameplay
         
         // Show backdrop for focus (mobile only)
         let backdropTimeout = null;
@@ -3166,10 +3166,10 @@ class Flip7Game {
             
             if (isActionCard && isHumanPlayer) {
                 // Wait for slide animation to complete, then start targeting
-                const slideDelay = window.innerWidth <= 1024 ? 600 : 600;
+                const slideDelay = window.innerWidth <= 1024 ? 300 : 250;
                 setTimeout(() => {
                     this.startActionTargeting(card, this.players[0]); // Human is always player 0
-                }, slideDelay + 100); // Small extra delay for visual clarity
+                }, slideDelay + 50); // Small extra delay for visual clarity
             }
         }, revealDuration); // Wait for flip to complete
     }
@@ -3249,7 +3249,7 @@ class Flip7Game {
         animatedCard.style.top = startY + 'px';
         animatedCard.style.zIndex = isMobile ? '15000' : '10000'; // Higher z-index for mobile
         animatedCard.style.transformOrigin = 'center center';
-        animatedCard.style.transition = `transform ${isMobile ? '0.6s' : '0.6s'} ease-in-out`; // Slower for visibility
+        animatedCard.style.transition = `transform ${isMobile ? '0.3s' : '0.25s'} ease-in-out`; // Faster for quicker gameplay
         animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scale})`;
         
         // Ensure card is visible during animation
@@ -3264,7 +3264,7 @@ class Flip7Game {
             if (animationArea && animationArea.parentNode) {
                 animationArea.innerHTML = '';
             }
-        }, isMobile ? 400 : 600);
+        }, isMobile ? 300 : 250);
     }
 
     // DEPRECATED - Replaced by startActionTargeting
