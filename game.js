@@ -2720,9 +2720,9 @@ class Flip7Game {
         // Try to use the animation module for point transfer
         try {
             // Check if we can access the global animation functions
-            if (window.Flip7AnimatePointTransfer) {
+            if (window.gameAnimations && window.gameAnimations.animateAllPlayersPointTransfer) {
                 // Use the global animation function
-                window.Flip7AnimatePointTransfer(this.players, () => {
+                window.gameAnimations.animateAllPlayersPointTransfer(this.players, () => {
                     // After all animations complete, add points to totals and continue
                     this.players.forEach(player => {
                         player.totalScore += player.roundScore;
@@ -3066,6 +3066,14 @@ class Flip7Game {
     }
 
     transitionToInteractiveCard(animatedCard, animationArea, card, playerId) {
+        // Use the enhanced animation module if available
+        if (window.gameAnimations && window.gameAnimations.transitionToInteractiveCard) {
+            // Delegate to the enhanced animation module
+            window.gameAnimations.transitionToInteractiveCard(animatedCard, animationArea, card, playerId, this);
+            return;
+        }
+        
+        // Fallback: Use enhanced local implementation
         // Clear any pending backdrop auto-hide timeout since we're taking control
         if (this.backdropAutoHideTimeout) {
             clearTimeout(this.backdropAutoHideTimeout);
@@ -3096,21 +3104,29 @@ class Flip7Game {
             animationArea.classList.add('has-interactive-card');
         }
         
-        // Show backdrop and instructions
+        // Show backdrop with reduced opacity for better drop zone visibility
         const backdrop = document.getElementById('animation-backdrop');
         if (backdrop) {
             backdrop.classList.add('show');
-            backdrop.style.zIndex = '9998'; // Below the card but above everything else
+            backdrop.style.zIndex = '9998';
+            backdrop.style.background = 'rgba(0, 0, 0, 0.15)'; // Much lighter for better visibility
         }
         
-        // Add instructional overlay
-        this.showDragInstructions(card);
+        // NO INSTRUCTION POPUP - immediate drag mode
+        // Remove any existing instructions
+        const existingInstructions = document.getElementById('drag-instructions');
+        if (existingInstructions) {
+            existingInstructions.remove();
+        }
         
-        // Highlight valid drop targets
-        this.highlightDropTargets();
+        // Use enhanced drop target highlighting
+        this.highlightDropTargetsEnhanced();
         
-        // Enable drag functionality
-        this.enableCardDrag(animatedCard, card, playerId, animationArea);
+        // Use enhanced drag functionality with perfect finger tracking
+        this.enableEnhancedCardDrag(animatedCard, card, playerId, animationArea);
+        
+        // Set game pause state
+        this.setDragPauseState(true);
     }
 
     showDragInstructions(card) {
@@ -3131,6 +3147,13 @@ class Flip7Game {
     }
 
     highlightDropTargets() {
+        // Try to use enhanced highlighting from animation module
+        if (window.gameAnimations && window.gameAnimations.highlightDropTargets) {
+            window.gameAnimations.highlightDropTargets(this.players);
+            return;
+        }
+        
+        // Fallback to basic highlighting
         const isMobile = window.innerWidth <= 1024;
         
         // Get all player containers
@@ -3145,7 +3168,50 @@ class Flip7Game {
         });
     }
 
+    // Enhanced Drop Target Highlighting
+    highlightDropTargetsEnhanced() {
+        const isMobile = window.innerWidth <= 1024;
+        
+        // Get all player containers and highlight active players
+        this.players.forEach(player => {
+            const container = isMobile 
+                ? document.getElementById(`mobile-${player.id}`) 
+                : document.getElementById(player.id);
+            
+            if (container) {
+                // Clear any existing highlighting
+                container.classList.remove('valid-drop-target', 'drag-hover');
+                
+                // Only highlight active players (not busted/frozen)
+                if (player.status === 'active' || player.status === 'stayed') {
+                    container.classList.add('valid-drop-target');
+                    container.setAttribute('data-player-id', player.id);
+                    
+                    // Add enhanced glow animation
+                    container.style.animation = 'dropTargetGlow 2s ease-in-out infinite alternate';
+                    container.style.border = '4px solid rgba(34, 197, 94, 0.9)';
+                    container.style.boxShadow = '0 0 25px rgba(34, 197, 94, 0.8), inset 0 0 15px rgba(34, 197, 94, 0.3)';
+                    container.style.background = 'rgba(34, 197, 94, 0.15)';
+                    
+                    // Add larger touch target for mobile
+                    if (isMobile) {
+                        container.style.minHeight = '100px';
+                        container.style.padding = '10px';
+                        container.style.margin = '5px';
+                    }
+                }
+            }
+        });
+    }
+
     enableCardDrag(animatedCard, card, playerId, animationArea) {
+        // Try to use enhanced drag from animation module
+        if (window.gameAnimations && window.gameAnimations.enableEnhancedCardDrag) {
+            window.gameAnimations.enableEnhancedCardDrag(animatedCard, card, playerId, animationArea, this);
+            return;
+        }
+        
+        // Fallback to basic drag functionality
         // Make card draggable
         animatedCard.draggable = true;
         animatedCard.style.cursor = 'grab';
@@ -3478,6 +3544,254 @@ class Flip7Game {
                 animationArea.style.marginTop = '';
             }
         }
+    }
+
+    // Enhanced Drag and Drop Functionality  
+    enableEnhancedCardDrag(animatedCard, card, playerId, animationArea) {
+        // Enhanced drag state management
+        let isDragging = false;
+        let isFloating = false;
+        let currentDropTarget = null;
+        let animationFrameId = null;
+        
+        // Calculate card center offset for perfect finger tracking
+        const cardRect = animatedCard.getBoundingClientRect();
+        const cardCenterOffsetX = cardRect.width / 2;
+        const cardCenterOffsetY = cardRect.height / 2;
+        
+        // Desktop drag events (simplified)
+        animatedCard.draggable = true;
+        animatedCard.style.cursor = 'grab';
+        
+        animatedCard.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', JSON.stringify({ card, playerId }));
+            animatedCard.style.opacity = '0.8';
+        });
+        
+        animatedCard.addEventListener('dragend', (e) => {
+            animatedCard.style.opacity = '1';
+        });
+        
+        // Enhanced mobile touch events with perfect finger tracking
+        animatedCard.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            isFloating = false;
+            const touch = e.touches[0];
+            
+            // IMMEDIATE: Remove any instruction popups
+            const instructions = document.getElementById('drag-instructions');
+            if (instructions) {
+                instructions.remove();
+            }
+            
+            // Position card center under fingertip immediately
+            const newLeft = touch.clientX - cardCenterOffsetX;
+            const newTop = touch.clientY - cardCenterOffsetY;
+            
+            // Setup enhanced dragging state
+            animatedCard.classList.add('dragging');
+            animatedCard.style.cursor = 'grabbing';
+            animatedCard.style.position = 'fixed';
+            animatedCard.style.left = newLeft + 'px';
+            animatedCard.style.top = newTop + 'px';
+            animatedCard.style.zIndex = '20000'; // Above everything
+            animatedCard.style.pointerEvents = 'none';
+            animatedCard.style.transform = 'scale(1.1)'; // Slight lift effect
+            animatedCard.style.transition = 'none'; // Remove any existing transitions
+            
+            // Haptic feedback on grab
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+            
+            currentDropTarget = null;
+            
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        
+        animatedCard.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            
+            const touch = e.touches[0];
+            
+            // Use requestAnimationFrame for ultra-smooth movement
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            
+            animationFrameId = requestAnimationFrame(() => {
+                // Perfect finger tracking - card center follows fingertip exactly
+                const newLeft = touch.clientX - cardCenterOffsetX;
+                const newTop = touch.clientY - cardCenterOffsetY;
+                
+                animatedCard.style.left = newLeft + 'px';
+                animatedCard.style.top = newTop + 'px';
+                animatedCard.style.transform = 'scale(1.1) rotate(-3deg)'; // Enhanced visual feedback
+                
+                // Enhanced drop target detection
+                const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+                let newDropTarget = elementUnder?.closest('.valid-drop-target');
+                
+                // Mobile forgiveness - expand hit detection
+                if (!newDropTarget && window.innerWidth <= 1024) {
+                    const tolerance = 80; // Large tolerance for mobile
+                    const dropTargets = document.querySelectorAll('.valid-drop-target');
+                    
+                    let closestTarget = null;
+                    let closestDistance = tolerance;
+                    
+                    dropTargets.forEach(target => {
+                        const rect = target.getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
+                        const centerY = rect.top + rect.height / 2;
+                        
+                        const distance = Math.sqrt(
+                            Math.pow(touch.clientX - centerX, 2) + 
+                            Math.pow(touch.clientY - centerY, 2)
+                        );
+                        
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closestTarget = target;
+                        }
+                    });
+                    
+                    newDropTarget = closestTarget;
+                }
+                
+                // Update drop target highlighting with enhanced feedback
+                if (newDropTarget !== currentDropTarget) {
+                    // Remove highlight from previous target
+                    if (currentDropTarget) {
+                        currentDropTarget.classList.remove('drag-hover');
+                        currentDropTarget.style.transform = '';
+                    }
+                    
+                    // Add highlight to new target
+                    if (newDropTarget) {
+                        newDropTarget.classList.add('drag-hover');
+                        newDropTarget.style.transform = 'scale(1.05)'; // Slightly expand target
+                        
+                        // Haptic feedback when entering valid zone
+                        if (navigator.vibrate) {
+                            navigator.vibrate(30);
+                        }
+                    }
+                    
+                    currentDropTarget = newDropTarget;
+                }
+            });
+            
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        
+        animatedCard.addEventListener('touchend', (e) => {
+            if (!isDragging) return;
+            
+            // Cancel any pending animation frame
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            
+            const touch = e.changedTouches[0];
+            
+            // Check if dropped on valid target
+            const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+            let dropTarget = elementUnder?.closest('.valid-drop-target');
+            
+            // Mobile forgiveness for final drop detection
+            if (!dropTarget && window.innerWidth <= 1024) {
+                const tolerance = 100; // Even larger tolerance on final release
+                const dropTargets = document.querySelectorAll('.valid-drop-target');
+                
+                let closestTarget = null;
+                let closestDistance = tolerance;
+                
+                dropTargets.forEach(target => {
+                    const rect = target.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    
+                    const distance = Math.sqrt(
+                        Math.pow(touch.clientX - centerX, 2) + 
+                        Math.pow(touch.clientY - centerY, 2)
+                    );
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestTarget = target;
+                    }
+                });
+                
+                dropTarget = closestTarget;
+            }
+            
+            if (dropTarget) {
+                // Successful drop - execute action
+                const targetPlayerId = dropTarget.getAttribute('data-player-id');
+                if (targetPlayerId) {
+                    // Strong haptic feedback for successful drop
+                    if (navigator.vibrate) {
+                        navigator.vibrate([100, 50, 100]);
+                    }
+                    
+                    // Clear highlights and execute action
+                    this.clearDropTargetHighlights();
+                    this.setDragPauseState(false);
+                    this.handleCardDrop(dropTarget, card, playerId);
+                    return;
+                }
+            }
+            
+            // No valid drop - enter floating state
+            isDragging = false;
+            isFloating = true;
+            
+            // Add floating animation
+            animatedCard.style.animation = 'cardFloating 2s ease-in-out infinite alternate';
+            animatedCard.style.transform = 'scale(1.0)'; // Return to normal size
+            animatedCard.style.cursor = 'grab'; // Show it's still interactive
+            animatedCard.style.pointerEvents = 'auto'; // Re-enable touch
+            
+            // Card stays floating until valid drop - game remains paused
+            console.log('Card floating - waiting for valid drop');
+            
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    }
+
+    clearDropTargetHighlights() {
+        // Try to use enhanced clearing from animation module
+        if (window.gameAnimations && window.gameAnimations.clearDropTargetHighlights) {
+            window.gameAnimations.clearDropTargetHighlights(this.players);
+            return;
+        }
+        
+        // Fallback to basic clearing
+        const isMobile = window.innerWidth <= 1024;
+        
+        this.players.forEach(player => {
+            const container = isMobile 
+                ? document.getElementById(`mobile-${player.id}`) 
+                : document.getElementById(player.id);
+            
+            if (container) {
+                container.classList.remove('valid-drop-target', 'drag-hover');
+                container.removeAttribute('data-player-id');
+                container.style.animation = '';
+                container.style.border = '';
+                container.style.boxShadow = '';
+                container.style.background = '';
+                container.style.minHeight = '';
+                container.style.padding = '';
+                container.style.margin = '';
+                container.style.transform = '';
+            }
+        });
     }
 
     animateAICardDrag(card, fromPlayer, toPlayer, callback) {

@@ -1321,7 +1321,8 @@ export class GameAnimations {
 // Export singleton instance
 export const gameAnimations = new GameAnimations();
 
-// Expose point transfer animation globally for integration with main game
+// Expose animation functions globally for integration with main game
+window.gameAnimations = gameAnimations;
 window.Flip7AnimatePointTransfer = (players, onAllComplete) => {
     gameAnimations.animateAllPlayersPointTransfer(players, onAllComplete);
 };
