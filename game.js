@@ -2987,6 +2987,17 @@ class Flip7Game {
     }
 
     slideCardToPlayerHand(animatedCard, animationArea, card, playerId) {
+        // Add debug logging
+        console.log(`[slideCardToPlayerHand] Called with playerId: ${playerId}, card: ${card.display}`);
+        
+        // Use the enhanced animation module if available
+        if (window.gameAnimations && window.gameAnimations.slideCardToPlayerHand) {
+            console.log(`[slideCardToPlayerHand] Delegating to animation module`);
+            window.gameAnimations.slideCardToPlayerHand(animatedCard, animationArea, card, playerId, this);
+            return;
+        }
+        
+        console.log(`[slideCardToPlayerHand] Using fallback implementation`);
         const isMobile = window.innerWidth <= 1024;
         
         // Set mobile-specific card size BEFORE getting position
@@ -3007,11 +3018,14 @@ class Flip7Game {
         let targetElement;
         if (isMobile) {
             targetElement = this.getPlayerAreaElement(playerId);
+            console.log(`[slideCardToPlayerHand] Mobile - target element for player ${playerId}:`, targetElement?.id);
         } else {
             targetElement = this.getTargetCardContainer(playerId, card.type);
+            console.log(`[slideCardToPlayerHand] Desktop - target element for player ${playerId}:`, targetElement?.id);
         }
         
         if (!targetElement) {
+            console.log(`[slideCardToPlayerHand] No target element found, adding card directly`);
             // Fallback: just add card directly if no target found
             this.addCardToPlayerHand(card, playerId);
             if (animationArea && animationArea.parentNode) {
