@@ -3364,11 +3364,11 @@ body {
         top: 20px !important;
         left: 0 !important;
         right: 0 !important;
-        bottom: 20px !important; /* Add margin from bottom */
+        bottom: calc(70px + env(safe-area-inset-bottom, 0px) + 10px) !important; /* Reserve space for buttons + safe area + margin */
         width: 100vw !important;
-        height: calc(100vh - 40px) !important; /* Account for top and bottom margins */
+        height: calc(100vh - 20px - 70px - env(safe-area-inset-bottom, 0px) - 10px) !important; /* Account for top, buttons, safe area, and margin */
         overflow: visible !important;
-        padding: 0 6px 10px 6px !important; /* Reduced bottom padding to pull buttons higher */
+        padding: 0 6px 5px 6px !important; /* Minimal bottom padding since buttons have their own space */
         gap: 0 !important;
         background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, transparent 100%) !important;
     }
@@ -3454,24 +3454,21 @@ body {
         display: flex !important;
         justify-content: space-around !important;
         align-items: center !important;
-        padding: 8px 16px 12px 16px !important; /* Extra bottom padding for safety */
+        padding: 8px 16px calc(12px + env(safe-area-inset-bottom, 0px)) 16px !important; /* Safe area padding */
         width: 100% !important;
-        height: 70px !important; /* Increased height for better visibility */
-        background: rgba(0, 0, 0, 0.1) !important; /* Slight background for visibility */
+        height: calc(70px + env(safe-area-inset-bottom, 0px)) !important; /* Height includes safe area */
+        background: rgba(0, 0, 0, 0.2) !important; /* More visible background */
         border: none !important;
         border-radius: 0 !important;
-        position: absolute !important; /* Absolute positioning */
-        bottom: 0 !important; /* Stick to bottom */
+        position: fixed !important; /* Fixed positioning for viewport stability */
+        bottom: 0 !important; /* Stick to viewport bottom */
         left: 0 !important;
         right: 0 !important;
-        z-index: 999999 !important;
-        box-shadow: none !important;
+        z-index: 999999 !important; /* Highest z-index */
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15) !important; /* Subtle shadow for visibility */
         flex-shrink: 0 !important;
-        margin-top: 0px !important; /* Reset margin */
-        margin-bottom: 5px !important; /* Minimal margin to keep buttons in viewport */
-        backdrop-filter: none !important;
-        position: relative !important;
-        z-index: 10 !important;
+        backdrop-filter: blur(5px) !important; /* Subtle backdrop blur */
+        -webkit-backdrop-filter: blur(5px) !important; /* Safari support */
     }
     
     /* Hit/Stay buttons in bottom section - Glass-morphism styling */
@@ -3491,11 +3488,18 @@ body {
         position: relative !important;
         overflow: hidden !important;
         transition: all 0.3s ease !important;
-        z-index: 100 !important; /* Ensure buttons are above other elements */
+        z-index: 1000000 !important; /* Ensure buttons are above all other elements */
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
         backdrop-filter: blur(15px) !important;
         -webkit-backdrop-filter: blur(15px) !important;
         box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37) !important;
+        /* Cross-browser touch optimizations */
+        -webkit-tap-highlight-color: transparent !important;
+        -webkit-touch-callout: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
         /* Center text perfectly */
         display: flex !important;
         align-items: center !important;
