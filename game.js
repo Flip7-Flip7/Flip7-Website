@@ -3110,9 +3110,11 @@ class Flip7Game {
                 
                 // Only set auto-hide timeout for non-interactive cards
                 // Interactive cards (Flip3/Freeze for humans) will manage their own backdrop
+                const player = this.players.find(p => p.id === playerId);
+                const isHumanPlayer = player && player.isHuman;
                 const willBecomeInteractive = card.type === 'action' && 
                     (card.value === 'freeze' || card.value === 'flip3') && 
-                    playerId === 'player';
+                    isHumanPlayer;
                 
                 if (!willBecomeInteractive) {
                     // Hide backdrop after animation completes for normal cards
@@ -3153,7 +3155,8 @@ class Flip7Game {
             this.slideCardToPlayerHand(animatedCard, animationArea, card, playerId);
             
             // For human Freeze/Flip3 cards, start targeting after card reaches hand
-            const isHumanPlayer = playerId === 'player';
+            const player = this.players.find(p => p.id === playerId);
+            const isHumanPlayer = player && player.isHuman;
             const isActionCard = card.type === 'action' && (card.value === 'freeze' || card.value === 'flip3');
             
             if (isActionCard && isHumanPlayer) {

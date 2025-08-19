@@ -1920,11 +1920,11 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    transform: rotateY(0deg);
+    transform: rotateY(180deg); /* Swapped: back is hidden after 180deg flip */
 }
 
 .animated-card .card-front {
-    transform: rotateY(180deg);
+    transform: rotateY(0deg); /* Swapped: front is visible after 180deg flip */
 }
 
 /* Ensure card content is visible in the front element */
