@@ -2394,7 +2394,7 @@ class Flip7Game {
                     console.log('Action card processed - resetting processing flag');
                     this.isProcessingPlayerAction = false; // Reset flag
                 console.log('🔓 Processing flag CLEARED');
-                }, 1200); // Standardized timing
+                }, 800); // Faster timing
             } else {
                 // Normal flow: move to next turn after animation
                 setTimeout(() => {
@@ -2403,9 +2403,9 @@ class Flip7Game {
                     console.log('Normal turn completed - resetting processing flag');
                     this.isProcessingPlayerAction = false; // Reset flag
                 console.log('🔓 Processing flag CLEARED');
-                }, 1200); // Standardized timing
+                }, 800); // Faster timing
             }
-        }, 1200); // Standardized card animation duration
+        }, 800); // Faster for quicker gameplay
     }
 
     playerStay() {
@@ -2678,15 +2678,15 @@ class Flip7Game {
                 // Action card will handle the turn flow
                 setTimeout(() => {
                     this.updateDisplay();
-                }, 1200); // Standardized timing
+                }, 800); // Faster timing
             } else {
                 // Normal flow: move to next turn after animation
                 setTimeout(() => {
                     this.updateDisplay();
                     this.nextTurn();
-                }, 1200); // Standardized timing
+                }, 800); // Faster timing
             }
-        }, 1200); // Standardized card animation duration
+        }, 800); // Faster for quicker gameplay
     }
 
     aiStay(player) {
@@ -3097,7 +3097,7 @@ class Flip7Game {
         }
         
         // Define reveal duration for simple flip
-        const revealDuration = 400; // Faster flip for quicker gameplay
+        const revealDuration = 300; // Quick but visible flip
         
         // Show backdrop for focus (mobile only)
         let backdropTimeout = null;
@@ -3117,7 +3117,7 @@ class Flip7Game {
                     this.backdropAutoHideTimeout = setTimeout(() => {
                         backdrop.classList.remove('show');
                         this.backdropAutoHideTimeout = null;
-                    }, revealDuration + 100); // Just after flip completes
+                    }, revealDuration + 50); // Just after flip completes
                 }
             }
         }
@@ -3155,32 +3155,17 @@ class Flip7Game {
             const isActionCard = card.type === 'action' && (card.value === 'freeze' || card.value === 'flip3');
             
             if (isActionCard && isHumanPlayer) {
-                // Wait for slide animation to complete, then start targeting
-                const slideDelay = window.innerWidth <= 1024 ? 500 : 400;
+                // Start targeting immediately after slide completes
+                const slideDelay = window.innerWidth <= 1024 ? 400 : 350;
                 setTimeout(() => {
                     this.startActionTargeting(card, this.players[0]); // Human is always player 0
-                }, slideDelay + 100); // Small extra delay for visual clarity
+                }, slideDelay + 50); // Minimal delay for smooth transition
             }
         }, revealDuration); // Wait for flip to complete
     }
 
     slideCardToPlayerHand(animatedCard, animationArea, card, playerId) {
-        // Add debug logging
-        console.log(`[slideCardToPlayerHand] Called with playerId: ${playerId}, card: ${card.display}`);
-        
-        // Use the enhanced animation module if available
-        if (window.gameAnimations && window.gameAnimations.slideCardToPlayerHand) {
-            console.log(`[slideCardToPlayerHand] ✅ Delegating to animation module`);
-            window.gameAnimations.slideCardToPlayerHand(animatedCard, animationArea, card, playerId, this);
-            return;
-        } else {
-            console.log(`[slideCardToPlayerHand] ❌ Animation module not available:`, {
-                gameAnimations: !!window.gameAnimations,
-                slideMethod: !!(window.gameAnimations && window.gameAnimations.slideCardToPlayerHand)
-            });
-        }
-        
-        console.log(`[slideCardToPlayerHand] Using fallback implementation`);
+        // Streamlined animation implementation - no module dependency
         const isMobile = window.innerWidth <= 1024;
         
         // Set mobile-specific card size BEFORE getting position
@@ -3197,23 +3182,15 @@ class Flip7Game {
         const startX = animatedCardRect.left;
         const startY = animatedCardRect.top;
         
-        // Get target element based on device type
-        let targetElement;
-        if (isMobile) {
-            targetElement = this.getPlayerAreaElement(playerId);
-            console.log(`[slideCardToPlayerHand] Mobile - target element for player ${playerId}:`, targetElement?.id);
-        } else {
-            targetElement = this.getTargetCardContainer(playerId, card.type);
-            console.log(`[slideCardToPlayerHand] Desktop - target element for player ${playerId}:`, targetElement?.id);
-        }
+        // Get target element - simplified logic
+        const targetElement = isMobile 
+            ? this.getPlayerAreaElement(playerId)
+            : this.getTargetCardContainer(playerId, card.type);
         
         if (!targetElement) {
-            console.log(`[slideCardToPlayerHand] No target element found, adding card directly`);
-            // Fallback: just add card directly if no target found
+            // Fallback: add card directly if no target found
             this.addCardToPlayerHand(card, playerId);
-            if (animationArea && animationArea.parentNode) {
-                animationArea.innerHTML = '';
-            }
+            if (animationArea) animationArea.innerHTML = '';
             return;
         }
         
@@ -3235,16 +3212,16 @@ class Flip7Game {
         const deltaX = endX - startX;
         const deltaY = endY - startY;
         
-        // Calculate scale based on device
-        const scale = isMobile ? 0.5 : 0.8;
+        // Calculate scale based on device - smaller for faster visual effect
+        const scale = isMobile ? 0.4 : 0.6;
         
         // Apply slide animation with proper transform origin
         animatedCard.style.position = 'fixed';
         animatedCard.style.left = startX + 'px';
         animatedCard.style.top = startY + 'px';
-        animatedCard.style.zIndex = isMobile ? '15000' : '10000'; // Higher z-index for mobile
+        animatedCard.style.zIndex = isMobile ? '999000' : '10000'; // Higher than mobile buttons
         animatedCard.style.transformOrigin = 'center center';
-        animatedCard.style.transition = `transform ${isMobile ? '0.5s' : '0.4s'} ease-in-out`; // Visible but fast
+        animatedCard.style.transition = `transform ${isMobile ? '400ms' : '350ms'} ease-in-out`; // Quick but smooth
         animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scale})`;
         
         // Ensure card is visible during animation
@@ -3256,10 +3233,10 @@ class Flip7Game {
             this.addCardToPlayerHand(card, playerId);
             
             // Clear animation area
-            if (animationArea && animationArea.parentNode) {
+            if (animationArea) {
                 animationArea.innerHTML = '';
             }
-        }, isMobile ? 500 : 400);
+        }, isMobile ? 400 : 350);
     }
 
     // DEPRECATED - Replaced by startActionTargeting
