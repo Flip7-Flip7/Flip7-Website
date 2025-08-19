@@ -34,24 +34,14 @@ class Flip7Game {
         this.initializePlayers();
         this.initializeEventListeners();
         
-        // Enhanced auto-start with multiple fallback triggers
+        // Simple auto-start - single reliable trigger
         console.log('Flip7Game constructor - setting up autostart...');
         this.autoStartAttempted = false;
         
-        // Primary autostart trigger
+        // Single autostart trigger with optimal timing
         setTimeout(() => {
-            this.attemptAutoStart('primary-timeout');
-        }, 500); // Increased from 200ms for better reliability
-        
-        // Secondary fallback trigger
-        setTimeout(() => {
-            this.attemptAutoStart('secondary-timeout');
-        }, 1500);
-        
-        // Ultimate fallback trigger
-        setTimeout(() => {
-            this.attemptAutoStart('ultimate-fallback');
-        }, 3000);
+            this.attemptAutoStart('constructor-timeout');
+        }, 500);
         
         // Add visual confirmation game started
         setTimeout(() => {
@@ -5359,12 +5349,5 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==================== INITIALIZATION ====================
 
 window.addEventListener('load', () => {
-    setTimeout(() => {
-        initializeGame('window-load-fallback');
-    }, 100);
+    initializeGame('window-load-fallback');
 });
-
-// Ultimate fallback: direct timeout
-setTimeout(() => {
-    initializeGame('timeout-fallback');
-}, 1000);

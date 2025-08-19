@@ -3176,13 +3176,17 @@ body {
 
 /* NUCLEAR APPROACH: Mobile layout is DEFAULT - always visible */
 /* Mobile elements hidden on desktop by default */
-.mobile-game-board, .mobile-status-banner {
-    display: none !important;
+@media (min-width: 1025px) {
+    .mobile-game-board, .mobile-status-banner {
+        display: none !important;
+    }
 }
 
 /* Mobile info panel always hidden (prevents overlay issues) */
-.mobile-info-panel {
-    display: none !important;
+@media (min-width: 1025px) {
+    .mobile-info-panel {
+        display: none !important;
+    }
 }
 
 /* Hide player status text globally (both desktop and mobile) */
@@ -3341,7 +3345,7 @@ body {
         width: 100vw !important;
         height: calc(100vh - 20px) !important;
         overflow: visible !important;
-        padding: 0 6px 30px 6px !important; /* Increased bottom padding for button space */
+        padding: 0 6px 10px 6px !important; /* Reduced bottom padding to pull buttons higher */
         gap: 0 !important;
         background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, transparent 100%) !important;
     }
@@ -3436,7 +3440,7 @@ body {
         border-radius: 0 !important;
         box-shadow: none !important;
         flex-shrink: 0 !important;
-        margin-top: -20px !important; /* Move buttons higher, closer to AI Bot 3 */
+        margin-top: 0px !important; /* Reset margin */
         margin-bottom: 5px !important; /* Minimal margin to keep buttons in viewport */
         backdrop-filter: none !important;
         position: relative !important;
