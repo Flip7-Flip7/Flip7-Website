@@ -3168,6 +3168,7 @@ class Flip7Game {
         // Streamlined animation implementation - no module dependency
         const isMobile = window.innerWidth <= 1024;
         
+        
         // Set mobile-specific card size BEFORE getting position
         if (isMobile) {
             animatedCard.style.width = '120px';
@@ -3221,8 +3222,10 @@ class Flip7Game {
         animatedCard.style.top = startY + 'px';
         animatedCard.style.zIndex = isMobile ? '999000' : '10000'; // Higher than mobile buttons
         animatedCard.style.transformOrigin = 'center center';
-        animatedCard.style.transition = `transform ${isMobile ? '400ms' : '350ms'} ease-in-out`; // Quick but smooth
-        animatedCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${scale})`;
+        // Use translate3d for GPU acceleration and smoother animation
+        animatedCard.style.willChange = 'transform';
+        animatedCard.style.transition = `transform ${isMobile ? '450ms' : '400ms'} cubic-bezier(0.4, 0, 0.2, 1)`; // Slightly slower for smoothness
+        animatedCard.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0) scale(${scale})`;
         
         // Ensure card is visible during animation
         animatedCard.style.visibility = 'visible';
@@ -3230,13 +3233,16 @@ class Flip7Game {
         
         // After slide animation completes, add card to hand and clean up
         setTimeout(() => {
+            // Reset will-change to release resources
+            animatedCard.style.willChange = 'auto';
+            
             this.addCardToPlayerHand(card, playerId);
             
             // Clear animation area
             if (animationArea) {
                 animationArea.innerHTML = '';
             }
-        }, isMobile ? 400 : 350);
+        }, isMobile ? 450 : 400); // Match animation duration
     }
 
     // DEPRECATED - Replaced by startActionTargeting
@@ -4340,7 +4346,6 @@ class Flip7Game {
         // Get entire player area for better slide animation targeting
         // Handle both numeric (0,1,2,3) and string ('player', 'opponent1') player IDs
         const isMobile = window.innerWidth <= 1024;
-        
         
         if (playerId === 0 || playerId === 'player') {
             const elementId = isMobile ? 'mobile-player' : 'player';

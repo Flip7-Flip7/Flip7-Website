@@ -1143,6 +1143,10 @@ body {
     height: 80px;
     transform-origin: center;
     z-index: 150;
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0); /* Force GPU acceleration */
 }
 
 /* Larger animated cards in center areas */
