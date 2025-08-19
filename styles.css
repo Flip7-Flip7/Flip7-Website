@@ -3175,10 +3175,17 @@ body {
 }
 
 /* NUCLEAR APPROACH: Mobile layout is DEFAULT - always visible */
-/* Mobile elements hidden on desktop by default */
+/* Mobile elements visible by default */
+.mobile-game-board, .mobile-status-banner {
+    display: flex !important;
+    visibility: visible !important;
+}
+
+/* Mobile elements hidden on desktop only */
 @media (min-width: 1025px) {
     .mobile-game-board, .mobile-status-banner {
         display: none !important;
+        visibility: hidden !important;
     }
 }
 
