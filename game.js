@@ -4343,29 +4343,27 @@ class Flip7Game {
 
     getTargetCardContainer(playerId, cardType) {
         // Always return the unified card container regardless of card type
-        // Handle both numeric (0,1,2,3) and string ('player', 'opponent1') player IDs
-        if (playerId === 0 || playerId === 'player') {
+        // Handle string player IDs: 'player', 'opponent1', 'opponent2', 'opponent3'
+        if (playerId === 'player') {
             return document.getElementById('player-cards');
         } else {
-            // Convert numeric player IDs to opponent string format
-            const opponentId = typeof playerId === 'number' ? `opponent${playerId}` : playerId;
-            return document.getElementById(`${opponentId}-cards`);
+            // Handle opponent IDs: 'opponent1', 'opponent2', 'opponent3'
+            return document.getElementById(`${playerId}-cards`);
         }
     }
 
     getPlayerAreaElement(playerId) {
         // Get entire player area for better slide animation targeting
-        // Handle both numeric (0,1,2,3) and string ('player', 'opponent1') player IDs
+        // Handle string player IDs: 'player', 'opponent1', 'opponent2', 'opponent3'
         const isMobile = window.innerWidth <= 1024;
         
-        if (playerId === 0 || playerId === 'player') {
+        if (playerId === 'player') {
             const elementId = isMobile ? 'mobile-player' : 'player';
             const element = document.getElementById(elementId);
             return element;
         } else {
-            // Convert numeric player IDs to opponent string format
-            const opponentId = typeof playerId === 'number' ? `opponent${playerId}` : playerId;
-            const elementId = isMobile ? `mobile-${opponentId}` : opponentId;
+            // Handle opponent IDs: 'opponent1', 'opponent2', 'opponent3'
+            const elementId = isMobile ? `mobile-${playerId}` : playerId;
             const element = document.getElementById(elementId);
             return element;
         }
