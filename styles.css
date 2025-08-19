@@ -3438,6 +3438,8 @@ body {
         background: transparent !important;
         border: none !important;
         border-radius: 0 !important;
+        position: relative !important;
+        z-index: 999999 !important;
         box-shadow: none !important;
         flex-shrink: 0 !important;
         margin-top: 0px !important; /* Reset margin */
@@ -3506,6 +3508,14 @@ body {
     
     /* FORCE MOBILE BUTTONS VISIBLE - Maximum specificity */
     @media (max-width: 1024px) {
+        .mobile-bottom-section {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 999999 !important;
+            position: relative !important;
+        }
+        
         .mobile-bottom-section .mobile-action-btn,
         #mobile-hit-btn,
         #mobile-stay-btn {
