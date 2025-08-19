@@ -1187,6 +1187,13 @@ body {
         left: auto !important;
         margin: 0 !important; /* Remove margin-based centering during slide */
         transform-style: preserve-3d !important; /* Maintain 3D context */
+        
+        /* GPU acceleration optimizations for smooth animation */
+        will-change: transform !important;
+        backface-visibility: hidden !important;
+        -webkit-backface-visibility: hidden !important;
+        transform: translateZ(0) !important; /* Force GPU layer */
+        transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1) !important; /* Smooth easing */
         z-index: 15000 !important; /* Higher z-index during slide animation */
     }
     
@@ -1219,6 +1226,16 @@ body {
     position: absolute !important;
     z-index: 10001 !important;
     pointer-events: auto !important;
+}
+
+/* GPU-accelerated sliding animation for all devices */
+.animated-card.sliding {
+    will-change: transform !important;
+    backface-visibility: hidden !important;
+    -webkit-backface-visibility: hidden !important;
+    transform: translateZ(0) !important; /* Force GPU layer */
+    transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1) !important; /* Snappy timing */
+    z-index: 15000 !important; /* Higher z-index during slide */
 }
 
 .animated-card.interactive-card.drag-me {

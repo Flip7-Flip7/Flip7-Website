@@ -2370,7 +2370,9 @@ class Flip7Game {
         }, 10000); // 10 second safety timeout
         
         const card = this.drawCard();
-        this.displayCard(card, 'player');
+        // Use the current player's actual ID instead of hardcoded 'player'
+        const currentPlayer = this.players[this.currentPlayerIndex];
+        this.displayCard(card, currentPlayer.id);
         
         this.disablePlayerActions();
         
@@ -3156,7 +3158,7 @@ class Flip7Game {
             
             if (isActionCard && isHumanPlayer) {
                 // Start targeting immediately after slide completes
-                const slideDelay = window.innerWidth <= 1024 ? 400 : 350;
+                const slideDelay = window.innerWidth <= 1024 ? 300 : 250;
                 setTimeout(() => {
                     this.startActionTargeting(card, this.players[0]); // Human is always player 0
                 }, slideDelay + 50); // Minimal delay for smooth transition
@@ -3222,9 +3224,13 @@ class Flip7Game {
         animatedCard.style.top = startY + 'px';
         animatedCard.style.zIndex = isMobile ? '999000' : '10000'; // Higher than mobile buttons
         animatedCard.style.transformOrigin = 'center center';
+        
+        // Add sliding class for CSS optimizations
+        animatedCard.classList.add('sliding');
+        
         // Use translate3d for GPU acceleration and smoother animation
         animatedCard.style.willChange = 'transform';
-        animatedCard.style.transition = `transform ${isMobile ? '450ms' : '400ms'} cubic-bezier(0.4, 0, 0.2, 1)`; // Slightly slower for smoothness
+        animatedCard.style.transition = `transform ${isMobile ? '300ms' : '250ms'} cubic-bezier(0.4, 0, 0.2, 1)`; // Optimized timing for snappy feel
         animatedCard.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0) scale(${scale})`;
         
         // Ensure card is visible during animation
@@ -3233,7 +3239,8 @@ class Flip7Game {
         
         // After slide animation completes, add card to hand and clean up
         setTimeout(() => {
-            // Reset will-change to release resources
+            // Remove sliding class and reset will-change to release resources
+            animatedCard.classList.remove('sliding');
             animatedCard.style.willChange = 'auto';
             
             this.addCardToPlayerHand(card, playerId);
@@ -3242,7 +3249,7 @@ class Flip7Game {
             if (animationArea) {
                 animationArea.innerHTML = '';
             }
-        }, isMobile ? 450 : 400); // Match animation duration
+        }, isMobile ? 300 : 250); // Match new animation duration
     }
 
     // DEPRECATED - Replaced by startActionTargeting
