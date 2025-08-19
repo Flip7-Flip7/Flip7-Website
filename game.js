@@ -4132,6 +4132,11 @@ class Flip7Game {
         // Enhanced freeze effects (builds on existing system)
         const isMobile = window.innerWidth <= 1024;
         
+        // Add dramatic flash effect for mobile
+        if (isMobile) {
+            this.createFreezeFlashEffect();
+        }
+        
         // Get containers for both desktop and mobile
         const desktopContainer = document.getElementById(targetPlayer.id);
         const mobileContainer = document.getElementById(`mobile-${targetPlayer.id}`);
@@ -4213,21 +4218,49 @@ class Flip7Game {
         iceContainer.style.pointerEvents = 'none';
         iceContainer.style.zIndex = '10';
         
-        // Create multiple ice crystals
-        for (let i = 0; i < 6; i++) {
+        // Create multiple ice crystals - more visible on mobile
+        const isMobile = window.innerWidth <= 1024;
+        const particleCount = isMobile ? 12 : 6;
+        const particleSize = isMobile ? '24px' : '16px';
+        
+        for (let i = 0; i < particleCount; i++) {
             const crystal = document.createElement('div');
             crystal.textContent = '❄';
             crystal.style.position = 'absolute';
             crystal.style.color = '#60a5fa';
-            crystal.style.fontSize = '12px';
+            crystal.style.fontSize = particleSize;
             crystal.style.left = Math.random() * 80 + 10 + '%';
             crystal.style.top = Math.random() * 80 + 10 + '%';
             crystal.style.animation = `iceFloat 3s infinite ${Math.random() * 2}s`;
+            crystal.style.textShadow = '0 0 10px rgba(96, 165, 250, 1), 0 0 20px rgba(147, 197, 253, 0.8)';
+            crystal.style.opacity = '0.9';
+            crystal.style.zIndex = '50';
             
             iceContainer.appendChild(crystal);
         }
         
         container.appendChild(iceContainer);
+    }
+    
+    createFreezeFlashEffect() {
+        // Create dramatic screen flash for freeze moment
+        const flash = document.createElement('div');
+        flash.style.position = 'fixed';
+        flash.style.top = '0';
+        flash.style.left = '0';
+        flash.style.width = '100vw';
+        flash.style.height = '100vh';
+        flash.style.backgroundColor = 'rgba(147, 197, 253, 0.8)';
+        flash.style.zIndex = '999998'; // Just below mobile buttons
+        flash.style.pointerEvents = 'none';
+        flash.style.animation = 'freezeFlash 0.5s ease-out';
+        
+        document.body.appendChild(flash);
+        
+        // Remove after animation
+        setTimeout(() => {
+            flash.remove();
+        }, 500);
     }
     
     removeFreezeVisualEffectsFromContainer(container) {
