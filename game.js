@@ -4232,10 +4232,11 @@ class Flip7Game {
         iceContainer.style.width = '100%';
         iceContainer.style.height = '100%';
         iceContainer.style.pointerEvents = 'none';
-        iceContainer.style.zIndex = '10';
+        // Set appropriate z-index for visibility
+        const isMobile = window.innerWidth <= 1024;
+        iceContainer.style.zIndex = isMobile ? '2002' : '10'; // Above freeze overlay on mobile
         
         // Create multiple ice crystals - more visible on mobile
-        const isMobile = window.innerWidth <= 1024;
         const particleCount = isMobile ? 12 : 6;
         const particleSize = isMobile ? '24px' : '16px';
         
@@ -4250,7 +4251,7 @@ class Flip7Game {
             crystal.style.animation = `iceFloat 3s infinite ${Math.random() * 2}s`;
             crystal.style.textShadow = '0 0 10px rgba(96, 165, 250, 1), 0 0 20px rgba(147, 197, 253, 0.8)';
             crystal.style.opacity = '0.9';
-            crystal.style.zIndex = '50';
+            crystal.style.zIndex = isMobile ? '2003' : '50'; // Above ice container on mobile
             
             iceContainer.appendChild(crystal);
         }

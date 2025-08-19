@@ -1660,7 +1660,7 @@ body {
         rgba(96, 165, 250, 0.85) 100%);
     backdrop-filter: blur(2px);
     animation: freezePulse 3s ease-in-out infinite;
-    z-index: 5000 !important; /* Lower than mobile buttons but visible */
+    z-index: 5000 !important; /* Appropriate for desktop */
     pointer-events: none;
     border-radius: inherit;
 }
@@ -1856,7 +1856,7 @@ body {
     .freeze-overlay-text {
         font-size: 4em !important; /* Even larger text */
         font-weight: 900 !important; /* Bolder text */
-        z-index: 200000 !important; /* Extremely high z-index for mobile */
+        z-index: 2001 !important; /* Above freeze overlay */
         text-shadow: 
             0 0 40px rgba(255,255,255,1) !important,
             0 0 80px rgba(96, 165, 250, 1) !important,
@@ -1870,9 +1870,9 @@ body {
         filter: drop-shadow(0 0 20px rgba(96, 165, 250, 1)) !important;
     }
     
-    /* Ensure freeze overlay is visible on mobile */
+    /* Ensure freeze overlay is visible on mobile - above mobile UI */
     .freeze-overlay {
-        z-index: 5000 !important; /* Consistent with desktop but visible */
+        z-index: 2000 !important; /* Above mobile UI layer (1000-1999) */
         background: linear-gradient(135deg, 
             rgba(96, 165, 250, 0.95) 0%, 
             rgba(59, 130, 246, 1) 50%,
@@ -3481,7 +3481,7 @@ body {
         bottom: 0 !important; /* Stick to viewport bottom */
         left: 0 !important;
         right: 0 !important;
-        z-index: 999999 !important; /* Highest z-index */
+        z-index: 1000 !important; /* Mobile UI layer */
         box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15) !important; /* Subtle shadow for visibility */
         flex-shrink: 0 !important;
         backdrop-filter: blur(5px) !important; /* Subtle backdrop blur */
@@ -3505,7 +3505,7 @@ body {
         position: relative !important;
         overflow: hidden !important;
         transition: all 0.3s ease !important;
-        z-index: 1000000 !important; /* Ensure buttons are above all other elements */
+        z-index: 1001 !important; /* Above mobile UI background */
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
         backdrop-filter: blur(15px) !important;
         -webkit-backdrop-filter: blur(15px) !important;
@@ -3558,7 +3558,7 @@ body {
             display: flex !important;
             visibility: visible !important;
             opacity: 1 !important;
-            z-index: 999999 !important;
+            z-index: 1000 !important;
             position: relative !important;
         }
         
@@ -3568,7 +3568,7 @@ body {
             display: flex !important;
             visibility: visible !important;
             opacity: 1 !important;
-            z-index: 9999999 !important; /* Much higher than any animation element */
+            z-index: 1001 !important; /* Above mobile UI background */
             min-height: 48px !important;
             position: relative !important;
             /* Remove problematic backdrop-filter for Chrome */
