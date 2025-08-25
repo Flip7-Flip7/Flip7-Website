@@ -4069,8 +4069,8 @@ body {
     #mobile-opponent1, #mobile-opponent2, #mobile-opponent3 {
         width: 100% !important;
         flex: 1 !important; /* Equal flexible sizing */
-        min-height: 90px !important; /* Minimum to ensure card visibility */
-        max-height: 130px !important; /* Maximum to prevent oversizing */
+        min-height: 130px !important; /* Increased to prevent card cutoff */
+        max-height: 150px !important; /* Increased for comfortable card display */
         background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(74, 95, 122, 0.75) 100%) !important;
         border: 1px solid rgba(74, 95, 122, 0.4) !important;
         border-radius: 10px !important;
