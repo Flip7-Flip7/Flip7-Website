@@ -462,6 +462,14 @@ class Flip7Game {
     }
 
     startNewRound() {
+        // Clean up visual indicators from previous round
+        document.querySelectorAll('.stayed-indicator').forEach(indicator => {
+            indicator.remove();
+        });
+        document.querySelectorAll('.stayed').forEach(element => {
+            element.classList.remove('stayed');
+        });
+        
         // Reset round-specific data
         this.players.forEach(player => {
             player.roundScore = 0;
@@ -2299,12 +2307,10 @@ class Flip7Game {
             `;
             container.appendChild(pointsAnimation);
             
-            // Remove animations after delay
+            // Remove animations after delay but KEEP the stayed indicator
             setTimeout(() => {
                 container.classList.remove('stay-animation');
-                if (stayedIndicator.parentNode) {
-                    stayedIndicator.remove();
-                }
+                // Keep stayedIndicator visible for the entire round
                 if (pointsAnimation.parentNode) {
                     pointsAnimation.remove();
                 }
@@ -2314,7 +2320,7 @@ class Flip7Game {
                     card.classList.remove('stay-glow');
                 });
                 
-                // Add persistent stayed class for subtle styling
+                // Add persistent stayed class for enhanced styling
                 container.classList.add('stayed');
             }, 2500);
         });

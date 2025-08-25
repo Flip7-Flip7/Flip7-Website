@@ -2407,9 +2407,30 @@ body {
     overflow: visible;
 }
 
-.player-area.stayed {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
-    border-color: rgba(34, 197, 94, 0.3);
+.player-area.stayed,
+#mobile-player.stayed,
+#mobile-opponent1.stayed,
+#mobile-opponent2.stayed,
+#mobile-opponent3.stayed {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(16, 185, 129, 0.20) 100%) !important;
+    border: 2px solid rgba(34, 197, 94, 0.8) !important;
+    box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.3) !important;
+    position: relative;
+}
+
+/* Keep stayed indicator visible and properly positioned */
+.player-area.stayed .stayed-indicator,
+#mobile-player.stayed .stayed-indicator,
+#mobile-opponent1.stayed .stayed-indicator,
+#mobile-opponent2.stayed .stayed-indicator,
+#mobile-opponent3.stayed .stayed-indicator {
+    animation: none;
+    opacity: 1;
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
 }
 
 /* Stayed indicator badge */
