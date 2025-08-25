@@ -3098,8 +3098,8 @@ class Flip7Game {
             return;
         }
         
-        // Define reveal duration for simple flip
-        const revealDuration = 300; // Quick but visible flip
+        // Define reveal duration for simple flip (must match CSS animation duration)
+        const revealDuration = 600; // Match the 0.6s CSS animation
         
         // Show backdrop for focus (mobile only)
         let backdropTimeout = null;
@@ -3232,9 +3232,10 @@ class Flip7Game {
         animatedCard.classList.add('sliding');
         
         // Use translate3d for GPU acceleration and smoother animation
+        // IMPORTANT: Maintain the 180deg rotation from the flip animation
         animatedCard.style.willChange = 'transform';
         animatedCard.style.transition = `transform ${isMobile ? '300ms' : '250ms'} cubic-bezier(0.4, 0, 0.2, 1)`; // Optimized timing for snappy feel
-        animatedCard.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0) scale(${scale})`;
+        animatedCard.style.transform = `rotateY(180deg) translate3d(${deltaX}px, ${deltaY}px, 0) scale(${scale})`;
         
         // Ensure card is visible during animation
         animatedCard.style.visibility = 'visible';
