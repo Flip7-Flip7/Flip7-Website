@@ -3173,6 +3173,8 @@ class Flip7Game {
         // Streamlined animation implementation - no module dependency
         const isMobile = window.innerWidth <= 1024;
         
+        // Remove flip animation class to prevent interference
+        animatedCard.classList.remove('simple-flip');
         
         // Set mobile-specific card size BEFORE getting position
         if (isMobile) {
@@ -3227,15 +3229,19 @@ class Flip7Game {
         animatedCard.style.top = startY + 'px';
         animatedCard.style.zIndex = isMobile ? '999000' : '10000'; // Higher than mobile buttons
         animatedCard.style.transformOrigin = 'center center';
+        animatedCard.style.transform = 'rotateY(180deg)'; // Maintain flip state
         
         // Add sliding class for CSS optimizations
         animatedCard.classList.add('sliding');
         
-        // Use translate3d for GPU acceleration and smoother animation
-        // IMPORTANT: Maintain the 180deg rotation from the flip animation
-        animatedCard.style.willChange = 'transform';
-        animatedCard.style.transition = `transform ${isMobile ? '300ms' : '250ms'} cubic-bezier(0.4, 0, 0.2, 1)`; // Optimized timing for snappy feel
-        animatedCard.style.transform = `rotateY(180deg) translate3d(${deltaX}px, ${deltaY}px, 0) scale(${scale})`;
+        // Use requestAnimationFrame for smooth transition
+        requestAnimationFrame(() => {
+            // Use translate3d for GPU acceleration and smoother animation
+            // IMPORTANT: Maintain the 180deg rotation from the flip animation
+            animatedCard.style.willChange = 'transform';
+            animatedCard.style.transition = `transform ${isMobile ? '300ms' : '250ms'} cubic-bezier(0.4, 0, 0.2, 1)`; // Optimized timing for snappy feel
+            animatedCard.style.transform = `rotateY(180deg) translate3d(${deltaX}px, ${deltaY}px, 0) scale(${scale})`;
+        });
         
         // Ensure card is visible during animation
         animatedCard.style.visibility = 'visible';
