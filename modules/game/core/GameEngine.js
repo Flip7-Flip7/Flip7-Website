@@ -32,6 +32,9 @@ export class GameEngine {
         eventBus.on(GameEvents.PLAYER_ACTION_STAY, () => this.handlePlayerStay());
         eventBus.on(GameEvents.ROUND_SCORE_CALCULATED, () => this.checkForGameWinner());
         
+        // AI action events
+        eventBus.on(GameEvents.AI_ACTION_TAKEN, (data) => this.handleAIAction(data));
+        
         // Targeting system events
         eventBus.on(GameEvents.ACTION_CARD_AWAITING_TARGET, (data) => this.handleActionCardTargeting(data));
         eventBus.on(GameEvents.PLAYER_TAPPED_FOR_TARGET, (data) => this.handleTargetSelected(data));
@@ -415,6 +418,48 @@ export class GameEngine {
         });
 
         this.nextTurn();
+    }
+
+    /**
+     * Handle AI action from AIPlayer module
+     */
+    handleAIAction(data) {
+        const player = this.getPlayerById(data.playerId);
+        if (!player || player.isHuman || player.status !== 'active') {
+            console.warn('⚠️ GameEngine: Invalid AI action for player:', data.playerId);
+            return;
+        }
+
+        console.log(`🤖 GameEngine: Executing AI action: ${data.action} for ${player.name}`);
+
+        if (data.action === 'hit') {
+            // Draw card for AI player
+            const card = deckManager.drawCard();
+            const result = this.handleCardDraw(player, card);
+
+            eventBus.emit(GameEvents.CARD_DRAWN, {
+                card: card,
+                playerId: player.id,
+                isInitialDeal: false
+            });
+
+            // Always move to next turn unless it's an action card waiting for targeting
+            if (!result.waitingForAction) {
+                this.nextTurn();
+            }
+            // If it's an action card, turn will advance after targeting completes via resumeGameFlow()
+        } else if (data.action === 'stay') {
+            player.stay();
+            
+            eventBus.emit(GameEvents.PLAYER_STAYED, {
+                playerId: player.id,
+                roundScore: player.roundScore
+            });
+
+            this.nextTurn();
+        } else {
+            console.warn('⚠️ GameEngine: Unknown AI action:', data.action);
+        }
     }
 
     /**

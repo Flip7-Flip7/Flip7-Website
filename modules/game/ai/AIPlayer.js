@@ -101,10 +101,7 @@ export class AIPlayer {
             action: 'stay'
         });
 
-        // Let game engine handle the actual stay action
-        gameEngine.handlePlayerStay();
-
-        // Note: GameEngine will handle turn progression automatically
+        // Note: GameEngine will handle the actual stay action and turn progression automatically
     }
 
     /**
