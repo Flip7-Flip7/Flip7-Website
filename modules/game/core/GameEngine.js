@@ -802,8 +802,10 @@ export class GameEngine {
                 console.log('🤖 GameEngine: AI player received deferred action card, auto-executing');
                 this.handleActionCardLogic(targetPlayer, card);
                 
-                // Continue to next card after short delay
-                setTimeout(() => processNext(index + 1), 1000);
+                // Wait for AI action completion before processing next card
+                eventBus.once(GameEvents.SPECIAL_ACTION_COMPLETED, () => {
+                    setTimeout(() => processNext(index + 1), 500);
+                });
             }
         };
         
