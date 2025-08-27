@@ -29,11 +29,10 @@ export class DeckManager {
         this.discardPile = [];
         this.cardsDealt = 0;
         
-        // Add number cards (0-12 with varying quantities)
+        // Add number cards (pyramid structure: 1×0, 1×1, 2×2s, 3×3s, ..., 12×12s)
         const numberCardCounts = {
-            0: 4, 1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4,
-            7: 6, // More 7s for Flip 7 strategy
-            8: 4, 9: 4, 10: 4, 11: 4, 12: 4
+            0: 1, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6,
+            7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12
         };
 
         Object.entries(numberCardCounts).forEach(([value, count]) => {
@@ -63,90 +62,42 @@ export class DeckManager {
     }
 
     /**
-     * Add modifier cards to deck
+     * Add modifier cards to deck (matching original game.js exactly)
      */
     addModifierCards() {
-        // x2 multiplier cards
-        for (let i = 0; i < 6; i++) {
-            this.deck.push({
-                type: 'modifier',
-                value: 'x2',
-                display: 'x2',
-                id: `modifier_x2_${i}`
-            });
-        }
-        
-        // +2 bonus point cards
-        for (let i = 0; i < 4; i++) {
-            this.deck.push({
-                type: 'modifier',
-                value: 2,
-                display: '+2',
-                id: `modifier_plus2_${i}`
-            });
-        }
-        
-        // +3 bonus point cards
-        for (let i = 0; i < 4; i++) {
-            this.deck.push({
-                type: 'modifier',
-                value: 3,
-                display: '+3',
-                id: `modifier_plus3_${i}`
-            });
-        }
-        
-        // +4 bonus point cards
-        for (let i = 0; i < 3; i++) {
-            this.deck.push({
-                type: 'modifier',
-                value: 4,
-                display: '+4',
-                id: `modifier_plus4_${i}`
-            });
-        }
-        
-        // +5 bonus point cards
-        for (let i = 0; i < 2; i++) {
-            this.deck.push({
-                type: 'modifier',
-                value: 5,
-                display: '+5',
-                id: `modifier_plus5_${i}`
-            });
-        }
+        // One of each modifier card
+        this.deck.push({ type: 'modifier', value: 2, display: '+2', id: 'modifier_plus2' });
+        this.deck.push({ type: 'modifier', value: 4, display: '+4', id: 'modifier_plus4' });
+        this.deck.push({ type: 'modifier', value: 6, display: '+6', id: 'modifier_plus6' });
+        this.deck.push({ type: 'modifier', value: 8, display: '+8', id: 'modifier_plus8' });
+        this.deck.push({ type: 'modifier', value: 10, display: '+10', id: 'modifier_plus10' });
+        this.deck.push({ type: 'modifier', value: 'x2', display: 'x2', id: 'modifier_x2' });
     }
 
     /**
-     * Add action cards to deck
+     * Add action cards to deck (matching original game.js exactly)
      */
     addActionCards() {
-        // Freeze cards
-        for (let i = 0; i < 6; i++) {
+        // 3 of each action card
+        for (let i = 0; i < 3; i++) {
             this.deck.push({
                 type: 'action',
                 value: 'freeze',
                 display: 'Freeze',
                 id: `action_freeze_${i}`
             });
-        }
-        
-        // Flip 3 cards
-        for (let i = 0; i < 4; i++) {
+            
             this.deck.push({
                 type: 'action',
                 value: 'flip3',
-                display: 'Flip 3',
+                display: 'Flip Three',
                 id: `action_flip3_${i}`
             });
-        }
-        
-        // Second Chance cards
-        for (let i = 0; i < 4; i++) {
+            
             this.deck.push({
                 type: 'action',
                 value: 'second_chance',
-                display: '2nd Chance',
+                display: 'Second Chance',
                 id: `action_secondchance_${i}`
             });
         }
