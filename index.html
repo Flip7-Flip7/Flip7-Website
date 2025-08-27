@@ -157,19 +157,59 @@
             <!-- Players Container (Flexible Middle Section) -->
             <div class="mobile-players-container">
                 <!-- Human Player (Top) -->
-                <div id="mobile-player">
-                    <!-- Will be populated by JavaScript -->
+                <div id="mobile-player" class="player-area main-player">
+                    <div class="player-header">
+                        <span class="round-score"><span class="round-value">0</span></span>
+                        <h3>You</h3>
+                        <span class="total-score"><span class="score-value">0</span></span>
+                    </div>
+                    <div class="player-stats">
+                        <span class="player-status">Waiting</span>
+                    </div>
+                    <div class="player-cards" id="mobile-player-cards">
+                        <!-- Cards will appear here -->
+                    </div>
                 </div>
 
                 <!-- Bot Players (Middle) -->
-                <div id="mobile-opponent1">
-                    <!-- Will be populated by JavaScript -->
+                <div id="mobile-opponent1" class="player-area opponent-player">
+                    <div class="player-header">
+                        <span class="round-score"><span class="round-value">0</span></span>
+                        <h3>AI Bot 1</h3>
+                        <span class="total-score"><span class="score-value">0</span></span>
+                    </div>
+                    <div class="player-stats">
+                        <span class="player-status">Waiting</span>
+                    </div>
+                    <div class="player-cards" id="mobile-opponent1-cards">
+                        <!-- Cards will appear here -->
+                    </div>
                 </div>
-                <div id="mobile-opponent2">
-                    <!-- Will be populated by JavaScript -->
+                <div id="mobile-opponent2" class="player-area opponent-player">
+                    <div class="player-header">
+                        <span class="round-score"><span class="round-value">0</span></span>
+                        <h3>AI Bot 2</h3>
+                        <span class="total-score"><span class="score-value">0</span></span>
+                    </div>
+                    <div class="player-stats">
+                        <span class="player-status">Waiting</span>
+                    </div>
+                    <div class="player-cards" id="mobile-opponent2-cards">
+                        <!-- Cards will appear here -->
+                    </div>
                 </div>
-                <div id="mobile-opponent3">
-                    <!-- Will be populated by JavaScript -->
+                <div id="mobile-opponent3" class="player-area opponent-player">
+                    <div class="player-header">
+                        <span class="round-score"><span class="round-value">0</span></span>
+                        <h3>AI Bot 3</h3>
+                        <span class="total-score"><span class="score-value">0</span></span>
+                    </div>
+                    <div class="player-stats">
+                        <span class="player-status">Waiting</span>
+                    </div>
+                    <div class="player-cards" id="mobile-opponent3-cards">
+                        <!-- Cards will appear here -->
+                    </div>
                 </div>
             </div>
 
@@ -344,7 +384,7 @@
     <!-- <script type="module" src="js/game-animations.js?v=5.0&t=20250818-fix-visible-slide-animations"></script> -->
     
     <!-- Modular system - Full game implementation -->
-    <script type="module" src="modules/main.js?v=3.0&t=20250827-display-fixes"></script>
+    <script type="module" src="modules/main.js?v=4.0&t=20250827-mobile-structure-fix"></script>
     
     <!-- Original game.js (disabled for modular testing) -->
     <!-- <script src="game.js?v=77.0&t=20250827-fix-second-chance-flip3"></script> -->

@@ -379,22 +379,22 @@ export class DisplayManager {
     }
     
     /**
-     * Build mobile player HTML structure
+     * Build mobile player HTML structure using existing styles.css classes
      */
     buildMobilePlayerHTML(player) {
         const roundScore = this.calculateDisplayScore(player);
         const statusText = this.getStatusText(player.status);
         
         return `
-            <div class="mobile-player-header">
-                <span class="mobile-player-name">${player.name}</span>
-                <div class="mobile-player-scores">
-                    <span class="mobile-round-score">${roundScore}</span>
-                    <span class="mobile-total-score">${player.totalScore}</span>
-                </div>
+            <div class="player-header">
+                <span class="round-score"><span class="round-value">${roundScore}</span></span>
+                <h3>${player.name}</h3>
+                <span class="total-score"><span class="score-value">${player.totalScore}</span></span>
             </div>
-            <div class="mobile-player-status ${player.status}">${statusText}</div>
-            <div class="mobile-cards-grid">
+            <div class="player-stats">
+                <span class="player-status ${player.status}">${statusText}</span>
+            </div>
+            <div class="player-cards">
                 ${this.buildMobileCardsHTML(player)}
             </div>
             ${this.buildMobileIndicatorsHTML(player)}
@@ -402,7 +402,7 @@ export class DisplayManager {
     }
     
     /**
-     * Build mobile cards HTML
+     * Build mobile cards HTML using existing card classes
      */
     buildMobileCardsHTML(player) {
         const allCards = [
@@ -415,25 +415,25 @@ export class DisplayManager {
             const imageStyle = this.hasCardImage(card) ? 
                 `background-image: url('./images/${this.getCardImageName(card)}'); background-size: cover;` : '';
             
-            return `<div class="mobile-card ${card.type} ${this.hasCardImage(card) ? 'custom-image' : ''}" 
+            return `<div class="card ${card.type} ${this.hasCardImage(card) ? 'custom-image' : ''}" 
                          style="${imageStyle}">
-                        ${this.hasCardImage(card) ? '' : card.display}
+                        ${this.hasCardImage(card) ? '' : `<span>${card.display}</span>`}
                     </div>`;
         }).join('');
     }
     
     /**
-     * Build mobile indicators HTML
+     * Build mobile indicators HTML using existing indicator classes
      */
     buildMobileIndicatorsHTML(player) {
         let indicators = '';
         
         if (player.status === 'stayed') {
-            indicators += '<div class="mobile-stayed-indicator">STAYED</div>';
+            indicators += '<div class="stayed-indicator">STAYED</div>';
         }
         
         if (player.status === 'frozen') {
-            indicators += '<div class="mobile-frozen-indicator">FROZEN</div>';
+            indicators += '<div class="frozen-indicator">FROZEN</div>';
         }
         
         return indicators;

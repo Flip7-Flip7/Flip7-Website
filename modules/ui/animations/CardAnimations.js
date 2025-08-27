@@ -228,9 +228,10 @@ export class CardAnimations {
     getAnimationArea(isMobile) {
         if (isMobile) {
             return document.getElementById('mobile-card-animation-area') || 
-                   document.querySelector('.card-animation-area');
+                   document.getElementById('card-animation-area');
         } else {
-            return document.getElementById('card-animation-area');
+            return document.getElementById('card-animation-area') ||
+                   document.getElementById('mobile-card-animation-area');
         }
     }
 
@@ -238,11 +239,23 @@ export class CardAnimations {
      * Get target container for card
      */
     getTargetCardContainer(playerId) {
-        if (playerId === 'player') {
-            return document.getElementById('player-cards');
+        // Try mobile containers first on mobile devices
+        if (window.innerWidth <= 1024) {
+            if (playerId === 'player') {
+                return document.getElementById('mobile-player-cards') || 
+                       document.querySelector('#mobile-player .player-cards');
+            } else {
+                return document.getElementById(`mobile-${playerId}-cards`) ||
+                       document.querySelector(`#mobile-${playerId} .player-cards`);
+            }
         } else {
-            const playerElement = document.getElementById(playerId);
-            return playerElement?.querySelector('.player-cards');
+            // Desktop containers
+            if (playerId === 'player') {
+                return document.getElementById('player-cards');
+            } else {
+                const playerElement = document.getElementById(playerId);
+                return playerElement?.querySelector('.player-cards');
+            }
         }
     }
 
