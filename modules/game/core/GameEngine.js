@@ -263,9 +263,13 @@ export class GameEngine {
         console.log(`🎴 GameEngine: Handling action card logic for ${card.display} - Player: ${player.name} (${player.isHuman ? 'Human' : 'AI'})`);
         
         if (card.value === 'second_chance') {
-            if (player.hasSecondChance) {
-                // Both humans and AI: Second Second Chance goes to the losing player
-                console.log(`🎯 GameEngine: ${player.name} already has Second Chance, targeting losing player`);
+            // Count how many Second Chance cards are in the player's hand
+            const secondChanceCount = player.actionCards.filter(c => c.value === 'second_chance').length;
+            console.log(`🔍 GameEngine: ${player.name} has ${secondChanceCount} Second Chance card(s) in hand`);
+            
+            if (secondChanceCount > 1) {
+                // Player has multiple Second Chance cards - target the losing player
+                console.log(`🎯 GameEngine: ${player.name} has multiple Second Chance cards, targeting losing player`);
                 const losingPlayer = this.findLosingPlayer(player);
                 
                 if (!losingPlayer) {
@@ -284,8 +288,8 @@ export class GameEngine {
                     this.completeActionCardExecution(player, card, losingPlayer);
                 }
             } else {
-                // Both humans and AI: First Second Chance auto-applies to themselves
-                console.log(`✅ GameEngine: Auto-applying Second Chance to ${player.name}`);
+                // Player has their first Second Chance - auto-apply to themselves
+                console.log(`✅ GameEngine: Auto-applying first Second Chance to ${player.name}`);
                 player.giveSecondChance();
                 this.completeActionCardExecution(player, card, player);
             }

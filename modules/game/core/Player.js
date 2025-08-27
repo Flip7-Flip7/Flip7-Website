@@ -48,10 +48,10 @@ export class Player {
         } else if (card.type === 'modifier') {
             this.modifierCards.push(card);
         } else if (card.type === 'action') {
-            if (card.value === 'second_chance' && !this.hasSecondChance) {
-                this.hasSecondChance = true;
-                this.actionCards.push(card);
-            }
+            // Always add action cards to hand first
+            this.actionCards.push(card);
+            
+            // Second Chance logic will be handled by GameEngine after card is in hand
         }
     }
 
