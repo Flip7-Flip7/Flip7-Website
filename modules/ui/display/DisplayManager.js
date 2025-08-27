@@ -480,9 +480,9 @@ export class DisplayManager {
         
         return `
             <div class="player-header">
-                <span class="round-score"><span class="round-value">${roundScore}</span></span>
+                <span class="round-score">Round: <span class="round-value">${roundScore}</span></span>
                 <h3>${player.name}</h3>
-                <span class="total-score"><span class="score-value">${player.totalScore}</span></span>
+                <span class="total-score">Total: <span class="score-value">${player.totalScore}</span></span>
             </div>
             <div class="player-stats">
                 <span class="player-status ${player.status}">${statusText}</span>
