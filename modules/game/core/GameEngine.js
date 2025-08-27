@@ -391,11 +391,6 @@ export class GameEngine {
     nextTurn() {
         console.log('🔄 GameEngine: Next turn');
         
-        // Check if round should end
-        if (this.checkForRoundEnd()) {
-            return;
-        }
-
         // Always advance to next player first
         this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
         let currentPlayer = this.players[this.currentPlayerIndex];
@@ -411,9 +406,14 @@ export class GameEngine {
         // Update global state
         window.gameState.currentPlayerIndex = this.currentPlayerIndex;
         
+        // Only check for round end AFTER trying to find an active player
         if (currentPlayer.status !== 'active' || attempts >= this.players.length) {
-            // No active players left
-            this.endRound();
+            // No active players found - now check if round should end
+            if (this.checkForRoundEnd()) {
+                return;
+            }
+            // If checkForRoundEnd didn't end the round, there might be an edge case
+            console.warn('⚠️ GameEngine: No active players found but round didn\'t end - continuing');
             return;
         }
 
