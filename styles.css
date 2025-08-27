@@ -4392,32 +4392,11 @@ body {
         transform-style: preserve-3d;
     }
     
-    /* OPTIMIZED mobile card sizing - MAXIMUM size within containers */
-    /* 1 card: Massive single card display */
-    .mobile-game-board .cards-1 .card {
-        width: 120px;
-        height: 168px; /* 120 × 1.4 ratio */
-        font-size: 1.6em;
-        margin: 0px;
-    }
-    
-    /* 2 cards: Very large for great visibility */
-    .mobile-game-board .cards-2 .card {
-        width: 110px;
-        height: 154px; /* 110 × 1.4 ratio */
-        font-size: 1.5em;
-        margin: 0px;
-    }
-    
-    /* 3 cards: Large and comfortable */
-    .mobile-game-board .cards-3 .card {
-        width: 100px;
-        height: 140px; /* 100 × 1.4 ratio */
-        font-size: 1.3em;
-        margin: 0px;
-    }
-    
-    /* 4 cards: Generous sizing */
+    /* OPTIMIZED mobile card sizing - CAPPED at 4-card maximum size */
+    /* 1-4 cards: All use the same maximum size for visual consistency */
+    .mobile-game-board .cards-1 .card,
+    .mobile-game-board .cards-2 .card,
+    .mobile-game-board .cards-3 .card,
     .mobile-game-board .cards-4 .card {
         width: 85px;
         height: 119px; /* 85 × 1.4 ratio */

@@ -46,10 +46,10 @@ export class GameEngine {
      */
     initializePlayers() {
         this.players = [
-            new Player('player', 'You', true),
-            new Player('opponent1', 'AI Bot 1', false),
-            new Player('opponent2', 'AI Bot 2', false),
-            new Player('opponent3', 'AI Bot 3', false)
+            new Player('player', 'You', true, null), // Human player has no playstyle
+            new Player('opponent1', 'AI Bot 1', false, 'aggressive'), // Aggressive AI
+            new Player('opponent2', 'AI Bot 2', false, 'conservative'), // Conservative AI
+            new Player('opponent3', 'AI Bot 3', false, 'middle') // Middle-ground AI
         ];
 
         // Make game state globally accessible

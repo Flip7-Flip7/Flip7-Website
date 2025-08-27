@@ -22,9 +22,8 @@ export class AIPlayer {
      * Execute AI turn logic
      */
     takeAITurn(player) {
-        console.log(`🤖 AIPlayer: Taking turn for ${player.name}`);
+        console.log(`🤖 AIPlayer: Taking turn for ${player.name} (${player.playstyle} playstyle)`);
         
-        // AI should be more aggressive early and cautious later
         const uniqueCount = player.uniqueNumbers.size;
         const currentScore = player.roundScore;
         
@@ -49,25 +48,58 @@ export class AIPlayer {
             return;
         }
 
+        // Use playstyle-based decision making
+        this.makePlaystyleDecision(player);
+    }
+
+    /**
+     * Make AI decision based on playstyle
+     */
+    makePlaystyleDecision(player) {
+        const uniqueCount = player.uniqueNumbers.size;
+        const currentScore = player.roundScore;
+        const playstyle = player.playstyle;
+        
         // Calculate risk based on remaining unknown cards
         const totalCards = 13; // 0-12
-        const unknownCards = totalCards - uniqueCount;
         const duplicateRisk = uniqueCount / totalCards;
         
-        // Dynamic threshold based on game state
-        const baseThreshold = 15;
-        const riskAdjustment = duplicateRisk * 10; // Higher risk = lower threshold
+        let baseThreshold = 15;
+        let riskMultiplier = 1.0;
+        
+        // Adjust base behavior by playstyle
+        if (playstyle === 'aggressive') {
+            baseThreshold = 20;  // Higher threshold = hit more often
+            riskMultiplier = 1.3; // Take more risks
+            console.log(`${player.name} (aggressive) willing to take more risks`);
+        } else if (playstyle === 'conservative') {
+            baseThreshold = 12;   // Lower threshold = stay more often  
+            riskMultiplier = 0.7; // Take fewer risks
+            console.log(`${player.name} (conservative) playing it safe`);
+        } else if (playstyle === 'middle') {
+            baseThreshold = 15;   // Default threshold
+            riskMultiplier = 1.0; // Default risk level
+            console.log(`${player.name} (middle) using balanced approach`);
+        }
+        
+        // Apply risk adjustment
+        const riskAdjustment = duplicateRisk * 10 * riskMultiplier;
         const threshold = Math.max(8, baseThreshold - riskAdjustment);
-
+        
         console.log(`${player.name} analysis: score=${currentScore}, unique=${uniqueCount}, threshold=${threshold.toFixed(1)}, risk=${(duplicateRisk*100).toFixed(1)}%`);
 
         // Decision logic
         if (currentScore < threshold) {
             this.aiHit(player);
         } else {
-            // Additional safety check for high-risk situations
-            if (uniqueCount >= 8 && Math.random() > 0.7) { // 30% chance to take risk when many cards
-                console.log(`${player.name} taking calculated risk with ${uniqueCount} unique cards`);
+            // High-risk decision varies by playstyle
+            let riskTakeChance = 0.3; // Default 30% chance
+            if (playstyle === 'aggressive') riskTakeChance = 0.5; // 50% chance
+            if (playstyle === 'conservative') riskTakeChance = 0.1; // 10% chance
+            if (playstyle === 'middle') riskTakeChance = 0.3; // 30% chance
+            
+            if (uniqueCount >= 8 && Math.random() < riskTakeChance) {
+                console.log(`${player.name} (${playstyle}) taking calculated risk with ${uniqueCount} unique cards`);
                 this.aiHit(player);
             } else {
                 this.aiStay(player);
@@ -110,58 +142,75 @@ export class AIPlayer {
     determineAITarget(player, card) {
         console.log(`🎯 AIPlayer: Determining target for ${player.name}'s ${card.value} card`);
         
-        const activePlayers = gameEngine.getActivePlayers().filter(p => p.id !== player.id);
+        // Get all active players including self for targeting consideration
+        const allActivePlayers = gameEngine.getActivePlayers();
+        const otherActivePlayers = allActivePlayers.filter(p => p.id !== player.id);
         
-        if (activePlayers.length === 0) {
+        if (allActivePlayers.length === 0) {
             return null;
         }
 
         if (card.value === 'freeze') {
-            return this.selectFreezeTarget(activePlayers);
+            // Freeze card can't target self - use other players only
+            return this.selectFreezeTarget(otherActivePlayers, player);
         } else if (card.value === 'flip3') {
-            return this.selectFlip3Target(activePlayers);
+            // Flip3 can target self or others - pass all active players
+            return this.selectFlip3Target(allActivePlayers, player);
         }
 
-        // Default: random target
-        return activePlayers[Math.floor(Math.random() * activePlayers.length)];
+        // Default: random target from others
+        return otherActivePlayers[Math.floor(Math.random() * otherActivePlayers.length)];
     }
 
     /**
      * Select target for freeze card
      */
-    selectFreezeTarget(activePlayers) {
-        // Target the point leader
-        const maxScore = Math.max(...activePlayers.map(p => p.roundScore));
-        const pointLeaders = activePlayers.filter(p => p.roundScore === maxScore);
-        
-        if (pointLeaders.length > 0) {
-            // If multiple leaders, prefer human player if they're leading
-            const humanLeader = pointLeaders.find(p => p.isHuman);
-            if (humanLeader) {
-                console.log(`🎯 AI targeting human leader for freeze: ${humanLeader.name}`);
-                return humanLeader;
-            }
-            
-            // Otherwise random leader
-            return pointLeaders[Math.floor(Math.random() * pointLeaders.length)];
-        }
-        
-        // Fallback: random active player
-        return activePlayers[Math.floor(Math.random() * activePlayers.length)];
+    selectFreezeTarget(activePlayers, sourcePlayer) {
+        // Use playstyle-specific targeting logic
+        return this.selectTargetByPlaystyle(activePlayers, sourcePlayer, 'freeze');
     }
 
     /**
      * Select target for flip3 card
      */
-    selectFlip3Target(activePlayers) {
-        // For Flip 3, prefer targets with fewer unique numbers (more likely to get duplicates)
-        const sortedByUniques = activePlayers.sort((a, b) => a.uniqueNumbers.size - b.uniqueNumbers.size);
+    selectFlip3Target(allActivePlayers, sourcePlayer) {
+        // Calculate total cards for each player
+        const playersWithCardCounts = allActivePlayers.map(player => {
+            const totalCards = player.numberCards.length + player.modifierCards.length + player.actionCards.length;
+            return { player, totalCards };
+        });
         
-        // Target player with fewest unique numbers
-        const target = sortedByUniques[0];
-        console.log(`🎯 AI targeting player with fewest uniques for Flip 3: ${target.name} (${target.uniqueNumbers.size} unique)`);
+        // Check if AI should target themselves (if they have ≤2 cards)
+        const sourceCardCount = sourcePlayer.numberCards.length + sourcePlayer.modifierCards.length + sourcePlayer.actionCards.length;
+        if (sourceCardCount <= 2) {
+            console.log(`🎯 AI targeting self for Flip 3: ${sourcePlayer.name} has only ${sourceCardCount} cards`);
+            return sourcePlayer;
+        }
         
-        return target;
+        // Find players with 4+ cards (excluding self)
+        const viableTargets = playersWithCardCounts.filter(({ player, totalCards }) => 
+            totalCards >= 4 && player.id !== sourcePlayer.id
+        );
+        
+        if (viableTargets.length > 0) {
+            // Sort by most cards descending - target the player with most cards
+            viableTargets.sort((a, b) => b.totalCards - a.totalCards);
+            const target = viableTargets[0];
+            console.log(`🎯 AI targeting player with most cards for Flip 3: ${target.player.name} (${target.totalCards} cards)`);
+            return target.player;
+        }
+        
+        // Fallback: target any other player if no one has 4+ cards
+        const otherPlayers = playersWithCardCounts.filter(({ player }) => player.id !== sourcePlayer.id);
+        if (otherPlayers.length > 0) {
+            const randomTarget = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+            console.log(`🎯 AI targeting random player for Flip 3 (no 4+ card targets): ${randomTarget.player.name} (${randomTarget.totalCards} cards)`);
+            return randomTarget.player;
+        }
+        
+        // Last resort: target self
+        console.log(`🎯 AI targeting self for Flip 3 (no other targets): ${sourcePlayer.name}`);
+        return sourcePlayer;
     }
 
     /**
@@ -179,6 +228,72 @@ export class AIPlayer {
         
         // Otherwise random valid recipient
         return validRecipients[Math.floor(Math.random() * validRecipients.length)];
+    }
+
+    /**
+     * Select target based on AI playstyle
+     */
+    selectTargetByPlaystyle(activePlayers, sourcePlayer, cardType) {
+        const playstyle = sourcePlayer.playstyle;
+        
+        if (cardType === 'freeze') {
+            return this.selectFreezeTargetByPlaystyle(activePlayers, sourcePlayer, playstyle);
+        }
+        
+        // Fallback to basic targeting
+        return activePlayers[Math.floor(Math.random() * activePlayers.length)];
+    }
+
+    /**
+     * Freeze targeting logic based on playstyle
+     */
+    selectFreezeTargetByPlaystyle(activePlayers, sourcePlayer, playstyle) {
+        // Get point leaders
+        const maxScore = Math.max(...activePlayers.map(p => p.roundScore));
+        const pointLeaders = activePlayers.filter(p => p.roundScore === maxScore);
+        
+        if (playstyle === 'aggressive') {
+            // Aggressive: Always target the highest scorer, prefer human
+            if (pointLeaders.length > 0) {
+                const humanLeader = pointLeaders.find(p => p.isHuman);
+                if (humanLeader) {
+                    console.log(`🎯 Aggressive AI targeting human leader for freeze: ${humanLeader.name}`);
+                    return humanLeader;
+                }
+                const target = pointLeaders[0];
+                console.log(`🎯 Aggressive AI targeting point leader for freeze: ${target.name} (${target.roundScore} pts)`);
+                return target;
+            }
+        } else if (playstyle === 'conservative') {
+            // Conservative: Only freeze if there's a significant point lead (>15 points)
+            if (pointLeaders.length > 0 && maxScore > 15) {
+                const target = pointLeaders[Math.floor(Math.random() * pointLeaders.length)];
+                console.log(`🎯 Conservative AI targeting point leader for freeze: ${target.name} (${target.roundScore} pts)`);
+                return target;
+            } else {
+                // Don't waste freeze card, target randomly
+                const target = activePlayers[Math.floor(Math.random() * activePlayers.length)];
+                console.log(`🎯 Conservative AI reluctantly using freeze on: ${target.name} (scores not high enough)`);
+                return target;
+            }
+        } else if (playstyle === 'middle') {
+            // Middle: Target point leaders if they have >10 points
+            if (pointLeaders.length > 0 && maxScore > 10) {
+                const humanLeader = pointLeaders.find(p => p.isHuman);
+                if (humanLeader && Math.random() < 0.7) { // 70% chance to prefer human
+                    console.log(`🎯 Middle AI targeting human leader for freeze: ${humanLeader.name}`);
+                    return humanLeader;
+                }
+                const target = pointLeaders[Math.floor(Math.random() * pointLeaders.length)];
+                console.log(`🎯 Middle AI targeting point leader for freeze: ${target.name} (${target.roundScore} pts)`);
+                return target;
+            }
+        }
+        
+        // Fallback: random target
+        const target = activePlayers[Math.floor(Math.random() * activePlayers.length)];
+        console.log(`🎯 AI using fallback freeze targeting: ${target.name}`);
+        return target;
     }
 
     /**

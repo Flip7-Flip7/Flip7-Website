@@ -1,10 +1,11 @@
 // Player.js - Player state and methods
 
 export class Player {
-    constructor(id, name, isHuman = false) {
+    constructor(id, name, isHuman = false, playstyle = null) {
         this.id = id;
         this.name = name;
         this.isHuman = isHuman;
+        this.playstyle = playstyle; // 'aggressive', 'conservative', 'middle', or null for human
         
         // Score tracking
         this.totalScore = 0;
