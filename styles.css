@@ -3845,8 +3845,8 @@ body {
         display: flex !important;
         flex-direction: column !important;
         flex: 1 !important; /* Take up remaining space between top controls and bottom section */
-        gap: 1px !important; /* Reduced from 2px to 1px */
-        padding: 30px 0 70px 0 !important; /* Add top padding for indicators + bottom for buttons */
+        gap: 2px !important; /* Increased from 1px to 2px for better visual separation */
+        padding: 10px 0 80px 0 !important; /* Reduced top padding (30px→10px), increased bottom (70px→80px) */
         overflow: visible !important; /* Changed to visible for indicators */
         min-height: 0 !important; /* Allow flex shrinking */
     }
