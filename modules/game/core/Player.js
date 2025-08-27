@@ -141,11 +141,8 @@ export class Player {
     freeze() {
         this.status = 'frozen';
         this.isFrozen = true;
-        if (this.numberCards.length > 0) {
-            // If player has cards, calculate their score
-            this.calculateRoundScore();
-            this.status = 'stayed'; // Frozen players are effectively stayed
-        }
+        // Always calculate score to lock in current points, but keep frozen status
+        this.calculateRoundScore();
     }
 
     /**

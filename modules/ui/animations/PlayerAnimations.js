@@ -11,6 +11,26 @@ export class PlayerAnimations {
             freeze: 1500,
             secondChance: 3000
         };
+        
+        this.setupEventListeners();
+    }
+
+    /**
+     * Setup event listeners for player animations
+     */
+    setupEventListeners() {
+        eventBus.on(GameEvents.PLAYER_FROZEN, (data) => this.handlePlayerFrozen(data));
+    }
+
+    /**
+     * Handle player frozen event and trigger animation
+     */
+    handlePlayerFrozen(data) {
+        const player = window.gameState?.players?.find(p => p.id === data.playerId);
+        if (player) {
+            console.log(`❄️ PlayerAnimations: Animating freeze for ${player.name}`);
+            this.animateFreeze(player);
+        }
     }
 
     /**
