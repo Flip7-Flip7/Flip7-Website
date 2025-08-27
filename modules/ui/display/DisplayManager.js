@@ -47,11 +47,8 @@ export class DisplayManager {
     onTurnStarted(data) {
         console.log('🎯 DisplayManager: Turn started for', data.playerName);
         
-        // Find the player in our state and update currentPlayerIndex
-        const playerIndex = window.gameState?.players?.findIndex(p => p.id === data.playerId);
-        if (playerIndex >= 0) {
-            window.gameState.currentPlayerIndex = playerIndex;
-        }
+        // Note: currentPlayerIndex is now managed by TurnManager
+        // DisplayManager only reads the current state, doesn't set it
         
         // Update all player visual states to reflect new current player
         this.updateAllPlayerHighlights();

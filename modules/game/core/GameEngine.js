@@ -6,11 +6,11 @@ import { Player } from './Player.js';
 import scoringEngine from '../rules/ScoringEngine.js';
 import deckManager from '../deck/DeckManager.js';
 import aiPlayer from '../ai/AIPlayer.js';
+import turnManager from '../flow/TurnManager.js';
 
 export class GameEngine {
     constructor() {
         this.players = [];
-        this.currentPlayerIndex = 0;
         this.dealerIndex = 0;
         this.roundNumber = 1;
         this.gameActive = false;
@@ -57,7 +57,7 @@ export class GameEngine {
         // Make game state globally accessible
         window.gameState = {
             players: this.players,
-            currentPlayerIndex: this.currentPlayerIndex,
+            currentPlayerIndex: 0, // Will be managed by TurnManager
             roundNumber: this.roundNumber,
             deck: deckManager.deck,
             isStartingNewRound: this.isStartingNewRound
@@ -103,7 +103,6 @@ export class GameEngine {
         console.log('🎲 GameEngine: Starting new round');
         
         this.isStartingNewRound = true;
-        this.currentPlayerIndex = this.dealerIndex; // Start with dealer
         
         // Reset players for new round
         this.players.forEach(player => {
@@ -118,8 +117,7 @@ export class GameEngine {
             dealer: this.players[this.dealerIndex]
         });
 
-        // Update global game state
-        window.gameState.currentPlayerIndex = this.currentPlayerIndex;
+        // Update global game state (currentPlayerIndex will be managed by TurnManager)
         window.gameState.roundNumber = this.roundNumber;
         window.gameState.isStartingNewRound = this.isStartingNewRound;
         
@@ -143,17 +141,23 @@ export class GameEngine {
         this.isInitialDealing = true;
         this.currentDealIndex = 0; // Start with human player
         
+        // Notify TurnManager about initial dealing state
+        turnManager.setInitialDealing(true);
+        
         const dealNextCard = () => {
             if (this.currentDealIndex >= this.players.length) {
                 // Initial dealing complete
                 this.isInitialDealing = false;
-                this.currentPlayerIndex = -1; // Set to -1 so nextTurn() advances to 0 (human)
+                turnManager.setInitialDealing(false);
+                
+                // Set TurnManager to start with human player (index -1 so nextTurn advances to 0)
+                turnManager.setCurrentPlayerIndex(-1);
                 
                 // Update display after initial cards dealt
                 eventBus.emit(GameEvents.DISPLAY_UPDATE_REQUIRED);
                 
                 // Check if human player can act or if we need to skip to next
-                this.nextTurn();
+                turnManager.nextTurn();
                 return;
             }
 
@@ -398,49 +402,24 @@ export class GameEngine {
     }
 
     /**
-     * Move to next player's turn
+     * Move to next player's turn (delegates to TurnManager)
      */
     nextTurn() {
-        console.log('🔄 GameEngine: Next turn');
+        console.log('🔄 GameEngine: Delegating turn advancement to TurnManager');
         
-        // Always advance to next player first
-        this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
-        let currentPlayer = this.players[this.currentPlayerIndex];
-        let attempts = 0;
+        // Update TurnManager with latest players
+        turnManager.updatePlayers(this.players);
         
-        // Find next active player from the new position
-        while (currentPlayer.status !== 'active' && attempts < this.players.length) {
-            this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
-            currentPlayer = this.players[this.currentPlayerIndex];
-            attempts++;
-        }
-
-        // Update global state
-        window.gameState.currentPlayerIndex = this.currentPlayerIndex;
+        // Delegate turn advancement to TurnManager
+        const success = turnManager.nextTurn();
         
-        // Only check for round end AFTER trying to find an active player
-        if (currentPlayer.status !== 'active' || attempts >= this.players.length) {
-            // No active players found - now check if round should end
+        // If no active players found, check for round end
+        if (!success) {
+            console.log('🔄 GameEngine: TurnManager found no active players - checking for round end');
             if (this.checkForRoundEnd()) {
                 return;
             }
-            // If checkForRoundEnd didn't end the round, there might be an edge case
             console.warn('⚠️ GameEngine: No active players found but round didn\'t end - continuing');
-            return;
-        }
-
-        eventBus.emit(GameEvents.TURN_STARTED, {
-            playerId: currentPlayer.id,
-            playerName: currentPlayer.name,
-            isHuman: currentPlayer.isHuman
-        });
-
-        // If it's AI turn, let AI module handle it
-        if (!currentPlayer.isHuman) {
-            eventBus.emit(GameEvents.AI_TURN_REQUESTED, {
-                playerId: currentPlayer.id,
-                player: currentPlayer
-            });
         }
     }
 
@@ -448,7 +427,7 @@ export class GameEngine {
      * Handle player hit action
      */
     handlePlayerHit() {
-        const currentPlayer = this.players[this.currentPlayerIndex];
+        const currentPlayer = turnManager.getCurrentPlayer();
         if (!currentPlayer || !currentPlayer.isHuman || currentPlayer.status !== 'active') {
             return;
         }
@@ -473,7 +452,7 @@ export class GameEngine {
      * Handle player stay action
      */
     handlePlayerStay() {
-        const currentPlayer = this.players[this.currentPlayerIndex];
+        const currentPlayer = turnManager.getCurrentPlayer();
         if (!currentPlayer || !currentPlayer.isHuman || currentPlayer.status !== 'active') {
             return;
         }
@@ -635,17 +614,17 @@ export class GameEngine {
 
 
     /**
-     * Get current player
+     * Get current player (delegates to TurnManager)
      */
     getCurrentPlayer() {
-        return this.players[this.currentPlayerIndex];
+        return turnManager.getCurrentPlayer();
     }
 
     /**
-     * Get all active players
+     * Get all active players (delegates to TurnManager)
      */
     getActivePlayers() {
-        return this.players.filter(p => p.status === 'active');
+        return turnManager.getActivePlayers();
     }
 
     /**
@@ -668,7 +647,7 @@ export class GameEngine {
     getGameState() {
         return {
             players: this.players,
-            currentPlayerIndex: this.currentPlayerIndex,
+            currentPlayerIndex: turnManager.getCurrentPlayerIndex(),
             roundNumber: this.roundNumber,
             gameActive: this.gameActive,
             deck: deckManager.deck,
@@ -807,8 +786,8 @@ export class GameEngine {
             // Don't advance turn if deferred actions are processing - they will handle turn flow
             console.log('▶️ GameEngine: Deferred actions pending - waiting for completion');
         } else {
-            // Normal game flow - advance to next turn
-            console.log('▶️ GameEngine: Normal game flow - advancing to next turn');
+            // Normal game flow - advance to next turn using TurnManager
+            console.log('▶️ GameEngine: Normal game flow - advancing to next turn via TurnManager');
             this.nextTurn();
         }
     }

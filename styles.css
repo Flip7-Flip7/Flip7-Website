@@ -1849,46 +1849,62 @@ body {
         font-size: 20px; /* Larger particles on mobile */
     }
     
-    /* Mobile freeze overlay adjustments - Make MUCH more visible */
+    /* Mobile freeze overlay adjustments - Properly sized and centered */
     .freeze-overlay-text {
-        font-size: 4em !important; /* Even larger text */
+        font-size: 2.5em !important; /* Reduced from 4em to fit better in mobile containers */
         font-weight: 900 !important; /* Bolder text */
         z-index: 2001 !important; /* Above freeze overlay */
+        white-space: nowrap !important; /* Prevent text wrapping */
         text-shadow: 
-            0 0 40px rgba(255,255,255,1) !important,
-            0 0 80px rgba(96, 165, 250, 1) !important,
-            0 0 120px rgba(147, 197, 253, 1) !important,
-            0 6px 12px rgba(0,0,0,1) !important;
+            0 0 20px rgba(255,255,255,1) !important,
+            0 0 40px rgba(96, 165, 250, 1) !important,
+            0 0 60px rgba(147, 197, 253, 1) !important,
+            0 3px 6px rgba(0,0,0,1) !important;
         background: linear-gradient(45deg, #60a5fa, #3b82f6, #93c5fd, #dbeafe) !important;
         -webkit-background-clip: text !important;
         -webkit-text-fill-color: transparent !important;
         background-clip: text !important;
         animation: mobileFreezeText 1s ease-in-out infinite !important;
-        filter: drop-shadow(0 0 20px rgba(96, 165, 250, 1)) !important;
+        filter: drop-shadow(0 0 15px rgba(96, 165, 250, 1)) !important;
+        /* Use flexbox centering from parent container */
+        position: relative !important;
     }
     
     /* Ensure freeze overlay is visible on mobile - above mobile UI */
-    .freeze-overlay {
+    .mobile-game-board .freeze-overlay {
         z-index: 2000 !important; /* Above mobile UI layer (1000-1999) */
         background: linear-gradient(135deg, 
             rgba(96, 165, 250, 0.95) 0%, 
             rgba(59, 130, 246, 1) 50%,
             rgba(96, 165, 250, 0.95) 100%) !important; /* More opaque and vibrant */
         backdrop-filter: blur(4px) !important;
-        border: 4px solid rgba(255, 255, 255, 0.8) !important; /* White border for contrast */
+        border: 2px solid rgba(255, 255, 255, 0.8) !important; /* Thinner border for mobile */
+        border-radius: 6px !important; /* Match parent border radius */
         box-shadow: 
-            inset 0 0 30px rgba(147, 197, 253, 0.8),
-            0 0 30px rgba(96, 165, 250, 0.8) !important;
+            inset 0 0 20px rgba(147, 197, 253, 0.8),
+            0 0 20px rgba(96, 165, 250, 0.8) !important;
+        /* Ensure it fits within the container bounds */
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: auto !important;
+        height: auto !important;
+        /* Center the content within */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     
     @keyframes mobileFreezeText {
         0%, 100% { 
-            transform: translate(-50%, -50%) scale(1);
-            filter: drop-shadow(0 0 20px rgba(96, 165, 250, 1));
+            transform: scale(1);
+            filter: drop-shadow(0 0 15px rgba(96, 165, 250, 1));
         }
         50% { 
-            transform: translate(-50%, -50%) scale(1.1);
-            filter: drop-shadow(0 0 40px rgba(147, 197, 253, 1));
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 25px rgba(96, 165, 250, 1));
         }
     }
     
@@ -4199,6 +4215,13 @@ body {
         flex-direction: column;
         max-height: calc((100vh - 20px - 45px - 45px - 8px) / 4);
         overflow: hidden;
+    }
+    
+    /* Allow freeze overlay to show without clipping */
+    .mobile-game-board .player-area.enhanced-frozen {
+        overflow: visible !important;
+        z-index: 100 !important; /* Ensure it's above other player areas */
+        margin: 4px !important; /* Add margin to prevent overlap with adjacent players */
     }
     
     /* Distinct styling for human player */
