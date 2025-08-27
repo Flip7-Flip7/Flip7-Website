@@ -1,0 +1,11 @@
+# Jekyll configuration for GitHub Pages
+exclude:
+  - tests/
+  - tests/node_modules/
+  - node_modules/
+  - "*.test.js"
+  - package.json
+  - package-lock.json
+  - README.md
+  - .gitignore
+  - .github/
