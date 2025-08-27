@@ -20,6 +20,7 @@ export class GameEngine {
         this.isStartingNewRound = false;
         this.isWaitingForTargeting = false;
         this.pendingActionCard = null;
+        this.hasDeferredActions = false;
         
         this.setupEventListeners();
     }
@@ -748,18 +749,20 @@ export class GameEngine {
                 }
             }
             
-            // Process deferred action cards after Flip3 completes
-            if (drawnActionCards.length > 0) {
-                console.log(`🎴 GameEngine: Processing ${drawnActionCards.length} deferred action cards from Flip3`);
-                setTimeout(() => {
-                    this.processDeferredActionCards(drawnActionCards);
-                }, 1000);
-            }
-            
             eventBus.emit(GameEvents.ACTION_FLIP3, {
                 targetPlayerId: targetPlayer.id,
                 sourcePlayerId: sourcePlayer.id
             });
+            
+            // Process deferred action cards after Flip3 completes
+            if (drawnActionCards.length > 0) {
+                console.log(`🎴 GameEngine: Will process ${drawnActionCards.length} deferred action cards from Flip3`);
+                // Set flag to prevent turn advancement until deferred actions complete
+                this.hasDeferredActions = true;
+                setTimeout(() => {
+                    this.processDeferredActionCards(drawnActionCards);
+                }, 1000);
+            }
         } else if (card.value === 'second_chance') {
             targetPlayer.giveSecondChance();
             eventBus.emit(GameEvents.ACTION_SECOND_CHANCE, {
@@ -767,6 +770,10 @@ export class GameEngine {
                 sourcePlayerId: sourcePlayer.id
             });
         }
+        
+        // Remove the action card from source player's hand (goes to discard pile)
+        console.log(`🗑️ GameEngine: Removing ${card.display} from ${sourcePlayer.name}'s hand`);
+        sourcePlayer.actionCards = sourcePlayer.actionCards.filter(c => c.id !== card.id);
         
         // Mark action as completed
         eventBus.emit(GameEvents.SPECIAL_ACTION_COMPLETED, {
@@ -789,8 +796,12 @@ export class GameEngine {
         if (this.isInitialDealing) {
             // The dealInitialCards method will continue from where it left off
             eventBus.emit(GameEvents.SPECIAL_ACTION_COMPLETED);
+        } else if (this.hasDeferredActions) {
+            // Don't advance turn if deferred actions are processing - they will handle turn flow
+            console.log('▶️ GameEngine: Deferred actions pending - waiting for completion');
         } else {
-            // Continue with normal turn flow
+            // Normal game flow - advance to next turn
+            console.log('▶️ GameEngine: Normal game flow - advancing to next turn');
             this.nextTurn();
         }
     }
@@ -805,6 +816,10 @@ export class GameEngine {
         const processNext = (index = 0) => {
             if (index >= deferredActions.length) {
                 console.log('✅ GameEngine: All deferred action cards processed');
+                // Clear the deferred actions flag and resume normal turn flow
+                this.hasDeferredActions = false;
+                console.log('▶️ GameEngine: Deferred actions complete - resuming normal turn flow');
+                this.nextTurn();
                 return;
             }
             
