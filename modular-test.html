@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip 7 - Modular System Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            color: white;
+        }
+        .module-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .module-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .module-card.loaded {
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+        }
+        .test-controls {
+            margin: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-info">
+        <h1>Flip 7 - Modular System Test</h1>
+        <p>This page demonstrates the new modular architecture</p>
+        
+        <div class="module-status" id="module-status">
+            <div class="module-card" id="eventbus-status">
+                <h3>EventBus</h3>
+                <span class="status">Loading...</span>
+            </div>
+            <div class="module-card" id="display-status">
+                <h3>DisplayManager</h3>
+                <span class="status">Loading...</span>
+            </div>
+            <div class="module-card" id="animations-status">
+                <h3>Animations</h3>
+                <span class="status">Loading...</span>
+            </div>
+            <div class="module-card" id="scoring-status">
+                <h3>ScoringEngine</h3>
+                <span class="status">Loading...</span>
+            </div>
+            <div class="module-card" id="player-status">
+                <h3>Player Class</h3>
+                <span class="status">Loading...</span>
+            </div>
+            <div class="module-card" id="gameengine-status">
+                <h3>GameEngine</h3>
+                <span class="status">Loading...</span>
+            </div>
+            <div class="module-card" id="aiplayer-status">
+                <h3>AI Player</h3>
+                <span class="status">Loading...</span>
+            </div>
+            <div class="module-card" id="deckmanager-status">
+                <h3>DeckManager</h3>
+                <span class="status">Loading...</span>
+            </div>
+        </div>
+
+        <div class="test-controls">
+            <button onclick="testStartGame()" class="btn primary">Start New Game</button>
+            <button onclick="testDrawCard()" class="btn secondary">Test Draw Card</button>
+            <button onclick="testPlayerBust()" class="btn secondary">Test Player Bust</button>
+            <button onclick="testPlayerStay()" class="btn primary">Test Player Stay</button>
+            <button onclick="testFreeze()" class="btn secondary">Test Freeze</button>
+            <button onclick="testScoring()" class="btn primary">Test Scoring</button>
+            <button onclick="testAITurn()" class="btn secondary">Test AI Turn</button>
+        </div>
+    </div>
+
+    <!-- Game area for testing animations -->
+    <div class="game-container">
+        <div class="game-area">
+            <div class="players-grid">
+                <!-- Test player -->
+                <div class="player-area" id="player">
+                    <div class="player-header">
+                        <span class="round-score"><span class="round-value">0</span></span>
+                        <h3>Test Player</h3>
+                        <span class="total-score"><span class="score-value">0</span></span>
+                    </div>
+                    <div class="player-cards" id="player-cards"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Animation area -->
+        <div class="card-animation-area" id="card-animation-area"></div>
+    </div>
+
+    <!-- Load modules as ES6 -->
+    <script type="module">
+        import eventBus from './modules/events/EventBus.js';
+        import { GameEvents } from './modules/events/GameEvents.js';
+        import displayManager from './modules/ui/display/DisplayManager.js';
+        import cardAnimations from './modules/ui/animations/CardAnimations.js';
+        import playerAnimations from './modules/ui/animations/PlayerAnimations.js';
+        import scoringEngine from './modules/game/rules/ScoringEngine.js';
+        import { Player } from './modules/game/core/Player.js';
+        import gameEngine from './modules/game/core/GameEngine.js';
+        import aiPlayer from './modules/game/ai/AIPlayer.js';
+        import deckManager from './modules/game/deck/DeckManager.js';
+        
+        // Check module loading
+        function updateModuleStatus(moduleId, loaded) {
+            const element = document.getElementById(moduleId);
+            if (element) {
+                element.classList.add('loaded');
+                element.querySelector('.status').textContent = 'Loaded ✓';
+            }
+        }
+
+        // Update status for loaded modules
+        if (eventBus) updateModuleStatus('eventbus-status', true);
+        if (displayManager) updateModuleStatus('display-status', true);
+        if (cardAnimations && playerAnimations) updateModuleStatus('animations-status', true);
+        if (scoringEngine) updateModuleStatus('scoring-status', true);
+        if (Player) updateModuleStatus('player-status', true);
+        if (gameEngine) updateModuleStatus('gameengine-status', true);
+        if (aiPlayer) updateModuleStatus('aiplayer-status', true);
+        if (deckManager) updateModuleStatus('deckmanager-status', true);
+
+        // Create test player
+        const testPlayer = new Player('player', 'Test Player', true);
+        
+        // Make modules available globally for testing
+        window.modules = {
+            eventBus,
+            GameEvents,
+            displayManager,
+            cardAnimations,
+            playerAnimations,
+            scoringEngine,
+            Player,
+            gameEngine,
+            aiPlayer,
+            deckManager,
+            testPlayer
+        };
+
+        // Test functions
+        window.testStartGame = function() {
+            console.log('🎮 Testing: Starting new game');
+            gameEngine.startNewGame();
+        };
+
+        window.testDrawCard = function() {
+            const card = deckManager.drawCard();
+            if (!card) {
+                console.log('No cards available in deck');
+                return;
+            }
+            
+            testPlayer.addCard(card);
+            
+            eventBus.emit(GameEvents.CARD_DRAWN, {
+                card: card,
+                playerId: testPlayer.id
+            });
+            
+            const score = scoringEngine.calculateRoundScore(testPlayer);
+            eventBus.emit(GameEvents.SCORE_UPDATED, {
+                playerId: testPlayer.id,
+                roundScore: score,
+                totalScore: testPlayer.totalScore
+            });
+            
+            console.log('Drew card:', card);
+        };
+
+        window.testPlayerBust = function() {
+            testPlayer.bust();
+            playerAnimations.animateBust(testPlayer);
+            console.log('Player busted!');
+        };
+
+        window.testPlayerStay = function() {
+            testPlayer.stay();
+            playerAnimations.animateStay(testPlayer);
+            console.log('Player stayed with score:', testPlayer.roundScore);
+        };
+
+        window.testFreeze = function() {
+            testPlayer.freeze();
+            playerAnimations.addFreezeVisualEffects(testPlayer);
+            console.log('Player frozen!');
+        };
+
+        window.testScoring = function() {
+            // Add some test cards
+            testPlayer.numberCards = [
+                { type: 'number', value: 5, display: '5' },
+                { type: 'number', value: 7, display: '7' }
+            ];
+            testPlayer.modifierCards = [
+                { type: 'modifier', value: 'x2', display: 'x2' },
+                { type: 'modifier', value: 4, display: '+4' }
+            ];
+            
+            const score = scoringEngine.calculateRoundScore(testPlayer);
+            const breakdown = scoringEngine.getScoreBreakdown(testPlayer);
+            
+            console.log('Score calculation:', breakdown);
+            console.log('Total score:', score);
+        };
+
+        window.testAITurn = function() {
+            console.log('🤖 Testing: AI Turn');
+            const aiTestPlayer = new Player('opponent1', 'Test AI Bot', false);
+            
+            // Give AI some test cards
+            aiTestPlayer.addCard({ type: 'number', value: 5, display: '5' });
+            aiTestPlayer.addCard({ type: 'number', value: 8, display: '8' });
+            aiTestPlayer.roundScore = 13;
+            aiTestPlayer.status = 'active';
+            
+            aiPlayer.takeAITurn(aiTestPlayer);
+        };
+
+        console.log('Modular system loaded! Try the test buttons above.');
+    </script>
+</body>
+</html>

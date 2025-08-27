@@ -78,12 +78,13 @@ body {
         width: 100%;
     }
     
-    /* Mobile card sizing */
+    /* Mobile card sizing - Optimized for visibility */
     .card {
-        width: 45px;
-        height: 60px;
-        font-size: 0.8em;
-        margin: 2px;
+        width: 48px; /* Increased for better visibility */
+        height: 64px; /* Increased for better visibility */
+        font-size: 0.85em; /* Slightly larger text */
+        margin: 1px; /* Reduced margin to fit more cards */
+        flex-shrink: 0; /* Prevent cards from shrinking */
     }
     
     /* Legacy mobile card containers */
@@ -3845,8 +3846,8 @@ body {
         flex-direction: column !important;
         flex: 1 !important; /* Take up remaining space between top controls and bottom section */
         gap: 1px !important; /* Reduced from 2px to 1px */
-        padding: 1px 0 70px 0 !important; /* Add 70px bottom padding for button area */
-        overflow: hidden !important;
+        padding: 30px 0 70px 0 !important; /* Add top padding for indicators + bottom for buttons */
+        overflow: visible !important; /* Changed to visible for indicators */
         min-height: 0 !important; /* Allow flex shrinking */
     }
 
@@ -4070,9 +4071,9 @@ body {
     /* GOLDEN RATIO PLAYERS - Perfect proportions with flexible heights */
     #mobile-player {
         width: 100% !important;
-        flex: 1.6 !important; /* Human player gets more space (golden ratio) */
-        min-height: 120px !important; /* Minimum to ensure card visibility */
-        max-height: 180px !important; /* Maximum to prevent oversizing on large screens */
+        flex: 2.0 !important; /* Human player gets even more space since no buttons inside */
+        min-height: 130px !important; /* Increased minimum to match bot players */
+        max-height: 240px !important; /* Increased maximum for generous card space */
         background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
         border: 2px solid rgba(87, 204, 153, 0.6) !important;
         border-radius: 12px !important;
@@ -4152,7 +4153,7 @@ body {
         flex: 0 0 auto;
     }
     
-    /* ULTRA compact player heights */
+    /* ULTRA compact player heights - Updated to prevent card cutoff */
     .mobile-player-empty {
         height: auto !important;
         min-height: 30px !important;
@@ -4162,26 +4163,22 @@ body {
     .mobile-player-small {
         height: auto !important;
         min-height: 40px !important;
-        max-height: 50px !important;
+        max-height: 60px !important; /* Increased for better card visibility */
     }
     
     .mobile-player-medium {
         height: auto !important;
         min-height: 50px !important;
-        max-height: 60px !important;
+        max-height: 75px !important; /* Increased for better card visibility */
     }
     
     .mobile-player-large {
         height: auto !important;
         min-height: 60px !important;
-        max-height: 70px !important;
+        max-height: 110px !important; /* Further increased since no buttons take space */
     }
     
-    .mobile-player-with-buttons {
-        height: auto !important;
-        min-height: 60px !important;
-        max-height: 70px !important;
-    }
+    /* mobile-player-with-buttons class removed - no longer needed since buttons are in bottom section */
     
     /* Mobile info panel with log and scoreboard */
     .mobile-info-panel {
@@ -4533,28 +4530,69 @@ body {
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.08) !important;
     }
     
-    /* Mobile unified player cards container - Optimized for dynamic sizing */
+    /* Mobile unified player cards container - Optimized for dynamic sizing and card visibility */
     .mobile-game-board .player-cards {
         width: 100% !important;
-        min-height: 0 !important;
+        min-height: 55px !important; /* Increased min height for better card visibility */
         flex: 1 !important; /* Take available space */
         display: flex !important;
         justify-content: flex-start !important;
         align-items: center !important;
-        gap: 0px !important; /* Removed gap for tighter card packing */
+        gap: 1px !important; /* Small gap for better card separation */
         flex-wrap: nowrap !important;
         overflow-x: auto !important;
         overflow-y: hidden !important;
         background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.15) 100%) !important;
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-radius: 4px !important;
-        padding: 0px !important; /* Removed padding for maximum card space */
+        padding: 3px 4px !important; /* Added padding for better card spacing */
         margin: 1px 0 !important;
         box-sizing: border-box !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         backdrop-filter: blur(2px) !important;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 1px 3px rgba(0, 0, 0, 0.08) !important;
         -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
+        scrollbar-width: none !important; /* Hide scrollbar on Firefox */
+        -ms-overflow-style: none !important; /* Hide scrollbar on IE/Edge */
+    }
+    
+    /* Hide scrollbar on webkit browsers */
+    .mobile-game-board .player-cards::-webkit-scrollbar {
+        display: none !important;
+    }
+    
+    /* Visual indicator for scrollable card container */
+    .mobile-game-board .player-cards.scrollable::after {
+        content: '→';
+        position: absolute;
+        right: 2px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 215, 0, 0.8);
+        font-size: 14px;
+        font-weight: bold;
+        pointer-events: none;
+        z-index: 10;
+        background: linear-gradient(to left, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
+        padding-left: 8px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    }
+    
+    /* Fade effect on the right edge when scrollable */
+    .mobile-game-board .player-cards.scrollable {
+        position: relative;
+    }
+    
+    .mobile-game-board .player-cards.scrollable::before {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 20px;
+        background: linear-gradient(to left, rgba(0, 0, 0, 0.3) 0%, transparent 100%);
+        pointer-events: none;
+        z-index: 5;
     }
     
     /* GOLDEN RATIO TINY MODIFIERS - Perfectly scaled */
@@ -4698,15 +4736,20 @@ body {
     }
     
     
-    /* Hide individual action buttons on mobile (moved to controls) */
-    .mobile-game-board .action-buttons {
+    /* Hide ALL action buttons within player containers on mobile - use bottom section only */
+    .mobile-game-board .action-buttons,
+    #mobile-player .action-buttons {
         display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     
-    /* Show buttons only when it's human player's turn */
-    .show-buttons .action-buttons {
+    /* Keep this commented out - no buttons in player containers */
+    /* .show-buttons .action-buttons {
         display: flex;
-    }
+    } */
     
     .btn {
         padding: 6px 12px;
@@ -4800,11 +4843,24 @@ body {
         font-weight: bold;
     }
     
-    /* Mobile stay animations */
+    /* Mobile stay animations and positioning */
     .stayed-indicator {
         padding: 6px 12px;
         font-size: 0.85em;
-        top: -15px;
+        top: -25px !important; /* Increased to ensure visibility */
+    }
+    
+    /* Mobile-specific stayed indicator positioning */
+    #mobile-player .stayed-indicator,
+    #mobile-opponent1 .stayed-indicator,
+    #mobile-opponent2 .stayed-indicator,
+    #mobile-opponent3 .stayed-indicator {
+        position: absolute !important;
+        top: -28px !important; /* More negative to appear above container */
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 1500 !important; /* Higher than other mobile elements */
+        white-space: nowrap !important;
     }
     
     .stayed-icon {
@@ -4833,6 +4889,19 @@ body {
         padding: 4px 10px;
         background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
         top: -12px;
+    }
+    
+    /* Mobile-specific frozen indicator positioning */
+    #mobile-player .frozen-indicator,
+    #mobile-opponent1 .frozen-indicator,
+    #mobile-opponent2 .frozen-indicator,
+    #mobile-opponent3 .frozen-indicator {
+        position: absolute !important;
+        top: -25px !important; /* Align with stayed indicators */
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 1500 !important; /* Higher than other mobile elements */
+        white-space: nowrap !important;
     }
     
     /* Action prompts */

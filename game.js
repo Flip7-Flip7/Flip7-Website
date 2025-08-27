@@ -21,9 +21,13 @@ class Flip7Game {
         this.flip3CompletionPending = false; // Flag to prevent race conditions during completion
         this.pendingFlip3Queue = []; // Queue for nested Flip 3 cards
         this.flip3EndRoundAfterCompletion = false; // Flag to end round after Flip 3 if self-freeze
+        this.pendingActionResolution = 0; // Count of pending action card resolutions during Flip 3
         
         // Flag to prevent mobile sync during bust animations
         this.isBustAnimating = false;
+        
+        // Flag to prevent indicator preservation during round initialization
+        this.isStartingNewRound = false;
         
         // Flag to prevent multiple rapid button clicks
         this.isProcessingPlayerAction = false;
@@ -241,19 +245,40 @@ class Flip7Game {
                 const playerCards = desktopPlayer.querySelector('.player-cards');
                 const actionButtons = desktopPlayer.querySelector('.action-buttons');
                 
-                // Preserve any existing freeze indicators before clearing
-                const existingFreezeIndicator = mobilePlayer.querySelector('.frozen-indicator');
-                const hasFrozenClass = mobilePlayer.classList.contains('enhanced-frozen');
+                // Only preserve indicators if we're NOT starting a new round
+                let existingFreezeIndicator = null;
+                let existingStayedIndicator = null;
+                let hasFrozenClass = false;
+                let hasStayedClass = false;
+                
+                if (!this.isStartingNewRound) {
+                    // Preserve any existing indicators before clearing
+                    existingFreezeIndicator = mobilePlayer.querySelector('.frozen-indicator');
+                    existingStayedIndicator = mobilePlayer.querySelector('.stayed-indicator');
+                    hasFrozenClass = mobilePlayer.classList.contains('enhanced-frozen');
+                    hasStayedClass = mobilePlayer.classList.contains('stayed');
+                }
                 
                 // Clear mobile container
                 mobilePlayer.innerHTML = '';
                 mobilePlayer.className = desktopPlayer.className;
                 
-                // Restore freeze effects if they existed
-                if (existingFreezeIndicator || hasFrozenClass) {
-                    console.log(`🧊 Preserving freeze effects for ${playerMap.mobile}`);
-                    if (hasFrozenClass) {
-                        mobilePlayer.classList.add('enhanced-frozen');
+                // Only restore effects if we're NOT starting a new round
+                if (!this.isStartingNewRound) {
+                    // Restore freeze effects if they existed
+                    if (existingFreezeIndicator || hasFrozenClass) {
+                        console.log(`🧊 Preserving freeze effects for ${playerMap.mobile}`);
+                        if (hasFrozenClass) {
+                            mobilePlayer.classList.add('enhanced-frozen');
+                        }
+                    }
+                    
+                    // Restore stayed effects if they existed
+                    if (existingStayedIndicator || hasStayedClass) {
+                        console.log(`✓ Preserving stayed effects for ${playerMap.mobile}`);
+                        if (hasStayedClass) {
+                            mobilePlayer.classList.add('stayed');
+                        }
                     }
                 }
                 
@@ -298,28 +323,47 @@ class Flip7Game {
                     // Add the unified cards container
                     mobilePlayer.appendChild(cardsClone);
                     
-                    // Add action buttons for human player
-                    if (actionButtons && playerMap.desktop === 'player') {
-                        const buttonsClone = actionButtons.cloneNode(true);
-                        mobilePlayer.appendChild(buttonsClone);
-                    }
+                    // Check if cards container needs scrolling indicator
+                    this.updateScrollIndicator(cardsClone);
                     
-                    // Re-add freeze indicator if it existed
-                    if (existingFreezeIndicator) {
-                        console.log(`🧊 Re-adding freeze indicator to ${playerMap.mobile}`);
-                        mobilePlayer.style.position = 'relative';
-                        mobilePlayer.appendChild(existingFreezeIndicator.cloneNode(true));
+                    // NOTE: Action buttons are now ONLY in the bottom section - don't add them to player containers
+                    
+                    // Only re-add indicators if we're NOT starting a new round
+                    if (!this.isStartingNewRound) {
+                        // Re-add freeze indicator if it existed
+                        if (existingFreezeIndicator) {
+                            console.log(`🧊 Re-adding freeze indicator to ${playerMap.mobile}`);
+                            mobilePlayer.style.position = 'relative';
+                            mobilePlayer.appendChild(existingFreezeIndicator.cloneNode(true));
+                        }
+                        
+                        // Re-add stayed indicator if it existed
+                        if (existingStayedIndicator) {
+                            console.log(`✓ Re-adding stayed indicator to ${playerMap.mobile}`);
+                            mobilePlayer.style.position = 'relative';
+                            mobilePlayer.appendChild(existingStayedIndicator.cloneNode(true));
+                        }
                     }
                 } else {
                     console.warn(`Missing elements for ${playerMap.desktop}: header=${!!playerHeader}, cards=${!!playerCards}`);
                     // Fallback: Just copy innerHTML if structure is missing
                     mobilePlayer.innerHTML = desktopPlayer.innerHTML;
                     
-                    // Re-add freeze indicator to fallback content as well
-                    if (existingFreezeIndicator) {
-                        console.log(`🧊 Re-adding freeze indicator to ${playerMap.mobile} (fallback)`);
-                        mobilePlayer.style.position = 'relative';
-                        mobilePlayer.appendChild(existingFreezeIndicator.cloneNode(true));
+                    // Only re-add indicators if we're NOT starting a new round
+                    if (!this.isStartingNewRound) {
+                        // Re-add freeze indicator to fallback content as well
+                        if (existingFreezeIndicator) {
+                            console.log(`🧊 Re-adding freeze indicator to ${playerMap.mobile} (fallback)`);
+                            mobilePlayer.style.position = 'relative';
+                            mobilePlayer.appendChild(existingFreezeIndicator.cloneNode(true));
+                        }
+                        
+                        // Re-add stayed indicator to fallback content as well
+                        if (existingStayedIndicator) {
+                            console.log(`✓ Re-adding stayed indicator to ${playerMap.mobile} (fallback)`);
+                            mobilePlayer.style.position = 'relative';
+                            mobilePlayer.appendChild(existingStayedIndicator.cloneNode(true));
+                        }
                     }
                 }
             }
@@ -346,16 +390,11 @@ class Flip7Game {
         // Remove all existing height classes
         mobilePlayerElement.classList.remove('mobile-player-empty', 'mobile-player-small', 'mobile-player-medium', 'mobile-player-large', 'mobile-player-with-buttons');
 
-        // Count cards to determine height class
+        // Count cards to determine height class - SAME LOGIC FOR ALL PLAYERS (human and bots)
         const cardCount = player.numberCards.length;
-        const isHumanPlayer = player.isHuman;
-        const isCurrentTurn = this.currentPlayerIndex >= 0 && this.players[this.currentPlayerIndex].id === desktopPlayerId;
-        const showButtons = isHumanPlayer && isCurrentTurn && player.status === 'active';
 
-        // Apply height class based on card count and button visibility
-        if (showButtons) {
-            mobilePlayerElement.classList.add('mobile-player-with-buttons');
-        } else if (cardCount === 0) {
+        // Apply height class based ONLY on card count (no special button handling)
+        if (cardCount === 0) {
             mobilePlayerElement.classList.add('mobile-player-empty');
         } else if (cardCount <= 2) {
             mobilePlayerElement.classList.add('mobile-player-small');
@@ -373,6 +412,23 @@ class Flip7Game {
         if (desktopCardsRemaining && mobileCardsRemaining) {
             mobileCardsRemaining.textContent = desktopCardsRemaining.textContent;
         }
+    }
+    
+    updateScrollIndicator(cardsContainer) {
+        if (!cardsContainer) return;
+        
+        // Check if container needs horizontal scrolling
+        setTimeout(() => {
+            const scrollWidth = cardsContainer.scrollWidth;
+            const clientWidth = cardsContainer.clientWidth;
+            const needsScroll = scrollWidth > clientWidth;
+            
+            if (needsScroll) {
+                cardsContainer.classList.add('scrollable');
+            } else {
+                cardsContainer.classList.remove('scrollable');
+            }
+        }, 100); // Small delay to ensure DOM is updated
     }
 
     createDeck() {
@@ -462,15 +518,13 @@ class Flip7Game {
     }
 
     startNewRound() {
-        // Clean up visual indicators from previous round
-        document.querySelectorAll('.stayed-indicator').forEach(indicator => {
-            indicator.remove();
-        });
-        document.querySelectorAll('.stayed').forEach(element => {
-            element.classList.remove('stayed');
-        });
+        // Set flag to prevent indicator preservation during cleanup
+        this.isStartingNewRound = true;
         
-        // Reset round-specific data
+        // Clean up ALL visual indicators from previous round (desktop AND mobile)
+        // This ensures a clean slate for the new round
+        
+        // Reset round-specific data and clear all visual effects
         this.players.forEach(player => {
             player.roundScore = 0;
             player.numberCards = [];
@@ -482,6 +536,9 @@ class Flip7Game {
             
             // Clear all freeze visual effects from both desktop and mobile
             this.clearAllFreezeEffects(player);
+            
+            // Clear all stayed visual effects from both desktop and mobile
+            this.clearAllStayedEffects(player);
             
             // Clear all visual cards from DOM
             const isMainPlayer = player.id === 'player';
@@ -515,6 +572,7 @@ class Flip7Game {
         // Clear all state flags
         this.clearFlip3State();
         this.pendingFlip3Queue = [];
+        this.pendingActionResolution = 0; // Clear action resolution counter
         this.dealNextCardFunction = null;
         this.pendingInitialDealContinuation = null;
         this.isProcessingFreeze = false; // Clear freeze processing flag
@@ -522,7 +580,11 @@ class Flip7Game {
         
         // Always deal initial cards
         this.isInitialDealing = true;
-        setTimeout(() => this.dealInitialCards(), 500);
+        setTimeout(() => {
+            this.dealInitialCards();
+            // Clear the flag after initial setup is complete
+            this.isStartingNewRound = false;
+        }, 500);
     }
 
     dealInitialCards() {
@@ -1231,6 +1293,8 @@ class Flip7Game {
             // Clear freeze processing flag after a brief delay to allow visual effects
             setTimeout(() => {
                 this.isProcessingFreeze = false;
+                // Mark freeze action as resolved if we're tracking resolutions
+                this.markActionResolved('freeze');
             }, 500);
             
             // Check if this was a self-freeze during Flip 3
@@ -1636,7 +1700,14 @@ class Flip7Game {
                 
                 // Check what to do after Flip 3 completes
                 const checkPendingFlip3 = () => {
-                    console.log(`🏁 Flip3 completion handler - onComplete: ${!!onComplete}, pendingQueue: ${this.pendingFlip3Queue.length}`);
+                    console.log(`🏁 Flip3 completion handler - onComplete: ${!!onComplete}, pendingQueue: ${this.pendingFlip3Queue.length}, pendingActions: ${this.pendingActionResolution}`);
+                    
+                    // Wait for all action cards to be resolved before proceeding
+                    if (this.pendingActionResolution > 0) {
+                        console.log(`⏳ Waiting for ${this.pendingActionResolution} action cards to be resolved...`);
+                        setTimeout(() => checkPendingFlip3(), 500); // Check again in 500ms
+                        return;
+                    }
                     
                     if (onComplete) {
                         console.log(`📞 Calling onComplete callback`);
@@ -1927,6 +1998,13 @@ class Flip7Game {
         if (deferredActionCards.length > 0) {
             this.addToLog(`${targetPlayer.name} completed Flip 3 without busting! Processing ${deferredActionCards.length} action card(s):`);
             
+            // Count actions that need resolution tracking
+            const actionsNeedingResolution = deferredActionCards.filter(action => 
+                action.card.value === 'flip3' || action.card.value === 'freeze'
+            ).length;
+            this.pendingActionResolution += actionsNeedingResolution;
+            console.log(`📊 Action resolution counter: ${this.pendingActionResolution} (added ${actionsNeedingResolution})`);
+            
             deferredActionCards.forEach((actionData, index) => {
                 const { card, drawnBy, cardNumber } = actionData;
                 console.log(`🎯 Processing deferred action ${index + 1}/${deferredActionCards.length}: ${card.display} (drawn as card ${cardNumber})`);
@@ -1971,6 +2049,10 @@ class Flip7Game {
                         const actionTarget = this.determineAITarget(drawnBy, card);
                         setTimeout(() => {
                             this.executeSpecialAction(card, drawnBy, actionTarget);
+                            // Mark this freeze action as resolved after execution
+                            setTimeout(() => {
+                                this.markActionResolved('freeze');
+                            }, 1000); // Wait for freeze animation to complete
                         }, 1000 * (index + 1)); // Stagger AI actions
                     }
                 }
@@ -1988,6 +2070,8 @@ class Flip7Game {
             if (pendingFlip3.target) {
                 // Target already selected (AI)
                 this.executeFlipThree(pendingFlip3.cardOwner, pendingFlip3.target, () => {
+                    // Mark this Flip 3 action as resolved
+                    this.markActionResolved('flip3');
                     // After this Flip 3 completes, check for more in queue
                     this.processPendingFlip3Queue();
                 });
@@ -2017,6 +2101,15 @@ class Flip7Game {
         this.flip3CompletionPending = false;
         this.flip3TargetPlayer = null;
         this.flip3DrawnCards = [];
+        this.pendingActionResolution = 0; // Reset action resolution counter
+    }
+    
+    markActionResolved(actionType) {
+        // Decrement action resolution counter when an action completes
+        if (this.pendingActionResolution > 0) {
+            this.pendingActionResolution--;
+            console.log(`✅ Action ${actionType} resolved. Remaining: ${this.pendingActionResolution}`);
+        }
     }
     
     reshuffleDeck() {
@@ -2095,6 +2188,9 @@ class Flip7Game {
             
             // Add freeze card to discard pile
             this.discardPile.push({ type: 'action', value: 'freeze', display: 'Freeze' });
+            
+            // Mark freeze action as resolved if we're tracking resolutions
+            this.markActionResolved('freeze');
             
             if (onComplete) onComplete();
         }, 1200);
@@ -4352,6 +4448,34 @@ class Flip7Game {
         
         // Also clear the frozen flag
         player.isFrozen = false;
+    }
+    
+    clearAllStayedEffects(player) {
+        // Clear stayed effects from desktop container
+        const desktopContainer = document.getElementById(player.id);
+        if (desktopContainer) {
+            // Remove stayed class
+            desktopContainer.classList.remove('stayed', 'stay-animation');
+            
+            // Remove stayed indicator
+            const stayedIndicator = desktopContainer.querySelector('.stayed-indicator');
+            if (stayedIndicator) {
+                stayedIndicator.remove();
+            }
+        }
+        
+        // Clear stayed effects from mobile container
+        const mobileContainer = document.getElementById(`mobile-${player.id}`);
+        if (mobileContainer) {
+            // Remove stayed class
+            mobileContainer.classList.remove('stayed', 'stay-animation');
+            
+            // Remove stayed indicator
+            const stayedIndicator = mobileContainer.querySelector('.stayed-indicator');
+            if (stayedIndicator) {
+                stayedIndicator.remove();
+            }
+        }
     }
 
     getTargetCardContainer(playerId, cardType) {

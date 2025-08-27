@@ -1,0 +1,48 @@
+{
+  "name": "flip7-game-tests",
+  "version": "1.0.0",
+  "description": "Unit tests for the modular Flip 7 card game",
+  "type": "module",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "babel-jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "transform": {
+      "^.+\\.js$": "babel-jest"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(.*\\.mjs$))"
+    ],
+    "moduleNameMapper": {
+      "^../modules/(.*)$": "<rootDir>/../modules/$1"
+    },
+    "collectCoverageFrom": [
+      "../modules/**/*.js",
+      "!../modules/**/index.js",
+      "!../modules/**/*.test.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "html",
+      "lcov"
+    ],
+    "testMatch": [
+      "**/*.test.js"
+    ],
+    "setupFilesAfterEnv": [
+      "./jest.setup.js"
+    ]
+  }
+}
