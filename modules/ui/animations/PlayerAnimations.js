@@ -29,7 +29,7 @@ export class PlayerAnimations {
         const player = window.gameState?.players?.find(p => p.id === data.playerId);
         if (player) {
             console.log(`❄️ PlayerAnimations: Animating freeze for ${player.name}`);
-            this.animateFreeze(player);
+            this.addFreezeVisualEffects(player);
         }
     }
 
