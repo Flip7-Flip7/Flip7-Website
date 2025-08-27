@@ -71,6 +71,27 @@ export class DisplayManager {
     }
 
     /**
+     * Update player score from event data
+     */
+    updatePlayerScore(data) {
+        try {
+            // Find the player from game state
+            const player = window.gameState?.players?.find(p => p.id === data.playerId);
+            if (!player) {
+                console.warn('DisplayManager: Player not found for score update:', data.playerId);
+                return;
+            }
+            
+            // Update the player display
+            this.updatePlayerDisplay(player);
+            
+            console.log(`📊 DisplayManager: Updated scores for ${player.name} - Round: ${data.roundScore}, Total: ${data.totalScore}`);
+        } catch (error) {
+            console.error('DisplayManager: Error updating player score:', error);
+        }
+    }
+
+    /**
      * Update player score display
      */
     updatePlayerScoreDisplay(container, player) {
@@ -259,6 +280,26 @@ export class DisplayManager {
         
         counterElement.textContent = `${count} cards left`;
     }
+    
+    /**
+     * Handle card added to player hand
+     */
+    addCardToDisplay(data) {
+        try {
+            const player = window.gameState?.players?.find(p => p.id === data.playerId);
+            if (!player) {
+                console.warn('DisplayManager: Player not found for card display:', data.playerId);
+                return;
+            }
+            
+            // Update the player's card display
+            this.updatePlayerDisplay(player);
+            
+            console.log(`🃏 DisplayManager: Added card to ${player.name}'s display`);
+        } catch (error) {
+            console.error('DisplayManager: Error adding card to display:', error);
+        }
+    }
 
     /**
      * Update scoreboard
@@ -313,19 +354,28 @@ export class DisplayManager {
      * Update mobile player display directly
      */
     updateMobilePlayerDisplay(player) {
-        if (window.innerWidth > 1024) return; // Only on mobile
-        
-        const mobileId = player.id === 'player' ? 'mobile-player' : `mobile-${player.id}`;
-        const mobileContainer = document.getElementById(mobileId);
-        
-        if (!mobileContainer) return;
-        
-        // Build mobile player HTML
-        const playerHTML = this.buildMobilePlayerHTML(player);
-        mobileContainer.innerHTML = playerHTML;
-        
-        // Apply state classes
-        this.updateMobilePlayerClasses(mobileContainer, player);
+        try {
+            if (window.innerWidth > 1024) return; // Only on mobile
+            
+            const mobileId = player.id === 'player' ? 'mobile-player' : `mobile-${player.id}`;
+            const mobileContainer = document.getElementById(mobileId);
+            
+            if (!mobileContainer) {
+                console.warn(`DisplayManager: Mobile container not found: ${mobileId}`);
+                return;
+            }
+            
+            // Build mobile player HTML
+            const playerHTML = this.buildMobilePlayerHTML(player);
+            mobileContainer.innerHTML = playerHTML;
+            
+            // Apply state classes
+            this.updateMobilePlayerClasses(mobileContainer, player);
+            
+            console.log(`📱 DisplayManager: Updated mobile display for ${player.name}`);
+        } catch (error) {
+            console.error('DisplayManager: Error updating mobile display:', error);
+        }
     }
     
     /**
