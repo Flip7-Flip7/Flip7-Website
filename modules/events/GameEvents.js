@@ -51,10 +51,10 @@ export const GameEvents = {
     // Mobile events
     MOBILE_SYNC_REQUIRED: 'mobile:syncRequired',
     
-    // Drag and drop events
-    DRAG_STARTED: 'drag:started',
-    DRAG_ENDED: 'drag:ended',
-    DROP_COMPLETED: 'drop:completed',
+    // Action card targeting events
+    ACTION_CARD_AWAITING_TARGET: 'action:awaitingTarget',
+    PLAYER_TAPPED_FOR_TARGET: 'action:playerTapped',
+    ACTION_CARD_TARGETING_CANCELLED: 'action:targetingCancelled',
     
     // Log events
     LOG_MESSAGE: 'log:message',

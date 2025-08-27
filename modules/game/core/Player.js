@@ -148,6 +148,14 @@ export class Player {
     }
 
     /**
+     * Give second chance to player
+     */
+    giveSecondChance() {
+        this.hasSecondChance = true;
+        console.log(`✨ ${this.name} received a Second Chance!`);
+    }
+
+    /**
      * Use second chance
      */
     useSecondChance() {

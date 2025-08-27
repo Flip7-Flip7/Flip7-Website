@@ -21,13 +21,10 @@ class Flip7Game {
         this.flip3CompletionPending = false; // Flag to prevent race conditions during completion
         this.pendingFlip3Queue = []; // Queue for nested Flip 3 cards
         this.flip3EndRoundAfterCompletion = false; // Flag to end round after Flip 3 if self-freeze
-        this.pendingActionResolution = 0; // Count of pending action card resolutions during Flip 3
+        this.humanPlayerBusted = false; // Track when human player busts and needs turn progression after video
         
         // Flag to prevent mobile sync during bust animations
         this.isBustAnimating = false;
-        
-        // Flag to prevent indicator preservation during round initialization
-        this.isStartingNewRound = false;
         
         // Flag to prevent multiple rapid button clicks
         this.isProcessingPlayerAction = false;
@@ -143,6 +140,22 @@ class Flip7Game {
         const mobileRulesBtn = document.getElementById('mobile-rules-btn');
         if (mobileRulesBtn) mobileRulesBtn.addEventListener('click', () => this.showRules());
         
+        // Bust video modal event listeners
+        const bustVideoClose = document.getElementById('bust-video-close');
+        if (bustVideoClose) bustVideoClose.addEventListener('click', () => this.hideBustVideo());
+        
+        const bustVideo = document.getElementById('bust-video');
+        if (bustVideo) {
+            bustVideo.addEventListener('ended', () => {
+                console.log('Bust video ended - auto-hiding modal');
+                this.hideBustVideo();
+            });
+            bustVideo.addEventListener('error', () => {
+                console.log('Bust video error - hiding modal');
+                this.hideBustVideo();
+            });
+        }
+        
         // Mobile start button removed - game auto-starts
         
         // Popup no longer used - game auto-starts
@@ -245,40 +258,19 @@ class Flip7Game {
                 const playerCards = desktopPlayer.querySelector('.player-cards');
                 const actionButtons = desktopPlayer.querySelector('.action-buttons');
                 
-                // Only preserve indicators if we're NOT starting a new round
-                let existingFreezeIndicator = null;
-                let existingStayedIndicator = null;
-                let hasFrozenClass = false;
-                let hasStayedClass = false;
-                
-                if (!this.isStartingNewRound) {
-                    // Preserve any existing indicators before clearing
-                    existingFreezeIndicator = mobilePlayer.querySelector('.frozen-indicator');
-                    existingStayedIndicator = mobilePlayer.querySelector('.stayed-indicator');
-                    hasFrozenClass = mobilePlayer.classList.contains('enhanced-frozen');
-                    hasStayedClass = mobilePlayer.classList.contains('stayed');
-                }
+                // Preserve any existing freeze indicators before clearing
+                const existingFreezeIndicator = mobilePlayer.querySelector('.frozen-indicator');
+                const hasFrozenClass = mobilePlayer.classList.contains('enhanced-frozen');
                 
                 // Clear mobile container
                 mobilePlayer.innerHTML = '';
                 mobilePlayer.className = desktopPlayer.className;
                 
-                // Only restore effects if we're NOT starting a new round
-                if (!this.isStartingNewRound) {
-                    // Restore freeze effects if they existed
-                    if (existingFreezeIndicator || hasFrozenClass) {
-                        console.log(`🧊 Preserving freeze effects for ${playerMap.mobile}`);
-                        if (hasFrozenClass) {
-                            mobilePlayer.classList.add('enhanced-frozen');
-                        }
-                    }
-                    
-                    // Restore stayed effects if they existed
-                    if (existingStayedIndicator || hasStayedClass) {
-                        console.log(`✓ Preserving stayed effects for ${playerMap.mobile}`);
-                        if (hasStayedClass) {
-                            mobilePlayer.classList.add('stayed');
-                        }
+                // Restore freeze effects if they existed
+                if (existingFreezeIndicator || hasFrozenClass) {
+                    console.log(`🧊 Preserving freeze effects for ${playerMap.mobile}`);
+                    if (hasFrozenClass) {
+                        mobilePlayer.classList.add('enhanced-frozen');
                     }
                 }
                 
@@ -323,47 +315,28 @@ class Flip7Game {
                     // Add the unified cards container
                     mobilePlayer.appendChild(cardsClone);
                     
-                    // Check if cards container needs scrolling indicator
-                    this.updateScrollIndicator(cardsClone);
+                    // Add action buttons for human player
+                    if (actionButtons && playerMap.desktop === 'player') {
+                        const buttonsClone = actionButtons.cloneNode(true);
+                        mobilePlayer.appendChild(buttonsClone);
+                    }
                     
-                    // NOTE: Action buttons are now ONLY in the bottom section - don't add them to player containers
-                    
-                    // Only re-add indicators if we're NOT starting a new round
-                    if (!this.isStartingNewRound) {
-                        // Re-add freeze indicator if it existed
-                        if (existingFreezeIndicator) {
-                            console.log(`🧊 Re-adding freeze indicator to ${playerMap.mobile}`);
-                            mobilePlayer.style.position = 'relative';
-                            mobilePlayer.appendChild(existingFreezeIndicator.cloneNode(true));
-                        }
-                        
-                        // Re-add stayed indicator if it existed
-                        if (existingStayedIndicator) {
-                            console.log(`✓ Re-adding stayed indicator to ${playerMap.mobile}`);
-                            mobilePlayer.style.position = 'relative';
-                            mobilePlayer.appendChild(existingStayedIndicator.cloneNode(true));
-                        }
+                    // Re-add freeze indicator if it existed
+                    if (existingFreezeIndicator) {
+                        console.log(`🧊 Re-adding freeze indicator to ${playerMap.mobile}`);
+                        mobilePlayer.style.position = 'relative';
+                        mobilePlayer.appendChild(existingFreezeIndicator.cloneNode(true));
                     }
                 } else {
                     console.warn(`Missing elements for ${playerMap.desktop}: header=${!!playerHeader}, cards=${!!playerCards}`);
                     // Fallback: Just copy innerHTML if structure is missing
                     mobilePlayer.innerHTML = desktopPlayer.innerHTML;
                     
-                    // Only re-add indicators if we're NOT starting a new round
-                    if (!this.isStartingNewRound) {
-                        // Re-add freeze indicator to fallback content as well
-                        if (existingFreezeIndicator) {
-                            console.log(`🧊 Re-adding freeze indicator to ${playerMap.mobile} (fallback)`);
-                            mobilePlayer.style.position = 'relative';
-                            mobilePlayer.appendChild(existingFreezeIndicator.cloneNode(true));
-                        }
-                        
-                        // Re-add stayed indicator to fallback content as well
-                        if (existingStayedIndicator) {
-                            console.log(`✓ Re-adding stayed indicator to ${playerMap.mobile} (fallback)`);
-                            mobilePlayer.style.position = 'relative';
-                            mobilePlayer.appendChild(existingStayedIndicator.cloneNode(true));
-                        }
+                    // Re-add freeze indicator to fallback content as well
+                    if (existingFreezeIndicator) {
+                        console.log(`🧊 Re-adding freeze indicator to ${playerMap.mobile} (fallback)`);
+                        mobilePlayer.style.position = 'relative';
+                        mobilePlayer.appendChild(existingFreezeIndicator.cloneNode(true));
                     }
                 }
             }
@@ -390,11 +363,16 @@ class Flip7Game {
         // Remove all existing height classes
         mobilePlayerElement.classList.remove('mobile-player-empty', 'mobile-player-small', 'mobile-player-medium', 'mobile-player-large', 'mobile-player-with-buttons');
 
-        // Count cards to determine height class - SAME LOGIC FOR ALL PLAYERS (human and bots)
+        // Count cards to determine height class
         const cardCount = player.numberCards.length;
+        const isHumanPlayer = player.isHuman;
+        const isCurrentTurn = this.currentPlayerIndex >= 0 && this.players[this.currentPlayerIndex].id === desktopPlayerId;
+        const showButtons = isHumanPlayer && isCurrentTurn && player.status === 'active';
 
-        // Apply height class based ONLY on card count (no special button handling)
-        if (cardCount === 0) {
+        // Apply height class based on card count and button visibility
+        if (showButtons) {
+            mobilePlayerElement.classList.add('mobile-player-with-buttons');
+        } else if (cardCount === 0) {
             mobilePlayerElement.classList.add('mobile-player-empty');
         } else if (cardCount <= 2) {
             mobilePlayerElement.classList.add('mobile-player-small');
@@ -412,23 +390,6 @@ class Flip7Game {
         if (desktopCardsRemaining && mobileCardsRemaining) {
             mobileCardsRemaining.textContent = desktopCardsRemaining.textContent;
         }
-    }
-    
-    updateScrollIndicator(cardsContainer) {
-        if (!cardsContainer) return;
-        
-        // Check if container needs horizontal scrolling
-        setTimeout(() => {
-            const scrollWidth = cardsContainer.scrollWidth;
-            const clientWidth = cardsContainer.clientWidth;
-            const needsScroll = scrollWidth > clientWidth;
-            
-            if (needsScroll) {
-                cardsContainer.classList.add('scrollable');
-            } else {
-                cardsContainer.classList.remove('scrollable');
-            }
-        }, 100); // Small delay to ensure DOM is updated
     }
 
     createDeck() {
@@ -518,13 +479,7 @@ class Flip7Game {
     }
 
     startNewRound() {
-        // Set flag to prevent indicator preservation during cleanup
-        this.isStartingNewRound = true;
-        
-        // Clean up ALL visual indicators from previous round (desktop AND mobile)
-        // This ensures a clean slate for the new round
-        
-        // Reset round-specific data and clear all visual effects
+        // Reset round-specific data
         this.players.forEach(player => {
             player.roundScore = 0;
             player.numberCards = [];
@@ -536,9 +491,6 @@ class Flip7Game {
             
             // Clear all freeze visual effects from both desktop and mobile
             this.clearAllFreezeEffects(player);
-            
-            // Clear all stayed visual effects from both desktop and mobile
-            this.clearAllStayedEffects(player);
             
             // Clear all visual cards from DOM
             const isMainPlayer = player.id === 'player';
@@ -572,7 +524,6 @@ class Flip7Game {
         // Clear all state flags
         this.clearFlip3State();
         this.pendingFlip3Queue = [];
-        this.pendingActionResolution = 0; // Clear action resolution counter
         this.dealNextCardFunction = null;
         this.pendingInitialDealContinuation = null;
         this.isProcessingFreeze = false; // Clear freeze processing flag
@@ -580,11 +531,7 @@ class Flip7Game {
         
         // Always deal initial cards
         this.isInitialDealing = true;
-        setTimeout(() => {
-            this.dealInitialCards();
-            // Clear the flag after initial setup is complete
-            this.isStartingNewRound = false;
-        }, 500);
+        setTimeout(() => this.dealInitialCards(), 500);
     }
 
     dealInitialCards() {
@@ -920,227 +867,10 @@ class Flip7Game {
             cardElement.textContent = ''; // Remove text when using image
         }
         
-        // Setup drag functionality
-        this.setupModalCardDrag(cardElement, card, player);
+        // Button-based action targeting will be used instead of drag/drop
     }
     
-    setupModalCardDrag(cardElement, card, player) {
-        // Remove HTML5 drag API - use touch events instead
-        cardElement.draggable = false;
-        
-        // Touch-based drag variables
-        let isDragging = false;
-        let startX = 0;
-        let startY = 0;
-        let currentDropTarget = null;
-        let animationFrameId = null;
-        
-        // Touch start - begin drag operation
-        cardElement.addEventListener('touchstart', (e) => {
-            isDragging = true;
-            const touch = e.touches[0];
-            
-            // Get the card's current position relative to the viewport
-            const rect = cardElement.getBoundingClientRect();
-            
-            // Center the card under the finger for better control
-            const cardWidth = rect.width;
-            const cardHeight = rect.height;
-            startX = cardWidth / 2;
-            startY = cardHeight / 2;
-            
-            // Enable dragging positioning with improved setup
-            cardElement.classList.add('dragging');
-            cardElement.style.cursor = 'grabbing';
-            cardElement.style.position = 'fixed';
-            cardElement.style.left = (touch.clientX - startX) + 'px';
-            cardElement.style.top = (touch.clientY - startY) + 'px';
-            cardElement.style.zIndex = '15000';
-            cardElement.style.pointerEvents = 'none'; // Prevent touch conflicts
-            
-            // Add haptic feedback if available
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-            
-            currentDropTarget = null;
-            
-            // Highlight modal drop zones
-            this.highlightModalDropZones(card.value);
-            
-            e.preventDefault();
-            e.stopPropagation();
-        });
-        
-        // Touch move - follow finger
-        cardElement.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            
-            const touch = e.touches[0];
-            
-            // Use requestAnimationFrame for smoother movement
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
-            
-            animationFrameId = requestAnimationFrame(() => {
-                // Position card centered under finger
-                const newLeft = touch.clientX - startX;
-                const newTop = touch.clientY - startY;
-                
-                cardElement.style.left = newLeft + 'px';
-                cardElement.style.top = newTop + 'px';
-                cardElement.style.transform = 'scale(1.3) rotate(-5deg)'; // Add visual feedback
-                
-                // Enhanced drop target detection
-                const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
-                let newDropTarget = elementUnder?.closest('.special-action-player, .valid-drop-target');
-                
-                // Mobile forgiveness - search for nearby drop targets
-                if (!newDropTarget && window.innerWidth <= 1024) {
-                    const tolerance = 80; // Larger tolerance for modal
-                    const dropTargets = document.querySelectorAll('.special-action-player');
-                    
-                    let closestTarget = null;
-                    let closestDistance = tolerance;
-                    
-                    dropTargets.forEach(target => {
-                        const rect = target.getBoundingClientRect();
-                        const centerX = rect.left + rect.width / 2;
-                        const centerY = rect.top + rect.height / 2;
-                        
-                        const distance = Math.sqrt(
-                            Math.pow(touch.clientX - centerX, 2) + 
-                            Math.pow(touch.clientY - centerY, 2)
-                        );
-                        
-                        if (distance < closestDistance) {
-                            closestDistance = distance;
-                            closestTarget = target;
-                        }
-                    });
-                    
-                    newDropTarget = closestTarget;
-                }
-                
-                // Update drop target highlighting
-                if (newDropTarget !== currentDropTarget) {
-                    // Remove highlight from previous target
-                    if (currentDropTarget) {
-                        currentDropTarget.classList.remove('drag-hover');
-                    }
-                    
-                    // Add highlight to new target
-                    if (newDropTarget) {
-                        newDropTarget.classList.add('drag-hover');
-                        // Add subtle vibration when hovering over valid target
-                        if (navigator.vibrate) {
-                            navigator.vibrate(25);
-                        }
-                    }
-                    
-                    currentDropTarget = newDropTarget;
-                }
-            });
-            
-            e.preventDefault();
-            e.stopPropagation();
-        });
-        
-        // Touch end - handle drop
-        cardElement.addEventListener('touchend', (e) => {
-            if (!isDragging) return;
-            isDragging = false;
-            
-            // Cancel any pending animation frame
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
-            
-            // Find final drop target
-            const touch = e.changedTouches[0];
-            const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
-            let dropTarget = elementUnder?.closest('.special-action-player');
-            
-            // Enhanced drop detection for mobile - try nearby targets if no direct hit
-            if (!dropTarget && window.innerWidth <= 1024) {
-                const tolerance = 100; // Even larger tolerance on release
-                const dropTargets = document.querySelectorAll('.special-action-player');
-                
-                let closestTarget = null;
-                let closestDistance = tolerance;
-                
-                dropTargets.forEach(target => {
-                    const rect = target.getBoundingClientRect();
-                    const centerX = rect.left + rect.width / 2;
-                    const centerY = rect.top + rect.height / 2;
-                    
-                    const distance = Math.sqrt(
-                        Math.pow(touch.clientX - centerX, 2) + 
-                        Math.pow(touch.clientY - centerY, 2)
-                    );
-                    
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestTarget = target;
-                    }
-                });
-                
-                dropTarget = closestTarget;
-            }
-            
-            // Clean up drag state
-            cardElement.classList.remove('dragging');
-            cardElement.style.position = '';
-            cardElement.style.left = '';
-            cardElement.style.top = '';
-            cardElement.style.transform = '';
-            cardElement.style.zIndex = '';
-            cardElement.style.pointerEvents = '';
-            cardElement.style.cursor = '';
-            
-            // Clear all drop target highlights
-            this.clearModalDropZoneHighlights();
-            document.querySelectorAll('.special-action-player').forEach(el => {
-                el.classList.remove('drag-hover');
-            });
-            
-            // Handle successful drop
-            if (dropTarget) {
-                const targetPlayerId = dropTarget.dataset.playerId;
-                const targetPlayer = this.players.find(p => p.id === targetPlayerId);
-                
-                if (targetPlayer) {
-                    // Success haptic feedback
-                    if (navigator.vibrate) {
-                        navigator.vibrate([50, 100, 50]);
-                    }
-                    
-                    // Close modal and execute action
-                    const modal = document.getElementById('special-action-modal');
-                    if (modal) {
-                        modal.style.display = 'none';
-                    }
-                    
-                    // Execute the special action
-                    this.executeSpecialAction(card, player, targetPlayer);
-                    return;
-                }
-            }
-            
-            // No valid drop - provide feedback
-            if (navigator.vibrate) {
-                navigator.vibrate(200); // Error vibration
-            }
-            
-            // Reset card position if no valid drop
-            console.log('No valid drop target found');
-            
-            e.preventDefault();
-            e.stopPropagation();
-        });
-    }
+    // Removed setupModalCardDrag function - using button-based action targeting instead
     
     setupModalPlayerGrid(playerGrid, card) {
         playerGrid.innerHTML = '';
@@ -1217,15 +947,8 @@ class Flip7Game {
     }
     
     executeSpecialAction(card, drawnByPlayer, targetPlayer) {
-        // Show visual drag animation for AI players
-        if (!drawnByPlayer.isHuman) {
-            this.animateAICardDrag(card, drawnByPlayer, targetPlayer, () => {
-                this.executeSpecialActionEffect(card, drawnByPlayer, targetPlayer);
-            });
-        } else {
-            // Human players use the interactive drag system, so execute directly
-            this.executeSpecialActionEffect(card, drawnByPlayer, targetPlayer);
-        }
+        // Execute special action directly - no drag animation needed
+        this.executeSpecialActionEffect(card, drawnByPlayer, targetPlayer);
     }
 
     executeSpecialActionEffect(card, drawnByPlayer, targetPlayer) {
@@ -1293,8 +1016,6 @@ class Flip7Game {
             // Clear freeze processing flag after a brief delay to allow visual effects
             setTimeout(() => {
                 this.isProcessingFreeze = false;
-                // Mark freeze action as resolved if we're tracking resolutions
-                this.markActionResolved('freeze');
             }, 500);
             
             // Check if this was a self-freeze during Flip 3
@@ -1700,14 +1421,7 @@ class Flip7Game {
                 
                 // Check what to do after Flip 3 completes
                 const checkPendingFlip3 = () => {
-                    console.log(`🏁 Flip3 completion handler - onComplete: ${!!onComplete}, pendingQueue: ${this.pendingFlip3Queue.length}, pendingActions: ${this.pendingActionResolution}`);
-                    
-                    // Wait for all action cards to be resolved before proceeding
-                    if (this.pendingActionResolution > 0) {
-                        console.log(`⏳ Waiting for ${this.pendingActionResolution} action cards to be resolved...`);
-                        setTimeout(() => checkPendingFlip3(), 500); // Check again in 500ms
-                        return;
-                    }
+                    console.log(`🏁 Flip3 completion handler - onComplete: ${!!onComplete}, pendingQueue: ${this.pendingFlip3Queue.length}`);
                     
                     if (onComplete) {
                         console.log(`📞 Calling onComplete callback`);
@@ -1816,27 +1530,29 @@ class Flip7Game {
                 
                 // Handle duplicates with Second Chance
                 if (isDuplicate && hasSecondChance) {
-                    // Use Second Chance to survive the duplicate (like normal turns)
-                    console.log(`🛡️ ${targetPlayer.name} using Second Chance to survive duplicate ${nextCard.value} during Flip 3`);
-                    
-                    // Add the duplicate card to hand (Second Chance allows this)
-                    targetPlayer.numberCards.push(nextCard);
-                    targetPlayer.numberCards.sort((a, b) => a.value - b.value);
-                    targetPlayer.uniqueNumbers.add(nextCard.value);
-                    
-                    // Remove Second Chance from player (it's been used)
-                    targetPlayer.hasSecondChance = false;
-                    targetPlayer.actionCards = targetPlayer.actionCards.filter(c => c.value !== 'second_chance');
-                    
-                    // Activate Second Chance animation and logging
-                    this.activateSecondChance(targetPlayer, nextCard);
-                    
-                    // Card is no longer a duplicate - it's been saved by Second Chance
-                    isDuplicate = false;
-                    drawnCards.push(nextCard);
-                    
-                    // Continue to next card after Second Chance animation
-                    setTimeout(processNextCard, 2000);
+                    // Transfer Second Chance to random other player
+                    const otherPlayers = this.players.filter(p => p.id !== targetPlayer.id && p.status === 'active');
+                    if (otherPlayers.length > 0) {
+                        const recipient = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+                        targetPlayer.hasSecondChance = false;
+                        targetPlayer.actionCards = targetPlayer.actionCards.filter(c => c.value !== 'second_chance');
+                        recipient.hasSecondChance = true;
+                        recipient.actionCards.push({ type: 'action', value: 'second_chance', display: 'Second Chance' });
+                        
+                        this.addToLog(`${targetPlayer.name}'s Second Chance transferred to ${recipient.name}!`);
+                        
+                        // Show Second Chance animation
+                        this.animateSecondChanceActivation(targetPlayer, nextCard);
+                        
+                        // Add the card as normal (not duplicate anymore)
+                        drawnCards.push(nextCard);
+                        
+                        // Continue to next card
+                        setTimeout(processNextCard, 2000);
+                    } else {
+                        // No other players, treat as normal duplicate
+                        isDuplicate = true;
+                    }
                     return;
                 }
                 
@@ -1996,13 +1712,6 @@ class Flip7Game {
         if (deferredActionCards.length > 0) {
             this.addToLog(`${targetPlayer.name} completed Flip 3 without busting! Processing ${deferredActionCards.length} action card(s):`);
             
-            // Count actions that need resolution tracking
-            const actionsNeedingResolution = deferredActionCards.filter(action => 
-                action.card.value === 'flip3' || action.card.value === 'freeze'
-            ).length;
-            this.pendingActionResolution += actionsNeedingResolution;
-            console.log(`📊 Action resolution counter: ${this.pendingActionResolution} (added ${actionsNeedingResolution})`);
-            
             deferredActionCards.forEach((actionData, index) => {
                 const { card, drawnBy, cardNumber } = actionData;
                 console.log(`🎯 Processing deferred action ${index + 1}/${deferredActionCards.length}: ${card.display} (drawn as card ${cardNumber})`);
@@ -2047,10 +1756,6 @@ class Flip7Game {
                         const actionTarget = this.determineAITarget(drawnBy, card);
                         setTimeout(() => {
                             this.executeSpecialAction(card, drawnBy, actionTarget);
-                            // Mark this freeze action as resolved after execution
-                            setTimeout(() => {
-                                this.markActionResolved('freeze');
-                            }, 1000); // Wait for freeze animation to complete
                         }, 1000 * (index + 1)); // Stagger AI actions
                     }
                 }
@@ -2068,8 +1773,6 @@ class Flip7Game {
             if (pendingFlip3.target) {
                 // Target already selected (AI)
                 this.executeFlipThree(pendingFlip3.cardOwner, pendingFlip3.target, () => {
-                    // Mark this Flip 3 action as resolved
-                    this.markActionResolved('flip3');
                     // After this Flip 3 completes, check for more in queue
                     this.processPendingFlip3Queue();
                 });
@@ -2099,15 +1802,6 @@ class Flip7Game {
         this.flip3CompletionPending = false;
         this.flip3TargetPlayer = null;
         this.flip3DrawnCards = [];
-        this.pendingActionResolution = 0; // Reset action resolution counter
-    }
-    
-    markActionResolved(actionType) {
-        // Decrement action resolution counter when an action completes
-        if (this.pendingActionResolution > 0) {
-            this.pendingActionResolution--;
-            console.log(`✅ Action ${actionType} resolved. Remaining: ${this.pendingActionResolution}`);
-        }
     }
     
     reshuffleDeck() {
@@ -2186,9 +1880,6 @@ class Flip7Game {
             
             // Add freeze card to discard pile
             this.discardPile.push({ type: 'action', value: 'freeze', display: 'Freeze' });
-            
-            // Mark freeze action as resolved if we're tracking resolutions
-            this.markActionResolved('freeze');
             
             if (onComplete) onComplete();
         }, 1200);
@@ -2308,6 +1999,29 @@ class Flip7Game {
         const playerArea = document.getElementById(player.id);
         const gameContainer = document.querySelector('.game-container');
         
+        // Check if this is the human player
+        if (player.isHuman) {
+            // Set flag to continue game flow after video ends
+            this.humanPlayerBusted = true;
+            
+            // For human player: show video modal instead of regular animation
+            this.showBustVideo();
+            
+            // Still do the basic bust setup for visual consistency
+            playerArea.classList.add('busted');
+            
+            // Clear bust animation flag and sync mobile layout after video
+            setTimeout(() => {
+                this.isBustAnimating = false;
+                if (window.innerWidth <= 1024) {
+                    this.setupMobilePlayerAreas();
+                }
+            }, 3000); // Longer delay for video
+            
+            return; // Skip regular bust animation for human
+        }
+        
+        // Regular bust animation for AI players
         // Add bust animation class to trigger card animations
         playerArea.classList.add('bust-animation');
         
@@ -2401,10 +2115,12 @@ class Flip7Game {
             `;
             container.appendChild(pointsAnimation);
             
-            // Remove animations after delay but KEEP the stayed indicator
+            // Remove animations after delay
             setTimeout(() => {
                 container.classList.remove('stay-animation');
-                // Keep stayedIndicator visible for the entire round
+                if (stayedIndicator.parentNode) {
+                    stayedIndicator.remove();
+                }
                 if (pointsAnimation.parentNode) {
                     pointsAnimation.remove();
                 }
@@ -2414,7 +2130,7 @@ class Flip7Game {
                     card.classList.remove('stay-glow');
                 });
                 
-                // Add persistent stayed class for enhanced styling
+                // Add persistent stayed class for subtle styling
                 container.classList.add('stayed');
             }, 2500);
         });
@@ -2447,7 +2163,7 @@ class Flip7Game {
     }
 
     playerHit() {
-        const player = this.players[0];
+        const player = this.players[this.currentPlayerIndex];
         if (player.status !== 'active') {
             return;
         }
@@ -2997,6 +2713,18 @@ class Flip7Game {
         // Remove banner
         this.removeActionTargetingBanner();
         
+        // Remove backdrop (ensures it's hidden after user makes selection)
+        const backdrop = document.getElementById('animation-backdrop');
+        if (backdrop) {
+            backdrop.classList.remove('show');
+        }
+        
+        // Clear any pending backdrop auto-hide timeout
+        if (this.backdropAutoHideTimeout) {
+            clearTimeout(this.backdropAutoHideTimeout);
+            this.backdropAutoHideTimeout = null;
+        }
+        
         // Remove all glow effects, tap indicators and click handlers
         document.querySelectorAll('.action-target-glow').forEach(el => {
             el.classList.remove('action-target-glow');
@@ -3198,8 +2926,8 @@ class Flip7Game {
             return;
         }
         
-        // Define reveal duration for simple flip (must match CSS animation duration)
-        const revealDuration = 600; // Match the 0.6s CSS animation
+        // Define reveal duration for simple flip
+        const revealDuration = 600; // Match CSS flip animation duration
         
         // Show backdrop for focus (mobile only)
         let backdropTimeout = null;
@@ -3251,8 +2979,14 @@ class Flip7Game {
         
         // After flip completes, handle the card
         setTimeout(() => {
-            // Always slide card to player hand first
-            this.slideCardToPlayerHand(animatedCard, animationArea, card, playerId);
+            // Ensure card front is visible after flip animation
+            animatedCard.classList.add('flip-completed');
+            
+            // Add small pause for visual clarity before sliding
+            setTimeout(() => {
+                // Always slide card to player hand first
+                this.slideCardToPlayerHand(animatedCard, animationArea, card, playerId);
+            }, 100); // Brief pause between flip and slide
             
             // For human Freeze/Flip3 cards, start targeting after card reaches hand
             const player = this.players.find(p => p.id === playerId);
@@ -3260,11 +2994,11 @@ class Flip7Game {
             const isActionCard = card.type === 'action' && (card.value === 'freeze' || card.value === 'flip3');
             
             if (isActionCard && isHumanPlayer) {
-                // Start targeting immediately after slide completes
-                const slideDelay = window.innerWidth <= 1024 ? 300 : 250;
+                // Start targeting after slide completes
+                const slideDelay = 400; // Match slide duration
                 setTimeout(() => {
                     this.startActionTargeting(card, this.players[0]); // Human is always player 0
-                }, slideDelay + 50); // Minimal delay for smooth transition
+                }, slideDelay + 100); // Small buffer for smooth transition
             }
         }, revealDuration); // Wait for flip to complete
     }
@@ -3273,8 +3007,11 @@ class Flip7Game {
         // Streamlined animation implementation - no module dependency
         const isMobile = window.innerWidth <= 1024;
         
-        // Remove flip animation class to prevent interference
-        animatedCard.classList.remove('simple-flip');
+        console.log('🎯 slideCardToPlayerHand called:', {
+            playerId: playerId,
+            isMobile: isMobile,
+            cardDisplay: card.display
+        });
         
         // Set mobile-specific card size BEFORE getting position
         if (isMobile) {
@@ -3295,7 +3032,14 @@ class Flip7Game {
             ? this.getPlayerAreaElement(playerId)
             : this.getTargetCardContainer(playerId, card.type);
         
+        console.log('🎯 Target element lookup:', {
+            targetElement: targetElement,
+            targetElementId: targetElement ? targetElement.id : 'null',
+            elementExists: !!targetElement
+        });
+        
         if (!targetElement) {
+            console.error('❌ No target element found for playerId:', playerId);
             // Fallback: add card directly if no target found
             this.addCardToPlayerHand(card, playerId);
             if (animationArea) animationArea.innerHTML = '';
@@ -3316,6 +3060,13 @@ class Flip7Game {
             endY = targetRect.top + (targetRect.height / 2) - (animatedCardRect.height / 2);
         }
         
+        console.log('🎯 Animation coordinates:', {
+            targetRect: { left: targetRect.left, top: targetRect.top, width: targetRect.width, height: targetRect.height },
+            startPosition: { x: startX, y: startY },
+            endPosition: { x: endX, y: endY },
+            deltaPosition: { x: endX - startX, y: endY - startY }
+        });
+        
         // Calculate slide distance
         const deltaX = endX - startX;
         const deltaY = endY - startY;
@@ -3329,18 +3080,16 @@ class Flip7Game {
         animatedCard.style.top = startY + 'px';
         animatedCard.style.zIndex = isMobile ? '999000' : '10000'; // Higher than mobile buttons
         animatedCard.style.transformOrigin = 'center center';
-        animatedCard.style.transform = 'rotateY(180deg)'; // Maintain flip state
         
         // Add sliding class for CSS optimizations
         animatedCard.classList.add('sliding');
         
-        // Use requestAnimationFrame for smooth transition
+        // Force browser to render initial position before animating
         requestAnimationFrame(() => {
             // Use translate3d for GPU acceleration and smoother animation
-            // IMPORTANT: Maintain the 180deg rotation from the flip animation
             animatedCard.style.willChange = 'transform';
-            animatedCard.style.transition = `transform ${isMobile ? '300ms' : '250ms'} cubic-bezier(0.4, 0, 0.2, 1)`; // Optimized timing for snappy feel
-            animatedCard.style.transform = `rotateY(180deg) translate3d(${deltaX}px, ${deltaY}px, 0) scale(${scale})`;
+            animatedCard.style.transition = `transform 400ms cubic-bezier(0.25, 0.1, 0.25, 1)`; // Smoother easing and timing
+            animatedCard.style.transform = `translate3d(${deltaX}px, ${deltaY}px, 0) scale(${scale})`;
         });
         
         // Ensure card is visible during animation
@@ -3359,7 +3108,7 @@ class Flip7Game {
             if (animationArea) {
                 animationArea.innerHTML = '';
             }
-        }, isMobile ? 300 : 250); // Match new animation duration
+        }, 400); // Match new animation duration
     }
 
     // DEPRECATED - Replaced by startActionTargeting
@@ -4089,81 +3838,7 @@ class Flip7Game {
         });
     }
 
-    animateAICardDrag(card, fromPlayer, toPlayer, callback) {
-        const isMobile = window.innerWidth <= 1024;
-        
-        // Show action message
-        this.addToLog(`${fromPlayer.name} is using ${card.display} on ${toPlayer.name}!`);
-        
-        // Get source and target containers
-        const sourceContainer = isMobile 
-            ? document.getElementById(`mobile-${fromPlayer.id}`)
-            : document.getElementById(fromPlayer.id);
-        
-        const targetContainer = isMobile 
-            ? document.getElementById(`mobile-${toPlayer.id}`)
-            : document.getElementById(toPlayer.id);
-        
-        if (!sourceContainer || !targetContainer) {
-            // Fallback to immediate execution
-            callback();
-            return;
-        }
-        
-        // Create ghost card element
-        const ghostCard = this.createCardElement(card);
-        ghostCard.classList.add('ai-drag-ghost');
-        
-        // Get positions
-        const sourceRect = sourceContainer.getBoundingClientRect();
-        const targetRect = targetContainer.getBoundingClientRect();
-        
-        // Position ghost card at source
-        ghostCard.style.position = 'fixed';
-        ghostCard.style.left = sourceRect.left + (sourceRect.width / 2) + 'px';
-        ghostCard.style.top = sourceRect.top + (sourceRect.height / 2) + 'px';
-        ghostCard.style.zIndex = '10000';
-        ghostCard.style.pointerEvents = 'none';
-        ghostCard.style.transform = 'translate(-50%, -50%) scale(1.5)';
-        
-        // Add to DOM
-        document.body.appendChild(ghostCard);
-        
-        // Highlight target container
-        targetContainer.classList.add('ai-drag-target');
-        
-        // Show drag trajectory
-        this.showDragTrajectory(sourceRect, targetRect);
-        
-        // Animate card movement
-        const targetX = targetRect.left + (targetRect.width / 2);
-        const targetY = targetRect.top + (targetRect.height / 2);
-        
-        // Create smooth animation
-        ghostCard.style.transition = 'all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-        
-        // Small delay to ensure positioning is set
-        setTimeout(() => {
-            ghostCard.style.left = targetX + 'px';
-            ghostCard.style.top = targetY + 'px';
-            ghostCard.style.transform = 'translate(-50%, -50%) scale(2) rotate(360deg)';
-        }, 50);
-        
-        // Complete animation
-        setTimeout(() => {
-            // Add drop effect
-            this.showDropEffect(targetContainer);
-            
-            // Clean up
-            ghostCard.remove();
-            targetContainer.classList.remove('ai-drag-target');
-            this.clearDragTrajectory();
-            
-            // Execute the actual card effect
-            console.log(`🎯 AI drag animation complete for ${card.display} - executing callback`);
-            callback();
-        }, 1300);
-    }
+    // Removed animateAICardDrag function - using button-based system instead
 
     showDragTrajectory(sourceRect, targetRect) {
         const trajectory = document.createElement('div');
@@ -4447,34 +4122,6 @@ class Flip7Game {
         // Also clear the frozen flag
         player.isFrozen = false;
     }
-    
-    clearAllStayedEffects(player) {
-        // Clear stayed effects from desktop container
-        const desktopContainer = document.getElementById(player.id);
-        if (desktopContainer) {
-            // Remove stayed class
-            desktopContainer.classList.remove('stayed', 'stay-animation');
-            
-            // Remove stayed indicator
-            const stayedIndicator = desktopContainer.querySelector('.stayed-indicator');
-            if (stayedIndicator) {
-                stayedIndicator.remove();
-            }
-        }
-        
-        // Clear stayed effects from mobile container
-        const mobileContainer = document.getElementById(`mobile-${player.id}`);
-        if (mobileContainer) {
-            // Remove stayed class
-            mobileContainer.classList.remove('stayed', 'stay-animation');
-            
-            // Remove stayed indicator
-            const stayedIndicator = mobileContainer.querySelector('.stayed-indicator');
-            if (stayedIndicator) {
-                stayedIndicator.remove();
-            }
-        }
-    }
 
     getTargetCardContainer(playerId, cardType) {
         // Always return the unified card container regardless of card type
@@ -4492,16 +4139,30 @@ class Flip7Game {
         // Handle string player IDs: 'player', 'opponent1', 'opponent2', 'opponent3'
         const isMobile = window.innerWidth <= 1024;
         
+        let elementId, element;
+        
         if (playerId === 'player') {
-            const elementId = isMobile ? 'mobile-player' : 'player';
-            const element = document.getElementById(elementId);
-            return element;
+            elementId = isMobile ? 'mobile-player' : 'player';
+            element = document.getElementById(elementId);
         } else {
             // Handle opponent IDs: 'opponent1', 'opponent2', 'opponent3'
-            const elementId = isMobile ? `mobile-${playerId}` : playerId;
-            const element = document.getElementById(elementId);
-            return element;
+            elementId = isMobile ? `mobile-${playerId}` : playerId;
+            element = document.getElementById(elementId);
         }
+        
+        console.log('🎯 getPlayerAreaElement:', {
+            playerId: playerId,
+            isMobile: isMobile,
+            elementId: elementId,
+            element: element,
+            elementExists: !!element
+        });
+        
+        if (!element) {
+            console.error('❌ Element not found:', elementId);
+        }
+        
+        return element;
     }
 
     addCardToPlayerHand(card, playerId) {
@@ -5020,6 +4681,56 @@ class Flip7Game {
 
     hideRules() {
         document.getElementById('rules-modal').style.display = 'none';
+    }
+    
+    showBustVideo() {
+        const modal = document.getElementById('bust-video-modal');
+        const video = document.getElementById('bust-video');
+        
+        if (modal && video) {
+            // Show modal with animation
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+            
+            // Reset and play video
+            video.currentTime = 0;
+            video.play().catch(err => {
+                console.warn('Video autoplay failed:', err);
+                // Auto-hide if video fails to play
+                setTimeout(() => this.hideBustVideo(), 1000);
+            });
+        }
+
+
+    hideBustVideo() {
+        const modal = document.getElementById('bust-video-modal');
+        const video = document.getElementById('bust-video');
+        
+        if (modal && video) {
+            // Hide with animation
+            modal.classList.remove('show');
+            
+            // Pause video and reset to beginning
+            video.pause();
+            video.currentTime = 0;
+            
+            // Hide modal after animation
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+        
+        // Check if we need to continue game flow after human player bust
+        if (this.humanPlayerBusted) {
+            this.humanPlayerBusted = false; // Reset flag
+            
+            // Continue game flow after brief delay for smooth transition
+            setTimeout(() => {
+                this.nextTurn(); // Move to next active player or end round
+            }, 500);
+        }
     }
     
     showStartPopup() {

@@ -17,6 +17,8 @@ export class GameEngine {
         this.isInitialDealing = false;
         this.currentDealIndex = 0;
         this.isStartingNewRound = false;
+        this.isWaitingForTargeting = false;
+        this.pendingActionCard = null;
         
         this.setupEventListeners();
     }
@@ -29,6 +31,11 @@ export class GameEngine {
         eventBus.on(GameEvents.PLAYER_ACTION_HIT, () => this.handlePlayerHit());
         eventBus.on(GameEvents.PLAYER_ACTION_STAY, () => this.handlePlayerStay());
         eventBus.on(GameEvents.ROUND_SCORE_CALCULATED, () => this.checkForGameWinner());
+        
+        // Targeting system events
+        eventBus.on(GameEvents.ACTION_CARD_AWAITING_TARGET, (data) => this.handleActionCardTargeting(data));
+        eventBus.on(GameEvents.PLAYER_TAPPED_FOR_TARGET, (data) => this.handleTargetSelected(data));
+        eventBus.on(GameEvents.ACTION_CARD_TARGETING_CANCELLED, (data) => this.handleTargetingCancelled(data));
     }
 
     /**
@@ -469,6 +476,125 @@ export class GameEngine {
             deck: deckManager.deck,
             isInitialDealing: this.isInitialDealing
         };
+    }
+
+    /**
+     * Handle action card targeting start - pause game flow
+     */
+    handleActionCardTargeting(data) {
+        console.log('🎯 GameEngine: Action card awaiting target', data.card.display);
+        
+        this.isWaitingForTargeting = true;
+        this.pendingActionCard = {
+            card: data.card,
+            sourcePlayerId: data.sourcePlayerId,
+            cardElement: data.cardElement
+        };
+    }
+
+    /**
+     * Handle target selection - execute action and resume game flow
+     */
+    handleTargetSelected(data) {
+        console.log('🎯 GameEngine: Target selected', data.targetPlayerId, 'for', data.card.display);
+        
+        const sourcePlayer = this.getPlayerById(data.sourcePlayerId);
+        const targetPlayer = this.getPlayerById(data.targetPlayerId);
+        
+        if (!sourcePlayer || !targetPlayer) {
+            console.error('❌ GameEngine: Invalid player IDs for targeting');
+            this.resumeGameFlow();
+            return;
+        }
+
+        // Execute the action card
+        this.executeActionCard(data.card, sourcePlayer, targetPlayer);
+        
+        // Resume game flow
+        this.resumeGameFlow();
+    }
+
+    /**
+     * Handle targeting cancellation - resume game flow
+     */
+    handleTargetingCancelled(data) {
+        console.log('❌ GameEngine: Action card targeting cancelled', data.card.display);
+        
+        // Return the action card to player's hand if needed
+        const sourcePlayer = this.getPlayerById(data.sourcePlayerId);
+        if (sourcePlayer) {
+            // Remove the card that was drawn but not used
+            sourcePlayer.actionCards = sourcePlayer.actionCards.filter(c => c.id !== data.card.id);
+        }
+        
+        this.resumeGameFlow();
+    }
+
+    /**
+     * Execute an action card effect
+     */
+    executeActionCard(card, sourcePlayer, targetPlayer) {
+        console.log(`🎴 GameEngine: Executing ${card.display} from ${sourcePlayer.name} on ${targetPlayer.name}`);
+        
+        if (card.value === 'freeze') {
+            targetPlayer.freeze();
+            eventBus.emit(GameEvents.PLAYER_FROZEN, {
+                playerId: targetPlayer.id,
+                sourcePlayerId: sourcePlayer.id
+            });
+        } else if (card.value === 'flip3') {
+            // Draw 3 cards for target player
+            for (let i = 0; i < 3; i++) {
+                const drawnCard = deckManager.drawCard();
+                if (drawnCard) {
+                    this.handleCardDraw(targetPlayer, drawnCard);
+                }
+            }
+            
+            eventBus.emit(GameEvents.ACTION_FLIP3, {
+                targetPlayerId: targetPlayer.id,
+                sourcePlayerId: sourcePlayer.id
+            });
+        } else if (card.value === 'second_chance') {
+            targetPlayer.giveSecondChance();
+            eventBus.emit(GameEvents.ACTION_SECOND_CHANCE, {
+                targetPlayerId: targetPlayer.id,
+                sourcePlayerId: sourcePlayer.id
+            });
+        }
+        
+        // Mark action as completed
+        eventBus.emit(GameEvents.SPECIAL_ACTION_COMPLETED, {
+            card: card,
+            sourcePlayerId: sourcePlayer.id,
+            targetPlayerId: targetPlayer.id
+        });
+    }
+
+    /**
+     * Resume game flow after targeting is complete
+     */
+    resumeGameFlow() {
+        console.log('▶️ GameEngine: Resuming game flow');
+        
+        this.isWaitingForTargeting = false;
+        this.pendingActionCard = null;
+        
+        // If we were in the middle of initial dealing, continue
+        if (this.isInitialDealing) {
+            // The dealInitialCards method will continue from where it left off
+            eventBus.emit(GameEvents.SPECIAL_ACTION_COMPLETED);
+        } else {
+            // Continue with normal turn flow
+            this.nextTurn();
+        }
+    }
+
+    /**
+     * Check if game flow is paused for targeting
+     */
+    isGamePaused() {
+        return this.isWaitingForTargeting;
     }
 }
 

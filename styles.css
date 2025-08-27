@@ -5120,3 +5120,97 @@ body {
         font-size: 0.95em;
     }
 }
+
+/* Action Card Targeting System */
+.interactive-card {
+    cursor: pointer !important;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid #57cc99;
+    animation: pulse-glow 1.5s infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), 0 0 10px rgba(87, 204, 153, 0.6);
+    }
+    50% {
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(87, 204, 153, 0.8);
+    }
+}
+
+/* Targeting mode styles */
+.targeting-available {
+    border: 3px solid #f39c12 !important;
+    box-shadow: 0 0 20px rgba(243, 156, 18, 0.6) !important;
+    cursor: pointer !important;
+    transform: scale(1.02);
+    transition: all 0.3s ease;
+    animation: target-highlight 1s infinite;
+}
+
+@keyframes target-highlight {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(243, 156, 18, 0.6);
+        border-color: #f39c12;
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(243, 156, 18, 0.9);
+        border-color: #e67e22;
+    }
+}
+
+.targeting-available:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 35px rgba(243, 156, 18, 1) !important;
+}
+
+/* Mobile targeting styles */
+@media (max-width: 1024px) {
+    .mobile-player-box.targeting-available {
+        border: 3px solid #f39c12 !important;
+        box-shadow: 0 0 15px rgba(243, 156, 18, 0.8) !important;
+        transform: scale(1.01);
+    }
+    
+    .mobile-player-box.targeting-available:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+}
+
+/* Targeting message overlay */
+.targeting-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: #f39c12;
+    padding: 20px 30px;
+    border-radius: 10px;
+    font-size: 1.2em;
+    font-weight: bold;
+    z-index: 10001;
+    box-shadow: 0 0 30px rgba(243, 156, 18, 0.5);
+    border: 2px solid #f39c12;
+    text-align: center;
+    animation: fade-in 0.3s ease;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* Remove old drag/drop styles - cleanup */
+.special-action-card.dragging,
+.special-action-player.drag-hover {
+    /* These styles are no longer needed with tap system */
+}

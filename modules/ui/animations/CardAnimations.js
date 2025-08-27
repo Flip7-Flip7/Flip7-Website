@@ -11,6 +11,17 @@ export class CardAnimations {
             deal: 1800,
             transfer: 1000
         };
+        this.activeTargets = null;
+        this.setupEventListeners();
+    }
+    
+    /**
+     * Setup event listeners for targeting system
+     */
+    setupEventListeners() {
+        eventBus.on(GameEvents.ACTION_CARD_AWAITING_TARGET, (data) => {
+            this.enableTargetingMode(data.card, data.sourcePlayerId, data.cardElement);
+        });
     }
 
     /**
@@ -92,80 +103,42 @@ export class CardAnimations {
      * Handle special action cards (Freeze/Flip3) that need targeting
      */
     handleSpecialActionCard(animatedCard, card, playerId) {
-        const isMobile = window.innerWidth <= 1024;
-        
-        // Add interactive class for drag functionality
+        // Add interactive class for tap functionality
         animatedCard.classList.add('interactive-card');
         
-        if (isMobile) {
-            this.setupMobileDrag(animatedCard, card, playerId);
-        } else {
-            // Desktop uses modal system
-            eventBus.emit(GameEvents.MODAL_OPENED, {
-                type: 'special-action',
-                card: card,
-                playerId: playerId
-            });
-        }
+        // Use tap system for all devices
+        this.setupActionCardTap(animatedCard, card, playerId);
     }
 
     /**
-     * Setup mobile drag for special action cards
+     * Setup tap system for action cards - enter targeting mode
      */
-    setupMobileDrag(cardElement, card, playerId) {
-        let isDragging = false;
-        let startX = 0;
-        let startY = 0;
+    setupActionCardTap(cardElement, card, playerId) {
+        // Add visual indicator that card is tappable
+        cardElement.style.cursor = 'pointer';
+        cardElement.title = `Tap to use ${card.display}`;
         
-        cardElement.addEventListener('touchstart', (e) => {
-            isDragging = true;
-            const touch = e.touches[0];
-            const rect = cardElement.getBoundingClientRect();
-            
-            startX = rect.width / 2;
-            startY = rect.height / 2;
-            
-            cardElement.classList.add('dragging');
-            cardElement.style.position = 'fixed';
-            cardElement.style.left = (touch.clientX - startX) + 'px';
-            cardElement.style.top = (touch.clientY - startY) + 'px';
-            
-            eventBus.emit(GameEvents.DRAG_STARTED, { card, playerId });
-            
+        const handleTap = (e) => {
             e.preventDefault();
-        });
+            
+            // Transform card to show what it is
+            this.transformToActualCard(cardElement, card);
+            
+            // Enter targeting mode
+            eventBus.emit(GameEvents.ACTION_CARD_AWAITING_TARGET, {
+                card,
+                sourcePlayerId: playerId,
+                cardElement: cardElement
+            });
+            
+            // Remove the tap handler
+            cardElement.removeEventListener('click', handleTap);
+            cardElement.removeEventListener('touchend', handleTap);
+        };
         
-        cardElement.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            
-            const touch = e.touches[0];
-            cardElement.style.left = (touch.clientX - startX) + 'px';
-            cardElement.style.top = (touch.clientY - startY) + 'px';
-            
-            e.preventDefault();
-        });
-        
-        cardElement.addEventListener('touchend', (e) => {
-            if (!isDragging) return;
-            isDragging = false;
-            
-            const touch = e.changedTouches[0];
-            const elementUnder = document.elementFromPoint(touch.clientX, touch.clientY);
-            
-            // Find drop target
-            const dropTarget = this.findDropTarget(elementUnder);
-            
-            if (dropTarget) {
-                eventBus.emit(GameEvents.DROP_COMPLETED, {
-                    card,
-                    sourcePlayerId: playerId,
-                    targetPlayerId: dropTarget.playerId
-                });
-            }
-            
-            cardElement.remove();
-            eventBus.emit(GameEvents.DRAG_ENDED, { card, playerId });
-        });
+        // Add both click and touch handlers
+        cardElement.addEventListener('click', handleTap);
+        cardElement.addEventListener('touchend', handleTap);
     }
 
     /**
@@ -224,20 +197,126 @@ export class CardAnimations {
     }
 
     /**
-     * Find valid drop target from element
+     * Show targeting message
      */
-    findDropTarget(element) {
-        if (!element) return null;
-        
-        // Check if element is a player container
-        const playerElement = element.closest('.player-area, .mobile-player-box');
-        if (playerElement) {
-            return {
-                playerId: playerElement.id.replace('mobile-', '')
-            };
+    showTargetingMessage(card) {
+        const existingMessage = document.querySelector('.targeting-message');
+        if (existingMessage) {
+            existingMessage.remove();
         }
         
-        return null;
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'targeting-message';
+        messageDiv.textContent = `Tap a player to use ${card.display}`;
+        
+        document.body.appendChild(messageDiv);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    /**
+     * Hide targeting message
+     */
+    hideTargetingMessage() {
+        const message = document.querySelector('.targeting-message');
+        if (message) {
+            message.remove();
+        }
+    }
+
+    /**
+     * Enable targeting mode - make players tappable
+     */
+    enableTargetingMode(card, sourcePlayerId, cardElement) {
+        // Show targeting message
+        this.showTargetingMessage(card);
+        
+        // Get all player containers that can be targeted
+        const playerContainers = document.querySelectorAll('.player-area, .mobile-player-box');
+        const validTargets = [];
+        
+        playerContainers.forEach(container => {
+            const playerId = container.id.replace('mobile-', '');
+            
+            // Can't target yourself
+            if (playerId === sourcePlayerId) return;
+            
+            // Add targeting visual state
+            container.classList.add('targeting-available');
+            container.style.cursor = 'pointer';
+            
+            const handleTargetTap = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Emit target selection
+                eventBus.emit(GameEvents.PLAYER_TAPPED_FOR_TARGET, {
+                    card,
+                    sourcePlayerId,
+                    targetPlayerId: playerId
+                });
+                
+                // Clean up targeting mode
+                this.disableTargetingMode();
+                
+                // Remove the action card
+                if (cardElement) {
+                    cardElement.remove();
+                }
+            };
+            
+            container.addEventListener('click', handleTargetTap, { once: true });
+            container.addEventListener('touchend', handleTargetTap, { once: true });
+            
+            validTargets.push({ container, playerId, handleTargetTap });
+        });
+        
+        // Store valid targets for cleanup
+        this.activeTargets = validTargets;
+        
+        // Add cancel option (tap outside)
+        const handleCancelTap = (e) => {
+            if (!e.target.closest('.player-area, .mobile-player-box, .interactive-card')) {
+                eventBus.emit(GameEvents.ACTION_CARD_TARGETING_CANCELLED, {
+                    card,
+                    sourcePlayerId
+                });
+                
+                this.disableTargetingMode();
+                if (cardElement) {
+                    cardElement.remove();
+                }
+            }
+        };
+        
+        // Add cancel handler with delay to avoid immediate trigger
+        setTimeout(() => {
+            document.addEventListener('click', handleCancelTap, { once: true });
+            document.addEventListener('touchend', handleCancelTap, { once: true });
+        }, 100);
+    }
+    
+    /**
+     * Disable targeting mode and clean up
+     */
+    disableTargetingMode() {
+        // Hide targeting message
+        this.hideTargetingMessage();
+        
+        if (this.activeTargets) {
+            this.activeTargets.forEach(({ container, handleTargetTap }) => {
+                container.classList.remove('targeting-available');
+                container.style.cursor = '';
+                container.removeEventListener('click', handleTargetTap);
+                container.removeEventListener('touchend', handleTargetTap);
+            });
+            this.activeTargets = null;
+        }
     }
 
     /**
