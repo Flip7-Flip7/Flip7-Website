@@ -337,11 +337,12 @@ export class GameEngine {
             return;
         }
 
-        // First check if current player can play (fixes initial turn bug)
+        // Always advance to next player first
+        this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
         let currentPlayer = this.players[this.currentPlayerIndex];
         let attempts = 0;
         
-        // Find next active player, starting with current player
+        // Find next active player from the new position
         while (currentPlayer.status !== 'active' && attempts < this.players.length) {
             this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
             currentPlayer = this.players[this.currentPlayerIndex];
