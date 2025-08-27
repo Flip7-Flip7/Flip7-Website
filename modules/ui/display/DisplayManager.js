@@ -65,6 +65,9 @@ export class DisplayManager {
         
         // Update visual state classes
         this.updatePlayerClasses(container, player);
+        
+        // Update mobile display directly
+        this.updateMobilePlayerDisplay(player);
     }
 
     /**
@@ -236,6 +239,25 @@ export class DisplayManager {
         elements.forEach(el => {
             if (el) el.textContent = data.count;
         });
+        
+        // Update mobile cards remaining counter
+        this.updateMobileCardsRemaining(data.count);
+    }
+    
+    /**
+     * Update mobile cards remaining counter
+     */
+    updateMobileCardsRemaining(count) {
+        if (window.innerWidth > 1024) return;
+        
+        let counterElement = document.querySelector('.mobile-cards-remaining');
+        if (!counterElement) {
+            counterElement = document.createElement('div');
+            counterElement.className = 'mobile-cards-remaining';
+            document.body.appendChild(counterElement);
+        }
+        
+        counterElement.textContent = `${count} cards left`;
     }
 
     /**
@@ -288,39 +310,128 @@ export class DisplayManager {
     }
 
     /**
-     * Clone content to mobile container
+     * Update mobile player display directly
      */
-    cloneMobileContent(desktopPlayer, mobilePlayer, preserveIndicators) {
-        // Save existing indicators if needed
-        let existingFreezeIndicator = null;
-        let existingStayedIndicator = null;
+    updateMobilePlayerDisplay(player) {
+        if (window.innerWidth > 1024) return; // Only on mobile
         
-        if (preserveIndicators) {
-            existingFreezeIndicator = mobilePlayer.querySelector('.frozen-indicator');
-            existingStayedIndicator = mobilePlayer.querySelector('.stayed-indicator');
+        const mobileId = player.id === 'player' ? 'mobile-player' : `mobile-${player.id}`;
+        const mobileContainer = document.getElementById(mobileId);
+        
+        if (!mobileContainer) return;
+        
+        // Build mobile player HTML
+        const playerHTML = this.buildMobilePlayerHTML(player);
+        mobileContainer.innerHTML = playerHTML;
+        
+        // Apply state classes
+        this.updateMobilePlayerClasses(mobileContainer, player);
+    }
+    
+    /**
+     * Build mobile player HTML structure
+     */
+    buildMobilePlayerHTML(player) {
+        const roundScore = this.calculateDisplayScore(player);
+        const statusText = this.getStatusText(player.status);
+        
+        return `
+            <div class="mobile-player-header">
+                <span class="mobile-player-name">${player.name}</span>
+                <div class="mobile-player-scores">
+                    <span class="mobile-round-score">${roundScore}</span>
+                    <span class="mobile-total-score">${player.totalScore}</span>
+                </div>
+            </div>
+            <div class="mobile-player-status ${player.status}">${statusText}</div>
+            <div class="mobile-cards-grid">
+                ${this.buildMobileCardsHTML(player)}
+            </div>
+            ${this.buildMobileIndicatorsHTML(player)}
+        `;
+    }
+    
+    /**
+     * Build mobile cards HTML
+     */
+    buildMobileCardsHTML(player) {
+        const allCards = [
+            ...player.numberCards.sort((a, b) => a.value - b.value),
+            ...player.modifierCards,
+            ...player.actionCards
+        ];
+        
+        return allCards.map(card => {
+            const imageStyle = this.hasCardImage(card) ? 
+                `background-image: url('./images/${this.getCardImageName(card)}'); background-size: cover;` : '';
+            
+            return `<div class="mobile-card ${card.type} ${this.hasCardImage(card) ? 'custom-image' : ''}" 
+                         style="${imageStyle}">
+                        ${this.hasCardImage(card) ? '' : card.display}
+                    </div>`;
+        }).join('');
+    }
+    
+    /**
+     * Build mobile indicators HTML
+     */
+    buildMobileIndicatorsHTML(player) {
+        let indicators = '';
+        
+        if (player.status === 'stayed') {
+            indicators += '<div class="mobile-stayed-indicator">STAYED</div>';
         }
         
-        // Clear and clone
-        mobilePlayer.innerHTML = '';
-        mobilePlayer.className = desktopPlayer.className;
+        if (player.status === 'frozen') {
+            indicators += '<div class="mobile-frozen-indicator">FROZEN</div>';
+        }
         
-        // Clone main elements
-        const elements = ['player-header', 'player-stats', 'player-cards'];
-        elements.forEach(className => {
-            const element = desktopPlayer.querySelector(`.${className}`);
-            if (element) {
-                mobilePlayer.appendChild(element.cloneNode(true));
-            }
-        });
+        return indicators;
+    }
+    
+    /**
+     * Update mobile player state classes
+     */
+    updateMobilePlayerClasses(container, player) {
+        // Remove all state classes
+        container.classList.remove('current-turn', 'frozen', 'busted', 'stayed', 'flip7');
         
-        // Restore indicators
-        if (preserveIndicators) {
-            if (existingFreezeIndicator) {
-                mobilePlayer.appendChild(existingFreezeIndicator);
-            }
-            if (existingStayedIndicator) {
-                mobilePlayer.appendChild(existingStayedIndicator);
-            }
+        // Add state class
+        container.classList.add(player.status);
+        
+        // Add current turn highlight
+        const currentPlayerIndex = window.gameState?.currentPlayerIndex;
+        if (currentPlayerIndex >= 0 && window.gameState?.players[currentPlayerIndex]?.id === player.id) {
+            container.classList.add('current-turn');
+        }
+    }
+    
+    /**
+     * Get display text for player status
+     */
+    getStatusText(status) {
+        const statusMap = {
+            'waiting': 'Waiting',
+            'active': 'Playing',
+            'stayed': 'Stayed',
+            'busted': 'BUSTED',
+            'frozen': 'Frozen',
+            'flip7': 'FLIP 7!'
+        };
+        return statusMap[status] || status;
+    }
+
+    /**
+     * Clone content to mobile container (legacy method)
+     */
+    cloneMobileContent(desktopPlayer, mobilePlayer, preserveIndicators) {
+        // This method is now deprecated - use updateMobilePlayerDisplay instead
+        // Keep for backward compatibility if needed
+        const playerId = desktopPlayer.id;
+        const player = window.gameState?.players?.find(p => p.id === playerId);
+        
+        if (player && window.innerWidth <= 1024) {
+            this.updateMobilePlayerDisplay(player);
         }
     }
 

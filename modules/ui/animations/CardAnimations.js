@@ -28,8 +28,58 @@ export class CardAnimations {
      * Display a card being drawn with animation
      */
     displayCard(card, playerId) {
+        // Store current card for reference
+        this.currentCard = card;
+        
         const isMobile = window.innerWidth <= 1024;
-        const animationArea = this.getAnimationArea(isMobile);
+        
+        if (isMobile) {
+            this.handleMobileCardDraw(card, playerId);
+        } else {
+            this.handleDesktopCardDraw(card, playerId);
+        }
+    }
+    
+    /**
+     * Handle mobile card drawing with simple animation
+     */
+    handleMobileCardDraw(card, playerId) {
+        // Emit animation started event
+        eventBus.emit(GameEvents.ANIMATION_STARTED, {
+            type: 'card-draw',
+            target: playerId,
+            card: card
+        });
+        
+        // Show simple draw animation
+        this.showMobileDrawAnimation(() => {
+            // Mark the new card in mobile display after animation
+            setTimeout(() => {
+                this.highlightNewMobileCard(playerId);
+                
+                eventBus.emit(GameEvents.ANIMATION_COMPLETED, {
+                    type: 'mobile-card-draw',
+                    target: playerId
+                });
+            }, 200);
+        });
+        
+        // Handle special action cards
+        const isSpecialAction = card.type === 'action' && 
+                               (card.value === 'flip3' || card.value === 'freeze');
+        
+        if (isSpecialAction) {
+            setTimeout(() => {
+                this.handleMobileSpecialAction(card, playerId);
+            }, 800);
+        }
+    }
+    
+    /**
+     * Handle desktop card drawing (original logic)
+     */
+    handleDesktopCardDraw(card, playerId) {
+        const animationArea = this.getAnimationArea(false);
         
         if (!animationArea) return;
 
@@ -366,6 +416,108 @@ export class CardAnimations {
             };
             return actionMap[card.value];
         }
+    }
+    
+    /**
+     * Show mobile draw animation
+     */
+    showMobileDrawAnimation(callback) {
+        // Create animation overlay if it doesn't exist
+        let overlay = document.querySelector('.mobile-animation-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'mobile-animation-overlay';
+            document.body.appendChild(overlay);
+        }
+
+        // Create animated card
+        const animatedCard = document.createElement('div');
+        animatedCard.className = 'mobile-animated-card';
+        overlay.appendChild(animatedCard);
+
+        // Show animation
+        setTimeout(() => animatedCard.classList.add('show'), 50);
+        
+        // Hide and cleanup
+        setTimeout(() => {
+            animatedCard.classList.add('slide');
+            setTimeout(() => {
+                animatedCard.remove();
+                callback?.();
+            }, 300);
+        }, 600);
+    }
+    
+    /**
+     * Highlight newly drawn card in mobile display
+     */
+    highlightNewMobileCard(playerId) {
+        const mobileId = playerId === 'player' ? 'mobile-player' : `mobile-${playerId}`;
+        const mobileContainer = document.getElementById(mobileId);
+        
+        if (!mobileContainer) return;
+        
+        const cards = mobileContainer.querySelectorAll('.mobile-card');
+        const lastCard = cards[cards.length - 1];
+        
+        if (lastCard) {
+            lastCard.classList.add('new-card');
+            setTimeout(() => {
+                lastCard.classList.remove('new-card');
+            }, 1000);
+        }
+    }
+    
+    /**
+     * Handle special action cards on mobile
+     */
+    handleMobileSpecialAction(card, playerId) {
+        // Show targeting message for mobile
+        this.showMobileTargetingMessage(card);
+        
+        // Enter targeting mode immediately
+        eventBus.emit(GameEvents.ACTION_CARD_AWAITING_TARGET, {
+            card,
+            sourcePlayerId: playerId,
+            cardElement: null // No card element on mobile
+        });
+    }
+    
+    /**
+     * Show mobile-friendly targeting message
+     */
+    showMobileTargetingMessage(card) {
+        const existingMessage = document.querySelector('.mobile-targeting-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'mobile-targeting-message';
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 10000;
+            text-align: center;
+        `;
+        
+        messageDiv.textContent = `Tap a player to use ${card.display}`;
+        document.body.appendChild(messageDiv);
+        
+        // Auto-remove after 4 seconds
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.remove();
+            }
+        }, 4000);
     }
 }
 

@@ -12,6 +12,7 @@ import gameEngine from './game/core/GameEngine.js';
 import aiPlayer from './game/ai/AIPlayer.js';
 import deckManager from './game/deck/DeckManager.js';
 import uiController from './ui/UIController.js';
+import mobileStyles from './ui/styles/MobileStyles.js';
 
 // Example of how the modules work together
 class ModularGameExample {
@@ -150,9 +151,10 @@ class Flip7ModularGame {
      */
     initializeGame() {
         console.log('🎮 Flip7ModularGame: Game system initialized');
+        console.log('📱 MobileStyles: Loading mobile CSS for game UI');
         
         // All modules are already loaded and listening for events
-        // GameEngine, AIPlayer, DeckManager, DisplayManager, CardAnimations, PlayerAnimations, UIController
+        // GameEngine, AIPlayer, DeckManager, DisplayManager, CardAnimations, PlayerAnimations, UIController, MobileStyles
         
         // Start the game automatically after a short delay
         setTimeout(() => {
