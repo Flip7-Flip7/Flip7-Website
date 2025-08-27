@@ -1816,29 +1816,27 @@ class Flip7Game {
                 
                 // Handle duplicates with Second Chance
                 if (isDuplicate && hasSecondChance) {
-                    // Transfer Second Chance to random other player
-                    const otherPlayers = this.players.filter(p => p.id !== targetPlayer.id && p.status === 'active');
-                    if (otherPlayers.length > 0) {
-                        const recipient = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
-                        targetPlayer.hasSecondChance = false;
-                        targetPlayer.actionCards = targetPlayer.actionCards.filter(c => c.value !== 'second_chance');
-                        recipient.hasSecondChance = true;
-                        recipient.actionCards.push({ type: 'action', value: 'second_chance', display: 'Second Chance' });
-                        
-                        this.addToLog(`${targetPlayer.name}'s Second Chance transferred to ${recipient.name}!`);
-                        
-                        // Show Second Chance animation
-                        this.animateSecondChanceActivation(targetPlayer, nextCard);
-                        
-                        // Add the card as normal (not duplicate anymore)
-                        drawnCards.push(nextCard);
-                        
-                        // Continue to next card
-                        setTimeout(processNextCard, 2000);
-                    } else {
-                        // No other players, treat as normal duplicate
-                        isDuplicate = true;
-                    }
+                    // Use Second Chance to survive the duplicate (like normal turns)
+                    console.log(`🛡️ ${targetPlayer.name} using Second Chance to survive duplicate ${nextCard.value} during Flip 3`);
+                    
+                    // Add the duplicate card to hand (Second Chance allows this)
+                    targetPlayer.numberCards.push(nextCard);
+                    targetPlayer.numberCards.sort((a, b) => a.value - b.value);
+                    targetPlayer.uniqueNumbers.add(nextCard.value);
+                    
+                    // Remove Second Chance from player (it's been used)
+                    targetPlayer.hasSecondChance = false;
+                    targetPlayer.actionCards = targetPlayer.actionCards.filter(c => c.value !== 'second_chance');
+                    
+                    // Activate Second Chance animation and logging
+                    this.activateSecondChance(targetPlayer, nextCard);
+                    
+                    // Card is no longer a duplicate - it's been saved by Second Chance
+                    isDuplicate = false;
+                    drawnCards.push(nextCard);
+                    
+                    // Continue to next card after Second Chance animation
+                    setTimeout(processNextCard, 2000);
                     return;
                 }
                 
