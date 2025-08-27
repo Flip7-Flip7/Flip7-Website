@@ -5,8 +5,16 @@ import { GameEvents } from '../events/GameEvents.js';
 
 export class UIController {
     constructor() {
+        this.buttonsInitialized = false;
         this.setupEventListeners();
-        this.initializeButtons();
+        
+        // Initialize buttons when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.initializeButtons());
+        } else {
+            // DOM is already ready
+            this.initializeButtons();
+        }
     }
 
     /**
@@ -27,7 +35,7 @@ export class UIController {
      * Initialize button event handlers
      */
     initializeButtons() {
-        console.log('🎮 UIController: Initializing buttons');
+        if (this.buttonsInitialized) return;
         
         // Hit buttons
         const hitBtns = [
@@ -90,7 +98,8 @@ export class UIController {
             });
         }
 
-        console.log(`✅ UIController: Initialized ${hitBtns.length + stayBtns.length + newGameBtns.length + rulesBtns.length} buttons`);
+        this.buttonsInitialized = true;
+        const totalButtons = hitBtns.length + stayBtns.length + newGameBtns.length + rulesBtns.length;
     }
 
     /**
@@ -137,16 +146,18 @@ export class UIController {
         ].filter(btn => btn !== null);
 
         hitBtns.forEach(btn => {
-            btn.disabled = false;
-            btn.style.opacity = '1';
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
         });
 
         stayBtns.forEach(btn => {
-            btn.disabled = false;
-            btn.style.opacity = '1';
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
         });
-
-        console.log('✅ UIController: Player buttons enabled');
     }
 
     /**
@@ -164,16 +175,18 @@ export class UIController {
         ].filter(btn => btn !== null);
 
         hitBtns.forEach(btn => {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            }
         });
 
         stayBtns.forEach(btn => {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            }
         });
-
-        console.log('🚫 UIController: Player buttons disabled');
     }
 
     /**
