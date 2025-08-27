@@ -5,6 +5,7 @@ import { GameEvents } from '../../events/GameEvents.js';
 import { Player } from './Player.js';
 import scoringEngine from '../rules/ScoringEngine.js';
 import deckManager from '../deck/DeckManager.js';
+import aiPlayer from '../ai/AIPlayer.js';
 
 export class GameEngine {
     constructor() {
@@ -259,21 +260,38 @@ export class GameEngine {
      * Handle action card game logic (separate from UI)
      */
     handleActionCardLogic(player, card) {
-        console.log('🎴 GameEngine: Handling action card logic for', card.display);
+        console.log(`🎴 GameEngine: Handling action card logic for ${card.display} - Player: ${player.name} (${player.isHuman ? 'Human' : 'AI'})`);
         
         if (card.value === 'second_chance') {
             // Check if player already has Second Chance
             if (player.hasSecondChance) {
                 console.log('🎯 GameEngine: Player already has Second Chance, requires targeting');
-                this.requestTargetingForActionCard(player, card);
+                if (player.isHuman) {
+                    // Human player: Show targeting UI
+                    this.requestTargetingForActionCard(player, card);
+                } else {
+                    // AI player: Auto-select target
+                    console.log('🤖 GameEngine: AI auto-targeting for Second Chance');
+                    const target = aiPlayer.determineAITarget(player, card);
+                    this.completeActionCardExecution(player, card, target);
+                }
             } else {
                 console.log('✅ GameEngine: Auto-applying Second Chance');
                 player.giveSecondChance();
                 this.completeActionCardExecution(player, card, player);
             }
         } else if (card.value === 'freeze' || card.value === 'flip3') {
-            console.log('⚡ GameEngine: Action card requires immediate targeting');
-            this.requestTargetingForActionCard(player, card);
+            console.log('⚡ GameEngine: Action card requires targeting');
+            if (player.isHuman) {
+                // Human player: Show targeting UI
+                console.log('👤 GameEngine: Showing targeting UI for human player');
+                this.requestTargetingForActionCard(player, card);
+            } else {
+                // AI player: Auto-select target
+                console.log('🤖 GameEngine: AI auto-targeting for', card.display);
+                const target = aiPlayer.determineAITarget(player, card);
+                this.completeActionCardExecution(player, card, target);
+            }
         }
     }
 
