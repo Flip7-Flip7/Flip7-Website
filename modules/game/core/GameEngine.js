@@ -82,6 +82,11 @@ export class GameEngine {
             roundNumber: this.roundNumber
         });
 
+        // Update deck reference after GAME_STARTED (deck gets created)
+        setTimeout(() => {
+            window.gameState.deck = deckManager.deck;
+        }, 100);
+
         // Start first round
         this.startNewRound();
     }

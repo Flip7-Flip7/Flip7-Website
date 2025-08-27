@@ -282,9 +282,8 @@ export class DisplayManager {
             roundElement.textContent = `Round ${window.gameState.roundNumber}`;
         }
         
-        // Update cards remaining
-        const cardsRemaining = window.gameState?.deck?.length || 0;
-        this.updateCardsRemaining({ count: cardsRemaining });
+        // Note: Cards remaining is updated via CARDS_REMAINING_UPDATE events from DeckManager
+        // Don't try to read from window.gameState.deck as it may have stale reference
     }
 
     /**
