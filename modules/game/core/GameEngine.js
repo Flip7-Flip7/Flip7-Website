@@ -322,6 +322,13 @@ export class GameEngine {
             return;
         }
 
+        // Special case: If Flip3 and only one valid target (human player is last active), auto-target themselves
+        if (card.value === 'flip3' && validTargets.length === 1 && validTargets[0].id === player.id) {
+            console.log(`🎯 GameEngine: ${player.name} is last active player - auto-targeting self for Flip3`);
+            this.completeActionCardExecution(player, card, player);
+            return;
+        }
+
         // Emit event to request targeting UI
         eventBus.emit(GameEvents.ACTION_CARD_AWAITING_TARGET, {
             card: card,
