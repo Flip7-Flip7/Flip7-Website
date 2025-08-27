@@ -142,7 +142,7 @@ export class GameEngine {
             if (this.currentDealIndex >= this.players.length) {
                 // Initial dealing complete
                 this.isInitialDealing = false;
-                this.currentPlayerIndex = 0; // Human player goes first
+                this.currentPlayerIndex = -1; // Set to -1 so nextTurn() advances to 0 (human)
                 
                 // Update display after initial cards dealt
                 eventBus.emit(GameEvents.DISPLAY_UPDATE_REQUIRED);
