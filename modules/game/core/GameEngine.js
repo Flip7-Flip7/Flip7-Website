@@ -260,20 +260,19 @@ export class GameEngine {
             return;
         }
 
-        // Find next active player
+        // First check if current player can play (fixes initial turn bug)
+        let currentPlayer = this.players[this.currentPlayerIndex];
         let attempts = 0;
-        do {
+        
+        // Find next active player, starting with current player
+        while (currentPlayer.status !== 'active' && attempts < this.players.length) {
             this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+            currentPlayer = this.players[this.currentPlayerIndex];
             attempts++;
-        } while (
-            this.players[this.currentPlayerIndex].status !== 'active' && 
-            attempts < this.players.length
-        );
+        }
 
         // Update global state
         window.gameState.currentPlayerIndex = this.currentPlayerIndex;
-
-        const currentPlayer = this.players[this.currentPlayerIndex];
         
         if (currentPlayer.status !== 'active' || attempts >= this.players.length) {
             // No active players left
