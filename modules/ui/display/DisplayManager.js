@@ -21,6 +21,9 @@ export class DisplayManager {
         
         // Critical: Listen for game start to trigger initial display
         eventBus.on(GameEvents.GAME_STARTED, (data) => this.onGameStarted(data));
+        
+        // Critical: Listen for turn changes to update player highlights
+        eventBus.on(GameEvents.TURN_STARTED, (data) => this.onTurnStarted(data));
     }
     
     /**
@@ -36,6 +39,22 @@ export class DisplayManager {
         
         // Trigger initial display update
         this.updateDisplay();
+    }
+    
+    /**
+     * Handle turn started event - update current player highlights
+     */
+    onTurnStarted(data) {
+        console.log('🎯 DisplayManager: Turn started for', data.playerName);
+        
+        // Find the player in our state and update currentPlayerIndex
+        const playerIndex = window.gameState?.players?.findIndex(p => p.id === data.playerId);
+        if (playerIndex >= 0) {
+            window.gameState.currentPlayerIndex = playerIndex;
+        }
+        
+        // Update all player visual states to reflect new current player
+        this.updateAllPlayerHighlights();
     }
 
     /**
@@ -63,6 +82,42 @@ export class DisplayManager {
         players.forEach(player => {
             this.updatePlayerDisplay(player);
         });
+    }
+
+    /**
+     * Update all player highlights (current turn indicator)
+     */
+    updateAllPlayerHighlights() {
+        const players = window.gameState?.players || [];
+        
+        players.forEach(player => {
+            // Find containers for this player
+            const containers = this.getAllPlayerContainers(player.id);
+            
+            containers.forEach(container => {
+                if (container) {
+                    this.updatePlayerClasses(container, player);
+                }
+            });
+        });
+    }
+
+    /**
+     * Get all containers for a player (desktop + mobile)
+     */
+    getAllPlayerContainers(playerId) {
+        const containers = [];
+        
+        // Desktop container
+        const desktopContainer = document.getElementById(playerId);
+        if (desktopContainer) containers.push(desktopContainer);
+        
+        // Mobile container
+        const mobileId = playerId === 'player' ? 'mobile-player' : `mobile-${playerId}`;
+        const mobileContainer = document.getElementById(mobileId);
+        if (mobileContainer) containers.push(mobileContainer);
+        
+        return containers;
     }
 
     /**

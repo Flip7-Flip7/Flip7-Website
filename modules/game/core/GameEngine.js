@@ -318,9 +318,11 @@ export class GameEngine {
             isInitialDeal: false
         });
 
-        if (result.busted || result.endTurn) {
+        // Always move to next turn unless it's an action card waiting for targeting
+        if (!result.waitingForAction) {
             this.nextTurn();
         }
+        // If it's an action card, turn will advance after targeting completes via resumeGameFlow()
     }
 
     /**
