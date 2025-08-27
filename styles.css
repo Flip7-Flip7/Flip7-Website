@@ -5214,3 +5214,83 @@ body {
 .special-action-player.drag-hover {
     /* These styles are no longer needed with tap system */
 }
+
+/* Action Card Targeting System */
+.targetable.action-card-targeting {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.targetable.action-card-targeting::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    background: linear-gradient(45deg, #00ff88, #00ccff, #ff6b9d, #00ff88);
+    background-size: 300% 300%;
+    border-radius: 12px;
+    z-index: -1;
+    animation: targeting-glow 2s ease-in-out infinite;
+    opacity: 0.8;
+}
+
+.targetable.action-card-targeting::after {
+    content: 'TAP TO TARGET';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: #00ff88;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75em;
+    font-weight: bold;
+    white-space: nowrap;
+    pointer-events: none;
+    animation: pulse 1.5s ease-in-out infinite;
+    z-index: 11;
+}
+
+.targetable.action-card-targeting:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.4);
+}
+
+@keyframes targeting-glow {
+    0%, 100% { 
+        background-position: 0% 50%; 
+        opacity: 0.8;
+    }
+    50% { 
+        background-position: 100% 50%; 
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        opacity: 1; 
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% { 
+        opacity: 0.7; 
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+/* Mobile targeting adjustments */
+@media (max-width: 1024px) {
+    .targetable.action-card-targeting::after {
+        font-size: 0.6em;
+        padding: 4px 8px;
+    }
+    
+    .targetable.action-card-targeting:hover {
+        transform: scale(1.02);
+    }
+}
