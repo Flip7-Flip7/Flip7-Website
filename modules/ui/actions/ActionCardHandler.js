@@ -1,4 +1,4 @@
-// ActionCardHandler.js - Handles action card targeting and execution
+// ActionCardHandler.js - Pure UI component for action card targeting visuals
 
 import eventBus from '../../events/EventBus.js';
 import { GameEvents } from '../../events/GameEvents.js';
@@ -7,108 +7,45 @@ export class ActionCardHandler {
     constructor() {
         this.isTargeting = false;
         this.pendingActionCard = null;
-        this.sourcePlayer = null;
+        this.sourcePlayerId = null;
         this.targetableElements = [];
         
         this.setupEventListeners();
     }
 
     /**
-     * Setup event listeners for action card events
+     * Setup event listeners for UI targeting requests
      */
     setupEventListeners() {
-        eventBus.on(GameEvents.ACTION_CARD_DRAWN, (data) => this.handleActionCard(data));
+        // Listen for GameEngine requesting targeting UI
+        eventBus.on(GameEvents.ACTION_CARD_AWAITING_TARGET, (data) => this.showTargetingUI(data));
     }
 
     /**
-     * Main handler for action cards drawn
+     * Show targeting UI when requested by GameEngine
      */
-    handleActionCard(data) {
-        console.log('🎯 ActionCardHandler: Action card drawn:', data.card.display, 'by', data.playerId);
-        
-        const sourcePlayer = window.gameState?.players?.find(p => p.id === data.playerId);
-        if (!sourcePlayer) {
-            console.error('ActionCardHandler: Source player not found');
-            return;
-        }
-
-        this.sourcePlayer = sourcePlayer;
-        this.pendingActionCard = data.card;
-
-        // Handle based on card type
-        if (data.card.value === 'second_chance') {
-            this.handleSecondChance();
-        } else if (data.card.value === 'freeze' || data.card.value === 'flip3') {
-            this.handleImmediateActionCard();
-        }
-    }
-
-    /**
-     * Handle Second Chance card logic
-     */
-    handleSecondChance() {
-        console.log('🛡️ ActionCardHandler: Handling Second Chance');
-        
-        // Check if player already has Second Chance
-        if (this.sourcePlayer.hasSecondChance) {
-            console.log('🎯 ActionCardHandler: Player already has Second Chance, must target another player');
-            this.startTargeting();
-        } else {
-            console.log('✅ ActionCardHandler: Auto-applying Second Chance to player');
-            this.executeActionCard(this.sourcePlayer);
-        }
-    }
-
-    /**
-     * Handle Freeze/Flip3 cards that must be played immediately
-     */
-    handleImmediateActionCard() {
-        console.log('⚡ ActionCardHandler: Handling immediate action card:', this.pendingActionCard.display);
-        
-        // For human players, start targeting UI
-        if (this.sourcePlayer.isHuman) {
-            console.log('👤 ActionCardHandler: Human player - starting targeting UI');
-            this.startTargeting();
-        } else {
-            // AI players handle targeting automatically (handled by AIPlayer module)
-            console.log('🤖 ActionCardHandler: AI player - letting AIPlayer handle targeting');
-            // AIPlayer will emit targeting events, so we don't need to do anything here
-        }
-    }
-
-    /**
-     * Start the targeting UI for human players
-     */
-    startTargeting() {
-        console.log('🎯 ActionCardHandler: Starting targeting UI');
+    showTargetingUI(data) {
+        console.log('🎯 ActionCardHandler: Showing targeting UI for', data.card.display);
         
         this.isTargeting = true;
+        this.pendingActionCard = data.card;
+        this.sourcePlayerId = data.sourcePlayerId;
         
-        // Get all active players for targeting
-        const activePlayers = window.gameState?.players?.filter(p => p.status === 'active') || [];
-        
-        // For Second Chance, exclude source player if they already have one
-        let targetablePlayers = activePlayers;
-        if (this.pendingActionCard.value === 'second_chance' && this.sourcePlayer.hasSecondChance) {
-            targetablePlayers = activePlayers.filter(p => p.id !== this.sourcePlayer.id);
-        }
+        // Get targetable players from GameEngine's decision
+        const targetablePlayers = data.validTargetIds.map(id => 
+            window.gameState?.players?.find(p => p.id === id)
+        ).filter(p => p);
 
         if (targetablePlayers.length === 0) {
-            console.warn('⚠️ ActionCardHandler: No targetable players found');
+            console.warn('⚠️ ActionCardHandler: No targetable players provided');
             this.cancelTargeting();
             return;
         }
 
         // Add visual highlighting to targetable players
         this.highlightTargetablePlayers(targetablePlayers);
-
-        // Emit event to let GameEngine know we're awaiting target
-        eventBus.emit(GameEvents.ACTION_CARD_AWAITING_TARGET, {
-            card: this.pendingActionCard,
-            sourcePlayerId: this.sourcePlayer.id,
-            targetablePlayerIds: targetablePlayers.map(p => p.id)
-        });
     }
+
 
     /**
      * Add visual highlighting to targetable players
@@ -180,20 +117,10 @@ export class ActionCardHandler {
         // Remove highlighting
         this.clearTargeting();
         
-        // Execute the action card
-        this.executeActionCard(targetPlayer);
-    }
-
-    /**
-     * Execute the action card on the target player
-     */
-    executeActionCard(targetPlayer) {
-        console.log('⚡ ActionCardHandler: Executing', this.pendingActionCard.display, 'on', targetPlayer.name);
-        
-        // Emit event for GameEngine to handle the execution
+        // Send target selection to GameEngine
         eventBus.emit(GameEvents.PLAYER_TAPPED_FOR_TARGET, {
             card: this.pendingActionCard,
-            sourcePlayerId: this.sourcePlayer.id,
+            sourcePlayerId: this.sourcePlayerId,
             targetPlayerId: targetPlayer.id
         });
         
@@ -211,7 +138,7 @@ export class ActionCardHandler {
         // Emit cancellation event
         eventBus.emit(GameEvents.ACTION_CARD_TARGETING_CANCELLED, {
             card: this.pendingActionCard,
-            sourcePlayerId: this.sourcePlayer.id
+            sourcePlayerId: this.sourcePlayerId
         });
         
         this.resetState();
@@ -242,7 +169,7 @@ export class ActionCardHandler {
     resetState() {
         this.isTargeting = false;
         this.pendingActionCard = null;
-        this.sourcePlayer = null;
+        this.sourcePlayerId = null;
     }
 
     /**

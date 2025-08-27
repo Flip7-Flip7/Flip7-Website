@@ -235,10 +235,8 @@ export class GameEngine {
             player.addCard(card);
             result.waitingForAction = true;
             
-            eventBus.emit(GameEvents.ACTION_CARD_DRAWN, {
-                playerId: player.id,
-                card: card
-            });
+            // Handle action card logic
+            this.handleActionCardLogic(player, card);
         }
 
         // Update score
@@ -252,6 +250,80 @@ export class GameEngine {
         });
 
         return result;
+    }
+
+    /**
+     * Handle action card game logic (separate from UI)
+     */
+    handleActionCardLogic(player, card) {
+        console.log('🎴 GameEngine: Handling action card logic for', card.display);
+        
+        if (card.value === 'second_chance') {
+            // Check if player already has Second Chance
+            if (player.hasSecondChance) {
+                console.log('🎯 GameEngine: Player already has Second Chance, requires targeting');
+                this.requestTargetingForActionCard(player, card);
+            } else {
+                console.log('✅ GameEngine: Auto-applying Second Chance');
+                player.giveSecondChance();
+                this.completeActionCardExecution(player, card, player);
+            }
+        } else if (card.value === 'freeze' || card.value === 'flip3') {
+            console.log('⚡ GameEngine: Action card requires immediate targeting');
+            this.requestTargetingForActionCard(player, card);
+        }
+    }
+
+    /**
+     * Request targeting UI for action card
+     */
+    requestTargetingForActionCard(player, card) {
+        // Get valid targets based on card type
+        const validTargets = this.getValidTargetsForActionCard(card, player);
+        
+        if (validTargets.length === 0) {
+            console.warn('⚠️ GameEngine: No valid targets for action card');
+            this.completeActionCardExecution(player, card, null);
+            return;
+        }
+
+        // Emit event to request targeting UI
+        eventBus.emit(GameEvents.ACTION_CARD_AWAITING_TARGET, {
+            card: card,
+            sourcePlayerId: player.id,
+            validTargetIds: validTargets.map(p => p.id)
+        });
+    }
+
+    /**
+     * Get valid targets for action card
+     */
+    getValidTargetsForActionCard(card, sourcePlayer) {
+        const activePlayers = this.players.filter(p => p.status === 'active');
+        
+        if (card.value === 'second_chance') {
+            // For Second Chance, exclude source player (they already have one)
+            return activePlayers.filter(p => p.id !== sourcePlayer.id);
+        } else if (card.value === 'freeze' || card.value === 'flip3') {
+            // For Freeze/Flip3, all active players are valid (including self)
+            return activePlayers;
+        }
+        
+        return [];
+    }
+
+    /**
+     * Complete action card execution after targeting
+     */
+    completeActionCardExecution(sourcePlayer, card, targetPlayer) {
+        console.log('⚡ GameEngine: Completing action card execution');
+        
+        if (targetPlayer) {
+            this.executeActionCard(card, sourcePlayer, targetPlayer);
+        }
+        
+        // Resume game flow
+        this.resumeGameFlow();
     }
 
     /**
@@ -519,11 +591,8 @@ export class GameEngine {
             return;
         }
 
-        // Execute the action card
-        this.executeActionCard(data.card, sourcePlayer, targetPlayer);
-        
-        // Resume game flow
-        this.resumeGameFlow();
+        // Complete action card execution using the new method
+        this.completeActionCardExecution(sourcePlayer, data.card, targetPlayer);
     }
 
     /**
