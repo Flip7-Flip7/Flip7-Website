@@ -263,22 +263,27 @@ export class GameEngine {
         console.log(`🎴 GameEngine: Handling action card logic for ${card.display} - Player: ${player.name} (${player.isHuman ? 'Human' : 'AI'})`);
         
         if (card.value === 'second_chance') {
-            // Check if player already has Second Chance
-            if (player.hasSecondChance) {
-                console.log('🎯 GameEngine: Player already has Second Chance, requires targeting');
-                if (player.isHuman) {
-                    // Human player: Show targeting UI
-                    this.requestTargetingForActionCard(player, card);
+            if (player.isHuman) {
+                // Human player: Always auto-apply to themselves (or do nothing if they already have one)
+                if (player.hasSecondChance) {
+                    console.log('👤 GameEngine: Human already has Second Chance, card has no effect');
+                    this.completeActionCardExecution(player, card, null);
                 } else {
-                    // AI player: Auto-select target
-                    console.log('🤖 GameEngine: AI auto-targeting for Second Chance');
-                    const target = aiPlayer.determineAITarget(player, card);
-                    this.completeActionCardExecution(player, card, target);
+                    console.log('✅ GameEngine: Auto-applying Second Chance to human player');
+                    player.giveSecondChance();
+                    this.completeActionCardExecution(player, card, player);
                 }
             } else {
-                console.log('✅ GameEngine: Auto-applying Second Chance');
-                player.giveSecondChance();
-                this.completeActionCardExecution(player, card, player);
+                // AI player: Can target others if they already have Second Chance
+                if (player.hasSecondChance) {
+                    console.log('🤖 GameEngine: AI already has Second Chance, targeting others');
+                    const target = aiPlayer.determineAITarget(player, card);
+                    this.completeActionCardExecution(player, card, target);
+                } else {
+                    console.log('✅ GameEngine: Auto-applying Second Chance to AI player');
+                    player.giveSecondChance();
+                    this.completeActionCardExecution(player, card, player);
+                }
             }
         } else if (card.value === 'freeze' || card.value === 'flip3') {
             console.log('⚡ GameEngine: Action card requires targeting');
