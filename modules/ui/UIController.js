@@ -114,11 +114,13 @@ export class UIController {
      * Handle turn started
      */
     onTurnStarted(data) {
-        console.log('🎮 UIController: Turn started for', data.playerName);
+        console.log('🎮 UIController: Turn started for', data.playerName, 'isHuman:', data.isHuman);
         
         if (data.isHuman) {
+            console.log('👤 UIController: Human turn - enabling buttons');
             this.enablePlayerButtons();
         } else {
+            console.log('🤖 UIController: AI turn - disabling buttons');
             this.disablePlayerButtons();
         }
     }
@@ -145,10 +147,13 @@ export class UIController {
             document.getElementById('mobile-stay-btn')
         ].filter(btn => btn !== null);
 
+        console.log(`🔄 UIController: Enabling buttons - Hit: ${hitBtns.length}, Stay: ${stayBtns.length}`);
+
         hitBtns.forEach(btn => {
             if (btn) {
                 btn.disabled = false;
                 btn.style.opacity = '1';
+                console.log(`✅ UIController: Enabled hit button: ${btn.id}`);
             }
         });
 
@@ -156,6 +161,7 @@ export class UIController {
             if (btn) {
                 btn.disabled = false;
                 btn.style.opacity = '1';
+                console.log(`✅ UIController: Enabled stay button: ${btn.id}`);
             }
         });
     }

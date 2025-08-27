@@ -18,6 +18,24 @@ export class DisplayManager {
         eventBus.on(GameEvents.SCOREBOARD_UPDATE, (data) => this.updateScoreboard(data));
         eventBus.on(GameEvents.CARD_ADDED_TO_HAND, (data) => this.addCardToDisplay(data));
         eventBus.on(GameEvents.MOBILE_SYNC_REQUIRED, () => this.syncMobileDisplay());
+        
+        // Critical: Listen for game start to trigger initial display
+        eventBus.on(GameEvents.GAME_STARTED, (data) => this.onGameStarted(data));
+    }
+    
+    /**
+     * Handle game started event - trigger initial display
+     */
+    onGameStarted(data) {
+        // Update global game state
+        window.gameState = {
+            players: data.players,
+            roundNumber: data.roundNumber,
+            currentPlayerIndex: 0
+        };
+        
+        // Trigger initial display update
+        this.updateDisplay();
     }
 
     /**
@@ -51,7 +69,28 @@ export class DisplayManager {
      * Update individual player display
      */
     updatePlayerDisplay(player) {
-        const container = document.getElementById(player.id);
+        // Try to find the correct container - mobile first on mobile devices
+        let container = null;
+        
+        if (window.innerWidth <= 1024) {
+            // Mobile: look for mobile-* containers first
+            const mobileId = player.id === 'player' ? 'mobile-player' : `mobile-${player.id}`;
+            container = document.getElementById(mobileId);
+        } else {
+            // Desktop: look for regular containers
+            container = document.getElementById(player.id);
+        }
+        
+        if (!container) {
+            // Fallback: try the other type
+            if (window.innerWidth <= 1024) {
+                container = document.getElementById(player.id);
+            } else {
+                const mobileId = player.id === 'player' ? 'mobile-player' : `mobile-${player.id}`;
+                container = document.getElementById(mobileId);
+            }
+        }
+        
         if (!container) return;
         
         // Update scores

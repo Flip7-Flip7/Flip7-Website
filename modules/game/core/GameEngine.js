@@ -43,7 +43,7 @@ export class GameEngine {
      */
     initializePlayers() {
         this.players = [
-            new Player('player', 'Player', true),
+            new Player('player', 'You', true),
             new Player('opponent1', 'AI Bot 1', false),
             new Player('opponent2', 'AI Bot 2', false),
             new Player('opponent3', 'AI Bot 3', false)
@@ -112,6 +112,9 @@ export class GameEngine {
         window.gameState.currentPlayerIndex = this.currentPlayerIndex;
         window.gameState.roundNumber = this.roundNumber;
         window.gameState.isStartingNewRound = this.isStartingNewRound;
+        
+        // Trigger display update after round start
+        eventBus.emit(GameEvents.DISPLAY_UPDATE_REQUIRED);
 
         // Start dealing initial cards after delay
         setTimeout(() => {
@@ -135,6 +138,9 @@ export class GameEngine {
                 // Initial dealing complete
                 this.isInitialDealing = false;
                 this.currentPlayerIndex = 0; // Human player goes first
+                
+                // Update display after initial cards dealt
+                eventBus.emit(GameEvents.DISPLAY_UPDATE_REQUIRED);
                 
                 // Check if human player can act or if we need to skip to next
                 this.nextTurn();
