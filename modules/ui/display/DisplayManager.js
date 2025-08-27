@@ -281,6 +281,14 @@ export class DisplayManager {
             const cardElement = this.createCardElement(card);
             cardContainer.appendChild(cardElement);
         });
+        
+        // CRITICAL: Apply dynamic card sizing classes
+        const cardCount = allCards.length;
+        const mobileSizeClass = `cards-${Math.min(cardCount, 12)}`;
+        const desktopSizeClass = `desktop-cards-${Math.min(cardCount, 7)}`;
+        cardContainer.className = `player-cards ${mobileSizeClass} ${desktopSizeClass}`.trim();
+        
+        console.log(`🎴 DisplayManager: Card sizing for ${player.name}: ${cardCount} cards -> ${mobileSizeClass}`);
     }
 
     /**
@@ -478,6 +486,16 @@ export class DisplayManager {
         const roundScore = this.calculateDisplayScore(player);
         const statusText = this.getStatusText(player.status);
         
+        // Calculate card count for dynamic sizing classes
+        const allCards = [
+            ...player.numberCards.sort((a, b) => a.value - b.value),
+            ...player.modifierCards,
+            ...player.actionCards
+        ];
+        const cardCount = allCards.length;
+        const mobileSizeClass = `cards-${Math.min(cardCount, 12)}`;
+        const desktopSizeClass = `desktop-cards-${Math.min(cardCount, 7)}`;
+        
         return `
             <div class="player-header">
                 <span class="round-score">Round: <span class="round-value">${roundScore}</span></span>
@@ -487,7 +505,7 @@ export class DisplayManager {
             <div class="player-stats">
                 <span class="player-status ${player.status}">${statusText}</span>
             </div>
-            <div class="player-cards">
+            <div class="player-cards ${mobileSizeClass} ${desktopSizeClass}">
                 ${this.buildMobileCardsHTML(player)}
             </div>
             ${this.buildMobileIndicatorsHTML(player)}
