@@ -263,27 +263,31 @@ export class GameEngine {
         console.log(`🎴 GameEngine: Handling action card logic for ${card.display} - Player: ${player.name} (${player.isHuman ? 'Human' : 'AI'})`);
         
         if (card.value === 'second_chance') {
-            if (player.isHuman) {
-                // Human player: Always auto-apply to themselves (or do nothing if they already have one)
-                if (player.hasSecondChance) {
-                    console.log('👤 GameEngine: Human already has Second Chance, card has no effect');
+            if (player.hasSecondChance) {
+                // Both humans and AI: Second Second Chance goes to the losing player
+                console.log(`🎯 GameEngine: ${player.name} already has Second Chance, targeting losing player`);
+                const losingPlayer = this.findLosingPlayer(player);
+                
+                if (!losingPlayer) {
+                    console.warn('⚠️ GameEngine: No valid target found for Second Chance');
                     this.completeActionCardExecution(player, card, null);
+                    return;
+                }
+                
+                if (player.isHuman) {
+                    // Human player: Show targeting UI (but losing player should be suggested)
+                    console.log('👤 GameEngine: Showing targeting UI for human Second Chance');
+                    this.requestTargetingForActionCard(player, card);
                 } else {
-                    console.log('✅ GameEngine: Auto-applying Second Chance to human player');
-                    player.giveSecondChance();
-                    this.completeActionCardExecution(player, card, player);
+                    // AI player: Auto-target the losing player
+                    console.log(`🤖 GameEngine: AI targeting losing player ${losingPlayer.name} for Second Chance`);
+                    this.completeActionCardExecution(player, card, losingPlayer);
                 }
             } else {
-                // AI player: Can target others if they already have Second Chance
-                if (player.hasSecondChance) {
-                    console.log('🤖 GameEngine: AI already has Second Chance, targeting others');
-                    const target = aiPlayer.determineAITarget(player, card);
-                    this.completeActionCardExecution(player, card, target);
-                } else {
-                    console.log('✅ GameEngine: Auto-applying Second Chance to AI player');
-                    player.giveSecondChance();
-                    this.completeActionCardExecution(player, card, player);
-                }
+                // Both humans and AI: First Second Chance auto-applies to themselves
+                console.log(`✅ GameEngine: Auto-applying Second Chance to ${player.name}`);
+                player.giveSecondChance();
+                this.completeActionCardExecution(player, card, player);
             }
         } else if (card.value === 'freeze' || card.value === 'flip3') {
             console.log('⚡ GameEngine: Action card requires targeting');
@@ -336,6 +340,35 @@ export class GameEngine {
         }
         
         return [];
+    }
+
+    /**
+     * Find the player with the lowest total score (excluding source player)
+     */
+    findLosingPlayer(sourcePlayer) {
+        // Get all players except the source player
+        const otherPlayers = this.players.filter(p => p.id !== sourcePlayer.id);
+        
+        if (otherPlayers.length === 0) {
+            console.warn('⚠️ GameEngine: No other players available for Second Chance targeting');
+            return null;
+        }
+        
+        // Find player(s) with lowest total score
+        const lowestScore = Math.min(...otherPlayers.map(p => p.totalScore));
+        const losingPlayers = otherPlayers.filter(p => p.totalScore === lowestScore);
+        
+        console.log(`🎯 GameEngine: Losing player(s) with score ${lowestScore}:`, losingPlayers.map(p => p.name));
+        
+        // If there's a tie, prefer active players, then random selection
+        const activeLosingPlayers = losingPlayers.filter(p => p.status === 'active');
+        const eligiblePlayers = activeLosingPlayers.length > 0 ? activeLosingPlayers : losingPlayers;
+        
+        // Return random player from eligible losing players
+        const selectedPlayer = eligiblePlayers[Math.floor(Math.random() * eligiblePlayers.length)];
+        console.log(`🎯 GameEngine: Selected losing player: ${selectedPlayer.name} (score: ${selectedPlayer.totalScore})`);
+        
+        return selectedPlayer;
     }
 
     /**

@@ -219,15 +219,21 @@ export class AIPlayer {
     selectSecondChanceTarget(validRecipients) {
         if (validRecipients.length === 0) return null;
         
-        // Prefer human player if available
-        const humanRecipient = validRecipients.find(p => p.isHuman);
-        if (humanRecipient) {
-            console.log(`🎯 AI giving second chance to human player: ${humanRecipient.name}`);
-            return humanRecipient;
-        }
+        // Target the player with the lowest total score
+        const lowestScore = Math.min(...validRecipients.map(p => p.totalScore));
+        const losingPlayers = validRecipients.filter(p => p.totalScore === lowestScore);
         
-        // Otherwise random valid recipient
-        return validRecipients[Math.floor(Math.random() * validRecipients.length)];
+        console.log(`🎯 AI selecting Second Chance target from losing players with score ${lowestScore}:`, losingPlayers.map(p => p.name));
+        
+        // If multiple players are tied for lowest, prefer active players
+        const activeLosingPlayers = losingPlayers.filter(p => p.status === 'active');
+        const finalCandidates = activeLosingPlayers.length > 0 ? activeLosingPlayers : losingPlayers;
+        
+        // Return random selection from final candidates
+        const selectedTarget = finalCandidates[Math.floor(Math.random() * finalCandidates.length)];
+        console.log(`🎯 AI giving Second Chance to losing player: ${selectedTarget.name} (score: ${selectedTarget.totalScore})`);
+        
+        return selectedTarget;
     }
 
     /**
