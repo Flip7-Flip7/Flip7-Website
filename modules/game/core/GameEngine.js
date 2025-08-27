@@ -688,12 +688,30 @@ export class GameEngine {
                 sourcePlayerId: sourcePlayer.id
             });
         } else if (card.value === 'flip3') {
-            // Draw 3 cards for target player
+            // Draw 3 cards for target player - handle action cards specially
+            console.log(`🔄 GameEngine: Executing Flip3 on ${targetPlayer.name} - drawing 3 cards`);
+            const drawnActionCards = [];
+            
             for (let i = 0; i < 3; i++) {
                 const drawnCard = deckManager.drawCard();
                 if (drawnCard) {
-                    this.handleCardDraw(targetPlayer, drawnCard);
+                    if (drawnCard.type === 'action') {
+                        // Defer action cards to prevent cascade targeting
+                        console.log(`⏸️ GameEngine: Deferring action card ${drawnCard.display} from Flip3`);
+                        drawnActionCards.push({ card: drawnCard, targetPlayer: targetPlayer });
+                    } else {
+                        // Handle non-action cards immediately
+                        this.handleCardDraw(targetPlayer, drawnCard);
+                    }
                 }
+            }
+            
+            // Process deferred action cards after Flip3 completes
+            if (drawnActionCards.length > 0) {
+                console.log(`🎴 GameEngine: Processing ${drawnActionCards.length} deferred action cards from Flip3`);
+                setTimeout(() => {
+                    this.processDeferredActionCards(drawnActionCards);
+                }, 1000);
             }
             
             eventBus.emit(GameEvents.ACTION_FLIP3, {
@@ -733,6 +751,64 @@ export class GameEngine {
             // Continue with normal turn flow
             this.nextTurn();
         }
+    }
+
+    /**
+     * Process deferred action cards from Flip3
+     */
+    processDeferredActionCards(deferredActions) {
+        console.log(`🎴 GameEngine: Processing ${deferredActions.length} deferred action cards`);
+        
+        // Process each deferred action card one at a time
+        const processNext = (index = 0) => {
+            if (index >= deferredActions.length) {
+                console.log('✅ GameEngine: All deferred action cards processed');
+                return;
+            }
+            
+            const { card, targetPlayer } = deferredActions[index];
+            console.log(`🎯 GameEngine: Processing deferred ${card.display} for ${targetPlayer.name}`);
+            
+            // Add the card to the target player's hand first
+            targetPlayer.addCard(card);
+            
+            // Update the player's score
+            const score = scoringEngine.calculateRoundScore(targetPlayer);
+            targetPlayer.roundScore = score;
+            
+            eventBus.emit(GameEvents.SCORE_UPDATED, {
+                playerId: targetPlayer.id,
+                roundScore: score,
+                totalScore: targetPlayer.totalScore
+            });
+            
+            eventBus.emit(GameEvents.CARD_ADDED_TO_HAND, {
+                playerId: targetPlayer.id,
+                card: card
+            });
+            
+            // Handle the action card logic
+            if (targetPlayer.isHuman) {
+                // For human players, show targeting UI
+                console.log('👤 GameEngine: Human player received deferred action card, showing targeting UI');
+                this.handleActionCardLogic(targetPlayer, card);
+                
+                // Wait for action completion before processing next card
+                eventBus.once(GameEvents.SPECIAL_ACTION_COMPLETED, () => {
+                    setTimeout(() => processNext(index + 1), 500);
+                });
+            } else {
+                // For AI players, auto-execute
+                console.log('🤖 GameEngine: AI player received deferred action card, auto-executing');
+                this.handleActionCardLogic(targetPlayer, card);
+                
+                // Continue to next card after short delay
+                setTimeout(() => processNext(index + 1), 1000);
+            }
+        };
+        
+        // Start processing the first deferred action
+        processNext(0);
     }
 
     /**
