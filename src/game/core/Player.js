@@ -34,7 +34,7 @@ class Player {
         this.modifierCards = [];
         this.actionCards = [];
         this.uniqueNumbers.clear();
-        this.status = 'waiting';
+        this.status = 'waiting'; // This resets frozen status
         this.hasSecondChance = false;
     }
 
@@ -108,6 +108,10 @@ class Player {
                 const actionIndex = this.actionCards.findIndex(c => c.value === card.value);
                 if (actionIndex !== -1) {
                     this.actionCards.splice(actionIndex, 1);
+                    // If removing a Second Chance card, update flag
+                    if (card.value === 'second chance') {
+                        this.hasSecondChance = false;
+                    }
                 }
                 break;
         }

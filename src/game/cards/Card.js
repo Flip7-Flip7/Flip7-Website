@@ -10,7 +10,7 @@ class Card {
 
 
     /**
-     * Check if this card requires special handling
+     * Check if this card requires special targeting (not Second Chance)
      * @returns {boolean}
      */
     requiresSpecialHandling() {

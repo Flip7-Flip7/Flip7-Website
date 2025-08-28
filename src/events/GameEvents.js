@@ -31,6 +31,10 @@ const GameEvents = {
     FREEZE_CARD_USED: 'freezeCard:used',
     FLIP3_CARD_USED: 'flip3Card:used',
     SECOND_CHANCE_ACTIVATED: 'secondChance:activated',
+    SECOND_CHANCE_ACQUIRED: 'secondChance:acquired',
+    SECOND_CHANCE_GIVEN: 'secondChance:given',
+    ACTION_CARD_TARGET_NEEDED: 'actionCard:targetNeeded',
+    ACTION_CARD_TARGET_SELECTED: 'actionCard:targetSelected',
     
     // AI Events
     AI_THINKING: 'ai:thinking',

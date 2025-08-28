@@ -20,6 +20,9 @@ class GameEngine {
         // Initialize players
         this.initializePlayers(config.playerName);
         
+        // Update CardManager with players reference
+        this.cardManager.setPlayers(this.players);
+        
         // Setup event listeners
         this.setupEventListeners();
         
@@ -58,9 +61,8 @@ class GameEngine {
         this.eventBus.on(GameEvents.PLAYER_HIT, this.handlePlayerHit.bind(this));
         this.eventBus.on(GameEvents.PLAYER_STAY, this.handlePlayerStay.bind(this));
         
-        // TODO: Special card actions
-        // this.eventBus.on('action:freeze:target', this.handleFreezeTarget.bind(this));
-        // this.eventBus.on('action:flip3:target', this.handleFlip3Target.bind(this));
+        // Action card targeting
+        this.eventBus.on(GameEvents.ACTION_CARD_TARGET_SELECTED, this.handleActionTargetSelected.bind(this));
         
         // Animation completion
         this.eventBus.on(GameEvents.ANIMATION_COMPLETE, this.handleAnimationComplete.bind(this));
@@ -104,8 +106,8 @@ class GameEngine {
             player.status = 'active';
         });
         
-        // Set dealer
-        this.dealerIndex = (this.roundNumber - 1) % this.players.length;
+        // Set dealer - human player (index 0) always gets first card, so dealer is always AI Bot 3 (index 3)
+        this.dealerIndex = 3;
         
         // Emit round start event
         this.eventBus.emit(GameEvents.ROUND_START, {
@@ -214,11 +216,8 @@ class GameEngine {
             });
             this.endTurn();
         } else if (result.requiresAction) {
-            // Handle special action cards immediately (minimal flow)
-            this.executeActionCardFlow(result.card, player).then(() => {
-                // After handling action, end turn to keep flow moving
-                this.endTurn();
-            });
+            // Handle special action cards - different flow for human vs AI
+            this.handleActionCard(result.card, player);
         } else if (result.isFlip7) {
             // Player got Flip 7
             this.endTurn();
@@ -234,72 +233,167 @@ class GameEngine {
     }
 
     /**
-     * Minimal special action handling to keep game flow
-     * @param {Card} card
-     * @param {Player} sourcePlayer
+     * Handle action card drawn - different logic for human vs AI
+     * @param {Card} card - Action card drawn
+     * @param {Player} sourcePlayer - Player who drew the card
      */
-    async executeActionCardFlow(card, sourcePlayer) {
-        // Determine a target (simple AI-style targeting for now)
-        const target = this.determineActionTarget(sourcePlayer, card);
-        if (!target) return;
-        
+    handleActionCard(card, sourcePlayer) {
+        if (sourcePlayer.isHuman) {
+            // Human player - show targeting UI
+            this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
+                card: card,
+                sourcePlayer: sourcePlayer,
+                availableTargets: this.getAvailableTargets(sourcePlayer, card)
+            });
+            // Turn will continue when target is selected
+        } else {
+            // AI player - auto-target and execute immediately
+            const target = this.determineActionTarget(sourcePlayer, card);
+            if (target) {
+                this.executeActionCard(card, sourcePlayer, target);
+            }
+            this.endTurn();
+        }
+    }
+    
+    /**
+     * Handle action card target selection from UI
+     * @param {Object} data - Target selection data
+     */
+    handleActionTargetSelected(data) {
+        const { card, sourcePlayer, targetPlayer } = data;
+        this.executeActionCard(card, sourcePlayer, targetPlayer);
+        this.endTurn();
+    }
+    
+    /**
+     * Execute action card on target
+     * @param {Card} card - Action card
+     * @param {Player} sourcePlayer - Player using card
+     * @param {Player} targetPlayer - Target player
+     */
+    async executeActionCard(card, sourcePlayer, targetPlayer) {
         if (card.value === 'freeze') {
             // Apply freeze via CardManager
-            this.cardManager.handleActionCard(card, sourcePlayer, target);
+            this.cardManager.handleActionCard(card, sourcePlayer, targetPlayer);
             // Discard the action card
             this.cardManager.discardCards([card]);
-            // Frozen players effectively stop playing; emit score/state update
+            // Update score/state
             this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
-                playerId: target.id,
-                roundScore: target.calculateScore(),
-                totalScore: target.totalScore
+                playerId: targetPlayer.id,
+                roundScore: targetPlayer.calculateScore(),
+                totalScore: targetPlayer.totalScore
             });
-            return;
         }
         
         if (card.value === 'flip3') {
-            const outcome = await this.cardManager.handleActionCard(card, sourcePlayer, target);
-            // Add drawn cards to target and emit events for display
-            const cards = outcome.cards || [];
+            const outcome = await this.cardManager.handleActionCard(card, sourcePlayer, targetPlayer);
+            const dealtCards = outcome.dealtCards || [];
+            const actionCards = outcome.actionCards || [];
             let busted = false;
-            for (let i = 0; i < cards.length; i++) {
-                const c = cards[i];
-                const addResult = target.addCard(c);
+            
+            // Add all dealt cards to target player
+            for (const c of dealtCards) {
+                const addResult = targetPlayer.addCard(c);
                 this.eventBus.emit(GameEvents.CARD_DEALT, {
                     card: c,
-                    playerId: target.id,
+                    playerId: targetPlayer.id,
                     isInitialDeal: false
                 });
-                if (outcome.bustOnCard && (i + 1) === outcome.bustOnCard) {
-                    target.status = 'busted';
-                    target.roundScore = 0;
-                    this.eventBus.emit(GameEvents.PLAYER_BUST, { player: target, card: c });
-                    busted = true;
-                    break;
-                }
+                
                 if (addResult.isFlip7) {
-                    // End round will be handled by round flow; for now just update
                     this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
-                        playerId: target.id,
-                        roundScore: target.calculateScore(),
-                        totalScore: target.totalScore
+                        playerId: targetPlayer.id,
+                        roundScore: targetPlayer.calculateScore(),
+                        totalScore: targetPlayer.totalScore
                     });
                 }
             }
             
-            // Discard the action card used
+            // Check if target player busted (this happens in CardManager now)
+            if (outcome.bustOnCard) {
+                targetPlayer.status = 'busted';
+                targetPlayer.roundScore = 0;
+                this.eventBus.emit(GameEvents.PLAYER_BUST, { 
+                    player: targetPlayer, 
+                    card: dealtCards[dealtCards.length - 1] // Last dealt card before bust
+                });
+                busted = true;
+            }
+            
+            // If no bust, give target player autonomy over action cards they drew
+            if (!busted && actionCards.length > 0) {
+                // Target player now has control over action cards they drew
+                await this.processFlip3ActionCards(actionCards, targetPlayer);
+            }
+            
+            // Discard the original Flip3 card
             this.cardManager.discardCards([card]);
             
             if (!busted) {
                 // Update score after flip3 sequence
                 this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
-                    playerId: target.id,
-                    roundScore: target.calculateScore(),
-                    totalScore: target.totalScore
+                    playerId: targetPlayer.id,
+                    roundScore: targetPlayer.calculateScore(),
+                    totalScore: targetPlayer.totalScore
                 });
             }
-            return;
         }
+    }
+    
+    /**
+     * Process action cards drawn during Flip3 - target player gains autonomy
+     * @param {Array<Card>} actionCards - Action cards drawn during Flip3
+     * @param {Player} targetPlayer - Player who gets autonomy over these action cards
+     */
+    async processFlip3ActionCards(actionCards, targetPlayer) {
+        for (const actionCard of actionCards) {
+            if (actionCard.value === 'second chance') {
+                // Handle Second Chance through CardManager (no targeting needed)
+                const result = this.cardManager.handleSecondChanceCard(targetPlayer, actionCard);
+                if (result.addedToHand) {
+                    // Already handled - Second Chance added to hand
+                } else if (result.givenTo) {
+                    // Already handled - Second Chance given to another player
+                }
+                continue;
+            }
+            
+            // For Freeze/Flip3 cards, target player gets to choose target
+            if (actionCard.value === 'freeze' || actionCard.value === 'flip3') {
+                if (targetPlayer.isHuman) {
+                    // Human player gets to choose target via UI
+                    this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
+                        card: actionCard,
+                        sourcePlayer: targetPlayer,
+                        availableTargets: this.getAvailableTargets(targetPlayer, actionCard),
+                        isFlip3Context: true
+                    });
+                    
+                    // Wait for target selection (this will be handled by UI)
+                    // The UI will emit ACTION_CARD_TARGET_SELECTED when ready
+                    
+                } else {
+                    // AI player auto-selects target
+                    const target = this.determineActionTarget(targetPlayer, actionCard);
+                    if (target) {
+                        await this.executeActionCard(actionCard, targetPlayer, target);
+                    }
+                    this.cardManager.discardCards([actionCard]);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Get available targets for an action card
+     * @param {Player} sourcePlayer - Player using the card
+     * @param {Card} card - Action card
+     * @returns {Array<Player>} Available targets
+     */
+    getAvailableTargets(sourcePlayer, card) {
+        // For Freeze and Flip3, can target any active player (including self)
+        return this.players.filter(p => p.status === 'active');
     }
 
     /**
@@ -460,12 +554,24 @@ class GameEngine {
             }))
         });
         
-        // Check for winner
-        const winner = this.players.find(p => p.totalScore >= this.winningScore);
-        if (winner) {
-            this.endGame(winner);
+        // Check for game end - highest score >= winning score wins
+        const qualifyingPlayers = this.players.filter(p => p.totalScore >= this.winningScore);
+        
+        if (qualifyingPlayers.length > 0) {
+            // Find highest score among qualifying players
+            const highestScore = Math.max(...qualifyingPlayers.map(p => p.totalScore));
+            const winners = qualifyingPlayers.filter(p => p.totalScore === highestScore);
+            
+            if (winners.length === 1) {
+                // Clear winner
+                this.endGame(winners[0]);
+            } else {
+                // Tie - continue to next round
+                this.roundNumber++;
+                setTimeout(() => this.startNewRound(), 2000);
+            }
         } else {
-            // Start next round after delay
+            // No one reached winning score - continue
             this.roundNumber++;
             setTimeout(() => this.startNewRound(), 2000);
         }

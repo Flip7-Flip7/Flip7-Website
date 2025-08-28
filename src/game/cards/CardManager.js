@@ -3,9 +3,18 @@
  * Deals with drawing, dealing, discarding, and special card actions
  */
 class CardManager {
-    constructor(deck, eventBus) {
+    constructor(deck, eventBus, players = []) {
         this.deck = deck;
         this.eventBus = eventBus;
+        this.players = players;
+    }
+    
+    /**
+     * Update players reference
+     * @param {Array<Player>} players - Current players
+     */
+    setPlayers(players) {
+        this.players = players;
     }
 
     /**
@@ -50,7 +59,12 @@ class CardManager {
             return { success: false, reason: 'empty_deck' };
         }
         
-        // Check if it's a special action card
+        // Handle Second Chance cards specially - add to hand or auto-give away
+        if (card.type === 'action' && card.value === 'second chance') {
+            return this.handleSecondChanceCard(player, card);
+        }
+        
+        // Check if it's other action cards (Freeze/Flip3) - use immediately
         if (card.requiresSpecialHandling()) {
             return {
                 success: true,
@@ -82,10 +96,17 @@ class CardManager {
         
         // Handle second chance activation
         if (result.isDuplicate && player.hasSecondChance) {
-            player.hasSecondChance = false;
+            // Find and remove the Second Chance card from hand
+            const secondChanceCard = player.actionCards.find(c => c.value === 'second chance');
+            if (secondChanceCard) {
+                player.removeCard(secondChanceCard);
+                this.discardCards([secondChanceCard]);
+            }
+            
             this.eventBus.emit(GameEvents.SECOND_CHANCE_ACTIVATED, {
                 player: player,
-                card: card
+                card: card,
+                secondChanceCard: secondChanceCard
             });
         }
         
@@ -102,6 +123,77 @@ class CardManager {
             isDuplicate: result.isDuplicate,
             isFlip7: result.isFlip7
         };
+    }
+
+    /**
+     * Handle Second Chance card logic
+     * @param {Player} player - Player who drew the card
+     * @param {Card} card - Second Chance card
+     * @returns {Object} Result
+     */
+    handleSecondChanceCard(player, card) {
+        // If player doesn't have Second Chance, add it to their hand
+        if (!player.hasSecondChance) {
+            player.addCard(card);
+            player.hasSecondChance = true;
+            
+            this.eventBus.emit(GameEvents.CARD_DRAWN, {
+                card: card,
+                playerId: player.id,
+                isInitialDeal: false
+            });
+            
+            this.eventBus.emit(GameEvents.SECOND_CHANCE_ACQUIRED, {
+                player: player
+            });
+            
+            return {
+                success: true,
+                card: card,
+                addedToHand: true
+            };
+        }
+        
+        // Player already has Second Chance - must give to another active player
+        const activePlayers = this.getActivePlayers(player);
+        if (activePlayers.length === 0) {
+            // No one to give it to - discard it
+            this.discardCards([card]);
+            return {
+                success: true,
+                card: card,
+                discarded: true
+            };
+        }
+        
+        // Auto-select recipient (prefer player with lowest total score)
+        const recipient = activePlayers.sort((a, b) => a.totalScore - b.totalScore)[0];
+        recipient.addCard(card);
+        recipient.hasSecondChance = true;
+        
+        this.eventBus.emit(GameEvents.SECOND_CHANCE_GIVEN, {
+            giver: player,
+            recipient: recipient,
+            card: card
+        });
+        
+        return {
+            success: true,
+            card: card,
+            givenTo: recipient.id
+        };
+    }
+    
+    /**
+     * Get active players excluding the specified player
+     * @param {Player} excludePlayer - Player to exclude
+     * @returns {Array<Player>} Active players
+     */
+    getActivePlayers(excludePlayer) {
+        return this.players.filter(p => 
+            p.id !== excludePlayer.id && 
+            p.status === 'active'
+        );
     }
 
     /**
@@ -138,7 +230,7 @@ class CardManager {
     }
 
     /**
-     * Handle Flip3 card action
+     * Handle Flip3 card action - draw cards until bust or 3 cards dealt
      * @param {Player} sourcePlayer - Player using the card
      * @param {Player} targetPlayer - Player who must draw 3 cards
      */
@@ -148,28 +240,38 @@ class CardManager {
             targetPlayer: targetPlayer
         });
         
-        const cardsToFlip = [];
+        const dealtCards = [];
+        const actionCards = [];
         let bustOnCard = null;
         
-        // Draw 3 cards (or until bust)
+        // Draw cards one by one, stopping at bust or 3 cards
         for (let i = 0; i < 3; i++) {
             const card = this.deck.draw();
             if (!card) break;
             
-            cardsToFlip.push(card);
-            
-            // Check if this card would cause a bust
+            // Check if this card would cause a bust BEFORE adding it
             if (card.type === 'number' && targetPlayer.uniqueNumbers.has(card.value) && !targetPlayer.hasSecondChance) {
                 bustOnCard = i + 1;
+                // Put the bust card back on top of deck (it wasn't dealt)
+                this.deck.cards.push(card);
                 break;
+            }
+            
+            // Card is dealt - add to dealt cards
+            dealtCards.push(card);
+            
+            // Separate action cards for later processing
+            if (card.type === 'action') {
+                actionCards.push(card);
             }
         }
         
         return {
             success: true,
-            cards: cardsToFlip,
+            dealtCards: dealtCards,
+            actionCards: actionCards,
             bustOnCard: bustOnCard,
-            message: `${sourcePlayer.name} used Flip3 on ${targetPlayer.name}!`
+            message: `${sourcePlayer.name} used Flip3 on ${targetPlayer.name}! ${dealtCards.length} cards dealt.`
         };
     }
 
