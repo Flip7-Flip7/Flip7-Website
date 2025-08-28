@@ -55,12 +55,12 @@ class GameEngine {
      */
     setupEventListeners() {
         // Player actions
-        this.eventBus.on('player:action:hit', this.handlePlayerHit.bind(this));
-        this.eventBus.on('player:action:stay', this.handlePlayerStay.bind(this));
+        this.eventBus.on(GameEvents.PLAYER_HIT, this.handlePlayerHit.bind(this));
+        this.eventBus.on(GameEvents.PLAYER_STAY, this.handlePlayerStay.bind(this));
         
-        // Special card actions
-        this.eventBus.on('action:freeze:target', this.handleFreezeTarget.bind(this));
-        this.eventBus.on('action:flip3:target', this.handleFlip3Target.bind(this));
+        // TODO: Special card actions
+        // this.eventBus.on('action:freeze:target', this.handleFreezeTarget.bind(this));
+        // this.eventBus.on('action:flip3:target', this.handleFlip3Target.bind(this));
         
         // Animation completion
         this.eventBus.on(GameEvents.ANIMATION_COMPLETE, this.handleAnimationComplete.bind(this));

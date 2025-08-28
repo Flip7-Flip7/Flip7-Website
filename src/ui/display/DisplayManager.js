@@ -32,6 +32,7 @@ class DisplayManager {
         
         // Card events
         this.eventBus.on(GameEvents.CARD_DEALT, this.onCardDealt.bind(this));
+        this.eventBus.on(GameEvents.CARD_DRAWN, this.onCardDrawn.bind(this));
         
         // UI update requests
         this.eventBus.on(GameEvents.UI_UPDATE_NEEDED, this.handleUpdateRequest.bind(this));
@@ -135,8 +136,18 @@ class DisplayManager {
      */
     onCardDealt(data) {
         const { card, playerId } = data;
-        // Card display will be handled by CardDisplay module
-        this.eventBus.emit('card:display', { card, playerId });
+        this.renderCardToPlayer(card, playerId);
+    }
+
+    /**
+     * Handle card drawn event
+     */
+    onCardDrawn(data) {
+        const { card, player } = data;
+        const playerId = player?.id;
+        if (playerId) {
+            this.renderCardToPlayer(card, playerId);
+        }
     }
 
     /**
@@ -225,8 +236,87 @@ class DisplayManager {
             logContent.scrollTop = logContent.scrollHeight;
         }
     }
+
+    /**
+     * Render a card into a player's container (with image support)
+     */
+    renderCardToPlayer(card, playerId) {
+        const container = this.getPlayerCardContainer(playerId);
+        if (!container) return;
+        const cardEl = this.createCardElement(card);
+        container.appendChild(cardEl);
+        this.updateDeckCount(window.Flip7?.engine?.deck?.getCardsRemaining?.() ?? '');
+    }
+
+    /**
+     * Get the player card container element
+     */
+    getPlayerCardContainer(playerId) {
+        if (playerId === 'player') {
+            return document.getElementById('player-cards');
+        }
+        const el = document.getElementById(`${playerId}-cards`);
+        return el || null;
+    }
+
+    /**
+     * Create a card element using image mapping from legacy game.js
+     */
+    createCardElement(card) {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = `card ${card.type}`;
+        
+        if (this.hasCustomCardImage(card)) {
+            const imageName = this.getCardImageName(card);
+            if (imageName) {
+                cardDiv.classList.add('custom-image');
+                cardDiv.style.backgroundImage = `url('./images/${imageName}')`;
+                cardDiv.style.backgroundSize = 'cover';
+                cardDiv.style.backgroundPosition = 'center';
+                return cardDiv;
+            }
+        }
+        
+        // Fallback to text display
+        const span = document.createElement('span');
+        span.textContent = card.display ?? String(card.value);
+        cardDiv.appendChild(span);
+        return cardDiv;
+    }
+
+    /** Check if we have a custom image for the card (mirrors game.js logic) */
+    hasCustomCardImage(card) {
+        if (!card || !card.type) return false;
+        if (card.type === 'number') {
+            const availableNumbers = [0,1,2,3,4,5,6,7,8,9,10,11,12];
+            return availableNumbers.includes(card.value);
+        }
+        if (card.type === 'modifier') {
+            return [2,4,6,8,10,'x2'].includes(card.value);
+        }
+        if (card.type === 'action') {
+            return ['freeze','flip3','second_chance'].includes(card.value);
+        }
+        return false;
+    }
+
+    /** Map card to image file name (mirrors game.js mapping) */
+    getCardImageName(card) {
+        if (card.type === 'number') {
+            return `card-${card.value}.png`;
+        }
+        if (card.type === 'modifier') {
+            if (card.value === 'x2') return 'card-*2.png';
+            if (typeof card.value === 'number') return `card-+${card.value}.png`;
+        }
+        if (card.type === 'action') {
+            if (card.value === 'flip3') return 'card-Flip3.png';
+            if (card.value === 'freeze') return 'card-Freeze.png';
+            if (card.value === 'second_chance') return 'card-SecondChance.png';
+        }
+        return null;
+    }
 }
 
 // Create singleton instance
-window.Flip7 = window.Flip7 || {};
-window.Flip7.DisplayManager = DisplayManager;
+window.DisplayManager = DisplayManager;

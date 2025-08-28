@@ -9,20 +9,20 @@ window.Flip7 = window.Flip7 || {};
 // Module initialization order is important
 const moduleLoadOrder = [
     // Core event system
-    'events/EventBus.js',
-    'events/GameEvents.js',
+    'src/events/EventBus.js',
+    'src/events/GameEvents.js',
     
     // Configuration
-    'game/config/GameConstants.js',
+    'src/game/config/GameConstants.js',
     
     // Core game classes
-    'game/cards/Card.js',
-    'game/cards/Deck.js',
-    'game/core/Player.js',
+    'src/game/cards/Card.js',
+    'src/game/cards/Deck.js',
+    'src/game/core/Player.js',
     
     // Game logic
-    'game/cards/CardManager.js',
-    'game/core/GameEngine.js',
+    'src/game/cards/CardManager.js',
+    'src/game/core/GameEngine.js',
     // 'game/core/GameState.js',
     // 'game/core/GameRules.js',
     // 'game/cards/CardActions.js',
@@ -32,7 +32,7 @@ const moduleLoadOrder = [
     // 'game/ai/AIStrategy.js',
     
     // UI modules
-    'ui/display/DisplayManager.js',
+    'src/ui/display/DisplayManager.js',
     // 'ui/display/CardDisplay.js',
     // 'ui/animations/AnimationManager.js',
     // 'ui/animations/CardAnimations.js',
@@ -128,17 +128,45 @@ function initializeGame() {
         }
     };
     
-    // For now, still load the legacy game.js
-    // In the future, this will be replaced by GameEngine
-    const legacyScript = document.createElement('script');
-    legacyScript.src = 'game.js?v=9.0&t=20250808-modular';
-    legacyScript.onload = () => {
-        console.log('Legacy game.js loaded for compatibility');
-        
-        // Future: Initialize new GameEngine instead
-        // window.Flip7.game = new GameEngine();
+    // Instantiate DisplayManager and GameEngine
+    const displayManager = new window.DisplayManager();
+    displayManager.initialize();
+    
+    const winningInput = document.getElementById('win-points');
+    const winningScore = winningInput ? Number(winningInput.value) : window.GameConstants.WINNING_SCORE;
+    const engine = new window.GameEngine({ winningScore });
+    
+    // Expose instances
+    window.Flip7.display = displayManager;
+    window.Flip7.engine = engine;
+    
+    // Wire UI buttons to EventBus
+    const bus = window.gameEventBus;
+    const bind = (id, handler) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', handler);
     };
-    document.head.appendChild(legacyScript);
+    
+    bind('new-game-btn', () => engine.startNewGame());
+    bind('hit-btn', () => bus.emit(window.GameEvents.PLAYER_HIT));
+    bind('stay-btn', () => bus.emit(window.GameEvents.PLAYER_STAY));
+    bind('mobile-hit-btn', () => bus.emit(window.GameEvents.PLAYER_HIT));
+    bind('mobile-stay-btn', () => bus.emit(window.GameEvents.PLAYER_STAY));
+    
+    // Basic rules modal wiring
+    bind('rules-btn', () => {
+        const modal = document.getElementById('rules-modal');
+        if (modal) modal.style.display = 'block';
+    });
+    bind('mobile-rules-btn', () => {
+        const modal = document.getElementById('rules-modal');
+        if (modal) modal.style.display = 'block';
+    });
+    const closeRules = document.getElementById('close-rules');
+    if (closeRules) closeRules.addEventListener('click', () => {
+        const modal = document.getElementById('rules-modal');
+        if (modal) modal.style.display = 'none';
+    });
 }
 
 /**
@@ -163,10 +191,10 @@ async function startApp() {
         console.error('Failed to start Flip 7:', error);
         
         // Fallback to legacy game.js
-        console.log('Falling back to legacy game.js...');
-        const fallbackScript = document.createElement('script');
-        fallbackScript.src = 'game.js?v=9.0&t=20250808-center-animation';
-        document.head.appendChild(fallbackScript);
+        // console.log('Falling back to legacy game.js...');
+        // const fallbackScript = document.createElement('script');
+        // fallbackScript.src = 'game.js?v=9.0&t=20250808-center-animation';
+        // document.head.appendChild(fallbackScript);
     }
 }
 
