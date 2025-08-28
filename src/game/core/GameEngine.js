@@ -17,6 +17,12 @@ class GameEngine {
         this.gameActive = false;
         this.winningScore = config.winningScore || GameConstants.WINNING_SCORE;
         
+        // Temporary storage for action cards awaiting target selection
+        this.pendingActionCard = null;
+        
+        // Track if we're in initial deal phase
+        this.isInitialDealPhase = false;
+        
         // Initialize players
         this.initializePlayers(config.playerName);
         
@@ -63,6 +69,9 @@ class GameEngine {
         
         // Action card targeting
         this.eventBus.on(GameEvents.ACTION_CARD_TARGET_SELECTED, this.handleActionTargetSelected.bind(this));
+        
+        // Initial deal events
+        this.eventBus.on(GameEvents.INITIAL_DEAL_ACTION_REQUIRED, this.handleInitialDealAction.bind(this));
         
         // Animation completion
         this.eventBus.on(GameEvents.ANIMATION_COMPLETE, this.handleAnimationComplete.bind(this));
@@ -116,7 +125,9 @@ class GameEngine {
         });
         
         // Deal initial cards
+        this.isInitialDealPhase = true;
         await this.cardManager.dealInitialCards(this.players, true);
+        this.isInitialDealPhase = false;
 
         this.players.forEach(player => {
             // Update the player's round score display immediately
@@ -142,6 +153,13 @@ class GameEngine {
             return;
         }
         
+        // Check if any players can still play
+        const activePlayers = this.players.filter(p => p.canPlay());
+        if (activePlayers.length === 0) {
+            this.endRound();
+            return;
+        }
+        
         // Find next active player
         let attempts = 0;
         while (!this.players[this.currentPlayerIndex].canPlay() && attempts < this.players.length) {
@@ -149,9 +167,9 @@ class GameEngine {
             attempts++;
         }
         
-        // Check if any players can still play
-        const activePlayers = this.players.filter(p => p.canPlay());
-        if (activePlayers.length === 0) {
+        // Safety check - if we couldn't find an active player after checking all positions
+        if (!this.players[this.currentPlayerIndex].canPlay()) {
+            console.error('GameEngine: Could not find active player, ending round');
             this.endRound();
             return;
         }
@@ -200,12 +218,15 @@ class GameEngine {
         console.log(`Player ${player.id} hit`);
         const result = this.cardManager.drawCardForPlayer(player);
         
-        // Emit card drawn event
-        this.eventBus.emit(GameEvents.CARD_DRAWN, {
-            player: player,
-            card: result.card,
-            result: result
-        });
+        // Only emit CARD_DRAWN for cards that are actually added to hand
+        // Action cards requiring immediate use and Second Chance scenarios should not trigger this event
+        if (!result.requiresAction && !result.secondChanceUsed) {
+            this.eventBus.emit(GameEvents.CARD_DRAWN, {
+                player: player,
+                card: result.card,
+                result: result
+            });
+        }
         
         if (!result.success && result.reason === 'bust') {
             // Player busts
@@ -218,6 +239,15 @@ class GameEngine {
         } else if (result.requiresAction) {
             // Handle special action cards - different flow for human vs AI
             this.handleActionCard(result.card, player);
+        } else if (result.secondChanceUsed) {
+            // Second Chance was used - cards already removed from hand and discarded
+            // Update score and continue turn
+            this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
+                playerId: player.id,
+                roundScore: player.calculateScore(),
+                totalScore: player.totalScore
+            });
+            this.endTurn();
         } else if (result.isFlip7) {
             // Player got Flip 7
             this.endTurn();
@@ -239,6 +269,12 @@ class GameEngine {
      */
     handleActionCard(card, sourcePlayer) {
         if (sourcePlayer.isHuman) {
+            // Store action card temporarily for human players
+            this.pendingActionCard = {
+                card: card,
+                sourcePlayer: sourcePlayer
+            };
+            
             // Human player - show targeting UI
             this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
                 card: card,
@@ -261,9 +297,55 @@ class GameEngine {
      * @param {Object} data - Target selection data
      */
     handleActionTargetSelected(data) {
-        const { card, sourcePlayer, targetPlayer } = data;
+        const { card, sourcePlayer, targetPlayer, isInitialDeal } = data;
+        
+        // Clear pending action card for regular gameplay
+        if (!isInitialDeal && this.pendingActionCard) {
+            this.pendingActionCard = null;
+        }
+        
         this.executeActionCard(card, sourcePlayer, targetPlayer);
-        this.endTurn();
+        
+        // Only end turn if not during initial deal
+        if (!isInitialDeal) {
+            this.endTurn();
+        }
+        // For initial deal, the CardManager's waitForActionResolution will handle continuation
+    }
+    
+    /**
+     * Handle action card drawn during initial deal
+     * @param {Object} data - Action card data
+     */
+    handleInitialDealAction(data) {
+        const { card, sourcePlayer, availableTargets, isInitialDeal } = data;
+        console.log(`GameEngine: Handling initial deal action - ${sourcePlayer.name} drew ${card.value}`);
+        
+        if (sourcePlayer.isHuman) {
+            console.log('GameEngine: Human player needs to select target via UI');
+            // Human player needs to select target via UI
+            // The UI will emit ACTION_CARD_TARGET_SELECTED with isInitialDeal: true
+            this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
+                card: card,
+                sourcePlayer: sourcePlayer,
+                availableTargets: availableTargets,
+                isInitialDeal: isInitialDeal
+            });
+        } else {
+            console.log('GameEngine: AI player auto-selecting target');
+            // AI player auto-selects target
+            const target = this.determineActionTarget(sourcePlayer, card);
+            if (target) {
+                console.log(`GameEngine: AI ${sourcePlayer.name} targeting ${target.name} with ${card.value}`);
+                // Use setTimeout to ensure CardManager listeners are set up first
+                setTimeout(async () => {
+                    await this.executeActionCard(card, sourcePlayer, target);
+                }, 10);
+            } else {
+                console.log('GameEngine: No valid target found for AI player');
+            }
+            // The CardManager's waitForActionResolution will handle continuation
+        }
     }
     
     /**
@@ -273,17 +355,27 @@ class GameEngine {
      * @param {Player} targetPlayer - Target player
      */
     async executeActionCard(card, sourcePlayer, targetPlayer) {
+        console.log(`GameEngine: Executing action card ${card.value} from ${sourcePlayer.name} to ${targetPlayer.name}`);
+        
         if (card.value === 'freeze') {
+            console.log('GameEngine: Processing freeze card');
             // Apply freeze via CardManager
-            this.cardManager.handleActionCard(card, sourcePlayer, targetPlayer);
-            // Discard the action card
+            await this.cardManager.handleActionCard(card, sourcePlayer, targetPlayer);
+            console.log('GameEngine: Freeze action completed, removing card from hand');
+            
+            // Remove from source player's hand and discard
+            const removed = sourcePlayer.removeCard(card);
+            console.log(`GameEngine: Card removal ${removed ? 'successful' : 'failed'}`);
             this.cardManager.discardCards([card]);
-            // Update score/state
+            console.log('GameEngine: Freeze card discarded');
+            
+            // Update score/state for target
             this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
                 playerId: targetPlayer.id,
                 roundScore: targetPlayer.calculateScore(),
                 totalScore: targetPlayer.totalScore
             });
+            console.log(`GameEngine: Updated ${targetPlayer.name} status to ${targetPlayer.status}`);
         }
         
         if (card.value === 'flip3') {
@@ -327,7 +419,8 @@ class GameEngine {
                 await this.processFlip3ActionCards(actionCards, targetPlayer);
             }
             
-            // Discard the original Flip3 card
+            // Remove from source player's hand and discard the original Flip3 card
+            sourcePlayer.removeCard(card);
             this.cardManager.discardCards([card]);
             
             if (!busted) {
@@ -378,8 +471,11 @@ class GameEngine {
                     const target = this.determineActionTarget(targetPlayer, actionCard);
                     if (target) {
                         await this.executeActionCard(actionCard, targetPlayer, target);
+                    } else {
+                        // No valid target - remove from hand and discard
+                        targetPlayer.removeCard(actionCard);
+                        this.cardManager.discardCards([actionCard]);
                     }
-                    this.cardManager.discardCards([actionCard]);
                 }
             }
         }
@@ -484,6 +580,12 @@ class GameEngine {
      * End the current turn
      */
     endTurn() {
+        // Prevent endTurn during initial deal phase
+        if (this.isInitialDealPhase) {
+            console.warn('GameEngine: endTurn called during initial deal phase - ignoring');
+            return;
+        }
+        
         this.eventBus.emit(GameEvents.TURN_END, {
             player: this.players[this.currentPlayerIndex]
         });
