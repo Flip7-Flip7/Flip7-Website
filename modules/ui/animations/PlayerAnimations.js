@@ -20,6 +20,7 @@ export class PlayerAnimations {
      */
     setupEventListeners() {
         eventBus.on(GameEvents.PLAYER_FROZEN, (data) => this.handlePlayerFrozen(data));
+        eventBus.on(GameEvents.ROUND_STARTED, () => this.clearAllFreezeEffects());
     }
 
     /**
@@ -279,6 +280,31 @@ export class PlayerAnimations {
         elementsToRemove.forEach(selector => {
             const element = container.querySelector(selector);
             if (element) element.remove();
+        });
+    }
+
+    /**
+     * Clear all freeze effects from all players (called on round start)
+     */
+    clearAllFreezeEffects() {
+        console.log('🧹 PlayerAnimations: Clearing all freeze effects for new round');
+        
+        // Get all possible player container IDs
+        const playerIds = ['player', 'opponent1', 'opponent2', 'opponent3'];
+        
+        playerIds.forEach(playerId => {
+            // Clear desktop container
+            const desktopContainer = document.getElementById(playerId);
+            if (desktopContainer) {
+                this.removeFreezeEffects(desktopContainer);
+            }
+            
+            // Clear mobile container  
+            const mobileId = playerId === 'player' ? 'mobile-player' : `mobile-${playerId}`;
+            const mobileContainer = document.getElementById(mobileId);
+            if (mobileContainer) {
+                this.removeFreezeEffects(mobileContainer);
+            }
         });
     }
 
