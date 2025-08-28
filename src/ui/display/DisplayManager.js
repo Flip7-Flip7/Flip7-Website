@@ -13,6 +13,14 @@ class DisplayManager {
             this.isMobile = window.innerWidth <= GameConstants.BREAKPOINTS.MOBILE;
         });
         
+        // Action card targeting state
+        this.targetingMode = false;
+        this.targetingCard = null;
+        this.targetingSourcePlayer = null;
+        this.targetingIsInitialDeal = false;
+        this.targetingAvailableTargets = [];
+        this.targetingClickHandlers = new Map();
+        
         this.setupEventListeners();
     }
 
@@ -34,6 +42,8 @@ class DisplayManager {
         this.eventBus.on(GameEvents.PLAYER_STAY, this.onPlayerStay.bind(this));
         this.eventBus.on(GameEvents.FREEZE_CARD_USED, this.onFreezeUsed.bind(this));
         this.eventBus.on(GameEvents.PLAYER_FROZEN, this.onPlayerFrozen.bind(this));
+        this.eventBus.on(GameEvents.SECOND_CHANCE_ACTIVATED, this.onSecondChanceActivated.bind(this));
+        this.eventBus.on(GameEvents.ACTION_CARD_TARGET_NEEDED, this.onActionCardTargetNeeded.bind(this));
         
         // Card events
         this.eventBus.on(GameEvents.CARD_DEALT, this.onCardDealt.bind(this));
@@ -167,6 +177,24 @@ class DisplayManager {
     }
 
     /**
+     * Handle Second Chance activation - remove cards from UI display
+     */
+    onSecondChanceActivated(data) {
+        const { player, secondChanceCard, card, discardedCards } = data;
+        console.log(`Display: Second Chance activated for ${player.name}`);
+        
+        // Remove both cards from the UI display
+        if (discardedCards && discardedCards.length > 0) {
+            discardedCards.forEach(discardedCard => {
+                this.removeCardFromDisplay(player.id, discardedCard);
+            });
+        }
+        
+        // Force refresh the player's card display to ensure accurate representation
+        this.refreshPlayerCards(player.id, player);
+    }
+
+    /**
      * Handle player stay event - show an overlay similar to legacy game.js
      */
     onPlayerStay(data) {
@@ -241,23 +269,47 @@ class DisplayManager {
      * Handle game end and show winner overlay
      */
     onGameEnd(data) {
-        const winnerName = data?.winner?.name || 'Winner';
+        const winner = data?.winner;
+        const winnerName = winner?.name || 'Winner';
+        const isHumanWin = winner?.isHuman;
+        
+        // Show celebration overlay
         const celebration = document.getElementById('winning-celebration');
         if (celebration) {
             celebration.style.display = 'flex';
         }
+        
+        // Update celebration text based on who won
+        const celebrationText = document.getElementById('celebration-text');
+        const celebrationSubtext = document.getElementById('celebration-subtext');
+        
+        if (isHumanWin) {
+            if (celebrationText) celebrationText.textContent = '🎉 Congratulations You Won! 🎉';
+            if (celebrationSubtext) celebrationSubtext.textContent = 'Amazing job! Click anywhere to continue.';
+        } else {
+            if (celebrationText) celebrationText.textContent = `🎯 ${winnerName} Wins!`;
+            if (celebrationSubtext) celebrationSubtext.textContent = 'Better luck next time! Click anywhere to continue.';
+        }
+        
+        // Add dismissal handlers
+        this.setupCelebrationDismissal();
+        
         // Update mobile banner
         const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
         const mobileGameInfo = document.getElementById('mobile-game-info');
         if (mobileTurnIndicator) mobileTurnIndicator.textContent = `🎉 ${winnerName} Wins!`;
         if (mobileGameInfo) mobileGameInfo.textContent = 'Click "Start Game" to play again';
+        
         // Disable action buttons
         ['hit-btn','stay-btn','mobile-hit-btn','mobile-stay-btn'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = true;
         });
-        // Simple confetti
-        this.createConfetti();
+        
+        // Simple confetti for human wins
+        if (isHumanWin) {
+            this.createConfetti();
+        }
     }
 
     createConfetti() {
@@ -271,6 +323,35 @@ class DisplayManager {
             confetti.style.animationDelay = (Math.random() * 3) + 's';
             confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
             container.appendChild(confetti);
+        }
+    }
+
+    /**
+     * Setup dismissal handlers for celebration overlay
+     */
+    setupCelebrationDismissal() {
+        const celebration = document.getElementById('winning-celebration');
+        const closeBtn = document.getElementById('close-celebration');
+        
+        const dismissCelebration = () => {
+            if (celebration) {
+                celebration.style.display = 'none';
+            }
+        };
+        
+        // Close button handler
+        if (closeBtn) {
+            closeBtn.onclick = dismissCelebration;
+        }
+        
+        // Click anywhere on overlay to dismiss
+        if (celebration) {
+            celebration.onclick = (e) => {
+                // Only dismiss if clicking the overlay itself, not the banner
+                if (e.target === celebration) {
+                    dismissCelebration();
+                }
+            };
         }
     }
 
@@ -491,6 +572,9 @@ class DisplayManager {
             case 'gameLog':
                 this.addToGameLog(params.message);
                 break;
+            case 'refreshPlayerCards':
+                this.refreshPlayerCards(params.playerId, params.player);
+                break;
             default:
                 console.log('Unknown UI update type:', type);
         }
@@ -544,6 +628,150 @@ class DisplayManager {
         }
         const el = document.getElementById(`${playerId}-cards`);
         return el || null;
+    }
+
+    /**
+     * Remove a specific card from the player's display
+     */
+    removeCardFromDisplay(playerId, cardToRemove) {
+        const container = this.getPlayerCardContainer(playerId);
+        if (!container) return;
+
+        // Find and remove the card element that matches the card
+        const cardElements = container.children;
+        for (let i = cardElements.length - 1; i >= 0; i--) {
+            const cardEl = cardElements[i];
+            // Remove the most recently added card that matches the type/value
+            if (this.cardElementMatches(cardEl, cardToRemove)) {
+                cardEl.remove();
+                break;
+            }
+        }
+    }
+
+    /**
+     * Check if a card element matches a card object
+     */
+    cardElementMatches(cardElement, card) {
+        // Basic matching - could be improved with better card identification
+        if (!cardElement || !card) return false;
+        
+        // Check if it has the same card type class
+        return cardElement.classList.contains(card.type);
+    }
+
+    /**
+     * Refresh player's entire card display based on their current hand
+     */
+    refreshPlayerCards(playerId, player) {
+        const container = this.getPlayerCardContainer(playerId);
+        if (!container || !player) return;
+
+        // Clear all existing cards
+        container.innerHTML = '';
+
+        // Re-add all cards from player's current hand
+        const allCards = player.getAllCards ? player.getAllCards() : [];
+        allCards.forEach(card => {
+            const cardEl = card.toElement();
+            container.appendChild(cardEl);
+        });
+    }
+    
+    /**
+     * Handle action card target needed - enable click targeting on player boxes
+     */
+    onActionCardTargetNeeded(data) {
+        const { card, sourcePlayer, availableTargets, isInitialDeal } = data;
+        
+        // Enter targeting mode
+        this.targetingMode = true;
+        this.targetingCard = card;
+        this.targetingSourcePlayer = sourcePlayer;
+        this.targetingIsInitialDeal = isInitialDeal || false;
+        this.targetingAvailableTargets = availableTargets || [];
+        
+        // Clear any existing click handlers
+        this.clearTargetingHandlers();
+        
+        // Add visual feedback and click handlers to targetable players
+        this.targetingAvailableTargets.forEach(targetPlayer => {
+            const playerContainer = document.getElementById(targetPlayer.id);
+            if (!playerContainer) return;
+            
+            // Add targetable class for visual feedback
+            playerContainer.classList.add('targetable');
+            
+            // Create click handler
+            const clickHandler = (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Emit target selected event
+                this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_SELECTED, {
+                    card: this.targetingCard,
+                    sourcePlayer: this.targetingSourcePlayer,
+                    targetPlayer: targetPlayer,
+                    isInitialDeal: this.targetingIsInitialDeal
+                });
+                
+                // Exit targeting mode
+                this.exitTargetingMode();
+            };
+            
+            // Store handler reference for cleanup
+            this.targetingClickHandlers.set(targetPlayer.id, clickHandler);
+            
+            // Add click handler to player container
+            playerContainer.addEventListener('click', clickHandler);
+            playerContainer.style.cursor = 'pointer';
+        });
+        
+        // Update game status to show targeting instructions
+        const cardName = card.value === 'freeze' ? 'Freeze' : 'Flip 3';
+        const message = sourcePlayer.isHuman ? 
+            `Choose a player to ${card.value === 'freeze' ? 'freeze' : 'use Flip 3 on'}` :
+            `${sourcePlayer.name} is choosing a target for ${cardName}`;
+            
+        this.updateGameStatus(message);
+        
+        // For mobile, ensure the mobile status banner is updated too
+        const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
+        if (mobileTurnIndicator && sourcePlayer.isHuman) {
+            mobileTurnIndicator.textContent = `Tap a player to use ${cardName}`;
+        }
+    }
+    
+    /**
+     * Exit targeting mode and clean up
+     */
+    exitTargetingMode() {
+        this.targetingMode = false;
+        this.clearTargetingHandlers();
+        
+        // Reset targeting state
+        this.targetingCard = null;
+        this.targetingSourcePlayer = null;
+        this.targetingIsInitialDeal = false;
+        this.targetingAvailableTargets = [];
+    }
+    
+    /**
+     * Clear all targeting click handlers and visual feedback
+     */
+    clearTargetingHandlers() {
+        // Remove all click handlers
+        this.targetingClickHandlers.forEach((handler, playerId) => {
+            const playerContainer = document.getElementById(playerId);
+            if (playerContainer) {
+                playerContainer.removeEventListener('click', handler);
+                playerContainer.classList.remove('targetable');
+                playerContainer.style.cursor = '';
+            }
+        });
+        
+        // Clear handler map
+        this.targetingClickHandlers.clear();
     }
 }
 

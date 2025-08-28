@@ -242,6 +242,15 @@ class GameEngine {
         } else if (result.requiresAction) {
             // Handle special action cards - different flow for human vs AI
             this.handleActionCard(result.card, player);
+        } else if (result.requiresTargeting) {
+            // Handle Second Chance redistribution targeting for human players
+            this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
+                card: result.card,
+                sourcePlayer: player,
+                availableTargets: result.availableTargets,
+                isSecondChanceRedistribution: true
+            });
+            // Turn will continue when target is selected
         } else if (result.secondChanceUsed) {
             // Second Chance was used - cards already removed from hand and discarded
             // Update score and continue turn
@@ -275,6 +284,21 @@ class GameEngine {
         console.log(`GameEngine: Handling action card ${card.value} for ${sourcePlayer.name}, skipTurnEnd: ${skipTurnEnd}`);
         
         if (sourcePlayer.isHuman) {
+            const availableTargets = this.getAvailableTargets(sourcePlayer, card);
+            
+            // Auto-target ONLY if they are the sole remaining active player (no choice)
+            if (availableTargets.length === 1 && availableTargets[0].id === sourcePlayer.id) {
+                console.log(`GameEngine: ${sourcePlayer.name} is the only active player left, auto-targeting themselves`);
+                this.executeActionCard(card, sourcePlayer, availableTargets[0]);
+                if (!skipTurnEnd) {
+                    this.endTurn();
+                }
+                return;
+            }
+            
+            // Debug logging for troubleshooting
+            console.log(`GameEngine: ${availableTargets.length} targets available for ${sourcePlayer.name}:`, availableTargets.map(t => `${t.name}(${t.status})`));
+            
             // Store action card temporarily for human players
             this.pendingActionCard = {
                 card: card,
@@ -285,7 +309,7 @@ class GameEngine {
             this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
                 card: card,
                 sourcePlayer: sourcePlayer,
-                availableTargets: this.getAvailableTargets(sourcePlayer, card)
+                availableTargets: availableTargets
             });
             // Turn will continue when target is selected
         } else {
@@ -379,6 +403,13 @@ class GameEngine {
             this.cardManager.discardCards([card]);
             console.log('GameEngine: Freeze card discarded');
             
+            // Force UI refresh for source player to remove the used action card
+            this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
+                type: 'refreshPlayerCards',
+                playerId: sourcePlayer.id,
+                player: sourcePlayer
+            });
+            
             // Update score/state for target
             this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
                 playerId: targetPlayer.id,
@@ -433,6 +464,13 @@ class GameEngine {
             sourcePlayer.removeCard(card);
             this.cardManager.discardCards([card]);
             
+            // Force UI refresh for source player to remove the used action card
+            this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
+                type: 'refreshPlayerCards',
+                playerId: sourcePlayer.id,
+                player: sourcePlayer
+            });
+            
             if (!busted) {
                 // Update score after flip3 sequence
                 this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
@@ -457,12 +495,24 @@ class GameEngine {
             
             if (actionCard.value === 'second chance') {
                 console.log('GameEngine: Handling Second Chance from Flip3');
-                // Handle Second Chance through CardManager (no targeting needed)
+                // Handle Second Chance through CardManager
                 const result = this.cardManager.handleSecondChanceCard(targetPlayer, actionCard);
                 if (result.addedToHand) {
                     console.log('GameEngine: Second Chance added to player hand');
                 } else if (result.givenTo) {
                     console.log(`GameEngine: Second Chance given to ${result.givenTo}`);
+                } else if (result.discarded) {
+                    console.log('GameEngine: Second Chance discarded (no eligible recipients)');
+                } else if (result.requiresTargeting) {
+                    console.log(`GameEngine: Second Chance requires targeting by ${targetPlayer.name}`);
+                    // Human player needs to select target for Second Chance redistribution
+                    this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
+                        card: actionCard,
+                        sourcePlayer: targetPlayer,
+                        availableTargets: result.availableTargets,
+                        isSecondChanceRedistribution: true
+                    });
+                    // Turn continues after target selection
                 }
                 continue;
             }
