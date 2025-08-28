@@ -114,8 +114,11 @@ class CardManager {
             return this.handleSecondChanceCard(player, card);
         }
         
-        // Check if it's other action cards (Freeze/Flip3) - use immediately
+        // Check if it's other action cards (Freeze/Flip3) - add to hand first, then use
         if (card.requiresSpecialHandling()) {
+            // Add card to player's hand so it can be properly removed later
+            player.addCard(card);
+            
             return {
                 success: true,
                 card: card,
@@ -150,6 +153,8 @@ class CardManager {
             const secondChanceCard = player.actionCards.find(c => c.value === 'second chance');
             if (secondChanceCard) {
                 player.removeCard(secondChanceCard);
+                // Also remove the duplicate card that was just added to hand
+                player.removeCard(card);
                 // Discard both the Second Chance card and the duplicate card that triggered it
                 this.discardCards([secondChanceCard, card]);
             }
@@ -193,8 +198,15 @@ class CardManager {
      * @returns {Object} Result
      */
     handleSecondChanceCard(player, card) {
-        // If player doesn't have Second Chance, add it to their hand
-        if (!player.hasSecondChance) {
+        console.log(`CardManager: Handling Second Chance card for ${player.name}`);
+        
+        // Count how many Second Chance cards the player currently has
+        const secondChanceCards = player.actionCards.filter(c => c.value === 'second chance');
+        console.log(`CardManager: Player ${player.name} has ${secondChanceCards.length} Second Chance cards`);
+        
+        // If player doesn't have any Second Chance cards, add it to their hand
+        if (secondChanceCards.length === 0) {
+            console.log(`CardManager: Adding first Second Chance to ${player.name}'s hand`);
             player.addCard(card);
             player.hasSecondChance = true;
             
@@ -215,9 +227,18 @@ class CardManager {
             };
         }
         
-        // Player already has Second Chance - must give to another active player without Second Chance
+        // Player has 1+ Second Chance cards - must redistribute this one
+        console.log(`CardManager: Player ${player.name} already has Second Chance - must redistribute`);
+        
+        // If the card was already added to hand (from Flip3), remove it first
+        if (secondChanceCards.length > 1) {
+            console.log(`CardManager: Removing duplicate Second Chance from ${player.name}'s hand`);
+            player.removeCard(card);
+        }
+        
         const eligibleRecipients = this.getEligibleSecondChanceRecipients(player);
         if (eligibleRecipients.length === 0) {
+            console.log(`CardManager: No eligible recipients - discarding Second Chance`);
             // No eligible recipients - discard it
             this.discardCards([card]);
             return {
@@ -227,22 +248,34 @@ class CardManager {
             };
         }
         
-        // Auto-select recipient (prefer player with lowest total score)
-        const recipient = eligibleRecipients.sort((a, b) => a.totalScore - b.totalScore)[0];
-        recipient.addCard(card);
-        recipient.hasSecondChance = true;
-        
-        this.eventBus.emit(GameEvents.SECOND_CHANCE_GIVEN, {
-            giver: player,
-            recipient: recipient,
-            card: card
-        });
-        
-        return {
-            success: true,
-            card: card,
-            givenTo: recipient.id
-        };
+        if (player.isHuman) {
+            console.log(`CardManager: Human player must choose recipient for Second Chance`);
+            // Human player needs to choose recipient
+            return {
+                success: true,
+                card: card,
+                requiresTargeting: true,
+                availableTargets: eligibleRecipients
+            };
+        } else {
+            console.log(`CardManager: AI auto-selecting recipient for Second Chance`);
+            // Auto-select recipient (prefer player with lowest total score)
+            const recipient = eligibleRecipients.sort((a, b) => a.totalScore - b.totalScore)[0];
+            recipient.addCard(card);
+            recipient.hasSecondChance = true;
+            
+            this.eventBus.emit(GameEvents.SECOND_CHANCE_GIVEN, {
+                giver: player,
+                recipient: recipient,
+                card: card
+            });
+            
+            return {
+                success: true,
+                card: card,
+                givenTo: recipient.id
+            };
+        }
     }
     
     /**
