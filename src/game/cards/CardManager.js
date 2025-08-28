@@ -6,16 +6,13 @@ class CardManager {
     constructor(deck, eventBus) {
         this.deck = deck;
         this.eventBus = eventBus;
-        this.animationQueue = [];
-        this.isProcessingQueue = false;
     }
 
     /**
      * Deal initial cards to all players
      * @param {Array<Player>} players - Array of players
-     * @param {boolean} animate - Whether to animate the dealing
      */
-    async dealInitialCards(players, animate = true) {
+    async dealInitialCards(players) {
         console.log('CardManager: Dealing initial cards to players');
         
         for (let i = 0; i < players.length; i++) {
@@ -31,14 +28,9 @@ class CardManager {
                     card: card,
                     playerId: player.id,
                     playerIndex: i,
-                    isInitialDeal: true,
-                    animate: animate
+                    isInitialDeal: true
                 });
                 
-                // Add delay between cards if animating
-                if (animate) {
-                    await this.delay(500);
-                }
             }
         }
         
@@ -70,6 +62,12 @@ class CardManager {
         
         // Add card to player
         const result = player.addCard(card);
+        // Emit dealt to keep UI consistent for non-action draws
+        this.eventBus.emit(GameEvents.CARD_DRAWN, {
+            card: card,
+            playerId: player.id,
+            isInitialDeal: false
+        });
         
         // Handle duplicate number
         if (result.isDuplicate && !player.hasSecondChance) {

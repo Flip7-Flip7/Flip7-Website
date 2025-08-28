@@ -70,13 +70,13 @@ class Player {
                 
             case 'modifier':
                 this.modifierCards.push(card);
-                if (card.value === 'second chance') {
-                    this.hasSecondChance = true;
-                }
                 break;
                 
             case 'action':
                 this.actionCards.push(card);
+                if (card.value === 'second chance') {
+                    this.hasSecondChance = true;
+                }
                 break;
         }
 

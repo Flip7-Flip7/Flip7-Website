@@ -22,13 +22,18 @@ class DisplayManager {
     setupEventListeners() {
         // Game state events
         this.eventBus.on(GameEvents.GAME_START, this.onGameStart.bind(this));
+        this.eventBus.on(GameEvents.GAME_END, this.onGameEnd.bind(this));
         this.eventBus.on(GameEvents.ROUND_START, this.onRoundStart.bind(this));
+        this.eventBus.on(GameEvents.ROUND_END, this.onRoundEnd.bind(this));
         this.eventBus.on(GameEvents.TURN_START, this.onTurnStart.bind(this));
         
         // Player events
         this.eventBus.on(GameEvents.PLAYER_SCORE_UPDATE, this.updatePlayerScore.bind(this));
         this.eventBus.on(GameEvents.PLAYER_BUST, this.onPlayerBust.bind(this));
         this.eventBus.on(GameEvents.PLAYER_FLIP7, this.onPlayerFlip7.bind(this));
+        this.eventBus.on(GameEvents.PLAYER_STAY, this.onPlayerStay.bind(this));
+        this.eventBus.on(GameEvents.FREEZE_CARD_USED, this.onFreezeUsed.bind(this));
+        this.eventBus.on(GameEvents.PLAYER_FROZEN, this.onPlayerFrozen.bind(this));
         
         // Card events
         this.eventBus.on(GameEvents.CARD_DEALT, this.onCardDealt.bind(this));
@@ -68,6 +73,9 @@ class DisplayManager {
     onGameStart(data) {
         console.log('Display: Game started', data);
         this.updateGameStatus('Game Started');
+        // Hide any endgame overlay
+        const celebration = document.getElementById('winning-celebration');
+        if (celebration) celebration.style.display = 'none';
     }
 
     /**
@@ -76,6 +84,34 @@ class DisplayManager {
     onRoundStart(data) {
         console.log('Display: Round started', data);
         this.updateGameStatus(`Round ${data.roundNumber}`);
+        this.resetBoardForNewRound();
+        // Add dealer label like legacy
+        if (typeof data?.dealerIndex === 'number') {
+            this.setDealerIndicator(data.dealerIndex);
+        }
+    }
+
+    /**
+     * Handle round end: ensure totals are updated and round scores displayed correctly
+     */
+    onRoundEnd(data) {
+        try {
+            const scores = data?.scores || [];
+            scores.forEach(entry => {
+                const playerId = entry?.player?.id;
+                if (!playerId) return;
+                // Update total and round scores in header
+                const totalEls = document.querySelectorAll(`#${playerId} .player-header .score-value`);
+                totalEls.forEach(el => el.textContent = entry.totalScore);
+                const roundEls = document.querySelectorAll(`#${playerId} .player-header .round-value`);
+                roundEls.forEach(el => el.textContent = entry.roundScore);
+            });
+
+            // Update scoreboard panels with new totals
+            this.updateScoreboardFromScores(scores);
+        } catch (e) {
+            console.warn('onRoundEnd UI update failed:', e);
+        }
     }
 
     /**
@@ -85,6 +121,7 @@ class DisplayManager {
         const { player, playerIndex } = data;
         this.highlightCurrentPlayer(playerIndex);
         this.updateTurnIndicator(player);
+        this.updateActionButtons(player);
     }
 
     /**
@@ -127,8 +164,184 @@ class DisplayManager {
     onPlayerFlip7(data) {
         const { player } = data;
         console.log(`Display: ${player.name} got Flip 7!`);
-        // Trigger celebration animation
-        this.eventBus.emit('celebration:flip7', { player });
+    }
+
+    /**
+     * Handle player stay event - show an overlay similar to legacy game.js
+     */
+    onPlayerStay(data) {
+        const { player, score } = data;
+        const container = document.getElementById(player.id);
+        if (!container) return;
+
+        // Add persistent stayed class (styling defined in CSS)
+        container.classList.add('stayed');
+
+        // Remove any previous indicator
+        const existing = container.querySelector('.stayed-indicator');
+        if (existing) existing.remove();
+
+        // Create stayed indicator
+        const stayedIndicator = document.createElement('div');
+        stayedIndicator.className = 'stayed-indicator';
+        stayedIndicator.innerHTML = `
+            <span class="stayed-icon">✓</span>
+            <span class="stayed-text">STAYED</span>
+            <span class="stayed-points">${score} Points Banked!</span>
+        `;
+        // Position indicator at the top of the player area
+        stayedIndicator.style.cssText = `
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        `;
+        container.style.position = container.style.position || 'relative';
+        container.appendChild(stayedIndicator);
+
+        // Optional subtle glow on cards
+        const cards = container.querySelectorAll('.card');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('stay-glow');
+                setTimeout(() => card.classList.remove('stay-glow'), 1200);
+            }, index * 50);
+        });
+    }
+
+    /**
+     * Update scoreboard elements using provided score objects
+     */
+    updateScoreboardFromScores(scores) {
+        try {
+            // Normalize array of { player:{id,name}, totalScore }
+            const normalized = scores.map(s => ({
+                id: s?.player?.id,
+                name: s?.player?.name,
+                total: s?.totalScore ?? 0
+            })).filter(x => x.id);
+            const sorted = normalized.sort((a,b) => b.total - a.total);
+            const boards = document.querySelectorAll('#scoreboard-content');
+            boards.forEach(board => {
+                board.innerHTML = '';
+                sorted.forEach(entry => {
+                    const div = document.createElement('div');
+                    div.className = 'score-entry';
+                    div.innerHTML = `<span>${entry.name}</span><span>${entry.total} pts</span>`;
+                    board.appendChild(div);
+                });
+            });
+        } catch (e) {
+            console.warn('Failed to update scoreboard:', e);
+        }
+    }
+
+    /**
+     * Handle game end and show winner overlay
+     */
+    onGameEnd(data) {
+        const winnerName = data?.winner?.name || 'Winner';
+        const celebration = document.getElementById('winning-celebration');
+        if (celebration) {
+            celebration.style.display = 'flex';
+        }
+        // Update mobile banner
+        const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
+        const mobileGameInfo = document.getElementById('mobile-game-info');
+        if (mobileTurnIndicator) mobileTurnIndicator.textContent = `🎉 ${winnerName} Wins!`;
+        if (mobileGameInfo) mobileGameInfo.textContent = 'Click "Start Game" to play again';
+        // Disable action buttons
+        ['hit-btn','stay-btn','mobile-hit-btn','mobile-stay-btn'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = true;
+        });
+        // Simple confetti
+        this.createConfetti();
+    }
+
+    createConfetti() {
+        const container = document.getElementById('confetti-container');
+        if (!container) return;
+        container.innerHTML = '';
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.animationDelay = (Math.random() * 3) + 's';
+            confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+            container.appendChild(confetti);
+        }
+    }
+
+    /**
+     * Handle freeze card used - show frozen overlay on target
+     */
+    onFreezeUsed(data) {
+        const { targetPlayer } = data;
+        if (!targetPlayer) return;
+        this.addFrozenOverlay(targetPlayer.id);
+    }
+
+    /**
+     * Handle generic player frozen event (if emitted)
+     */
+    onPlayerFrozen(data) {
+        const { player } = data;
+        if (!player) return;
+        this.addFrozenOverlay(player.id);
+    }
+
+    /**
+     * Add a visual frozen overlay to a player's container
+     */
+    addFrozenOverlay(playerId) {
+        const container = document.getElementById(playerId);
+        if (!container) return;
+
+        // Clean any previous frozen visuals first
+        ['freeze-overlay','freeze-ice-shards','freeze-particles','ice-particles'].forEach(cls => {
+            container.querySelectorAll(`.${cls}`).forEach(el => el.remove());
+        });
+
+        container.classList.add('frozen');
+        container.style.position = container.style.position || 'relative';
+
+        // Simple overlay (no animations)
+        const overlay = document.createElement('div');
+        overlay.className = 'freeze-overlay';
+        overlay.style.cssText = `
+            position: absolute;
+            inset: 0;
+            background: rgba(96, 165, 250, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            backdrop-filter: saturate(0.8);
+        `;
+        const label = document.createElement('div');
+        label.className = 'freeze-overlay-text';
+        label.textContent = '❄ FROZEN ❄';
+        label.style.cssText = `
+            color: #e5f2ff;
+            font-weight: 800;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+        `;
+        overlay.appendChild(label);
+        container.appendChild(overlay);
+
+        // Update status text
+        const statusEl = container.querySelector('.player-status');
+        if (statusEl) statusEl.textContent = 'Frozen ❄️';
+
+        // If this is the human player, disable action buttons
+        if (playerId === 'player') {
+            ['hit-btn','stay-btn','mobile-hit-btn','mobile-stay-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = true;
+            });
+        }
     }
 
     /**
@@ -191,6 +404,80 @@ class DisplayManager {
         }
     }
 
+    /** Enable/disable Hit/Stay for human vs AI turns */
+    updateActionButtons(currentPlayer) {
+        const humanTurn = !!currentPlayer?.isHuman && currentPlayer?.status === 'active';
+        const setDisabled = (id, disabled) => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = disabled;
+        };
+        setDisabled('hit-btn', !humanTurn);
+        setDisabled('stay-btn', !humanTurn || (currentPlayer?.numberCards?.length || 0) === 0);
+        setDisabled('mobile-hit-btn', !humanTurn);
+        setDisabled('mobile-stay-btn', !humanTurn || (currentPlayer?.numberCards?.length || 0) === 0);
+    }
+
+    /**
+     * Clear all board visuals at the start of a new round
+     */
+    resetBoardForNewRound() {
+        const playerIds = ['player', 'opponent1', 'opponent2', 'opponent3'];
+        playerIds.forEach(id => {
+            const container = document.getElementById(id);
+            if (!container) return;
+
+            // Remove state classes
+            container.classList.remove(
+                GameConstants.UI_CLASSES?.BUSTED || 'busted',
+                GameConstants.UI_CLASSES?.FROZEN || 'frozen',
+                GameConstants.UI_CLASSES?.CURRENT_TURN || 'current-turn',
+                GameConstants.UI_CLASSES?.INACTIVE || 'inactive',
+                GameConstants.UI_CLASSES?.DEALER || 'dealer',
+                'stayed'
+            );
+
+            // Remove overlays/indicators if any
+            ['freeze-overlay','freeze-ice-shards','freeze-particles','ice-particles','stayed-indicator'].forEach(cls => {
+                container.querySelectorAll(`.${cls}`).forEach(el => el.remove());
+            });
+
+            // Clear card containers
+            const cardsEl = id === 'player' ? document.getElementById('player-cards') : document.getElementById(`${id}-cards`);
+            if (cardsEl) cardsEl.innerHTML = '';
+
+            // Reset status text to Active
+            const statusEl = container.querySelector('.player-status');
+            if (statusEl) statusEl.textContent = 'Active';
+
+            // Reset round score display to 0, keep total score as is
+            const headerRound = container.querySelector('.player-header .round-value');
+            if (headerRound) headerRound.textContent = '0';
+        });
+
+        // Disable actions until first TURN_START
+        ['hit-btn','stay-btn','mobile-hit-btn','mobile-stay-btn'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = true;
+        });
+    }
+
+    /**
+     * Set the dealer indicator class on the correct player container
+     */
+    setDealerIndicator(dealerIndex) {
+        const ids = ['player', 'opponent1', 'opponent2', 'opponent3'];
+        // Clear existing dealer marks
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove(GameConstants.UI_CLASSES?.DEALER || 'dealer');
+        });
+        const dealerId = ids[dealerIndex] || null;
+        if (dealerId) {
+            const el = document.getElementById(dealerId);
+            if (el) el.classList.add(GameConstants.UI_CLASSES?.DEALER || 'dealer');
+        }
+    }
+
     /**
      * Handle generic UI update requests
      */
@@ -242,8 +529,8 @@ class DisplayManager {
      */
     renderCardToPlayer(card, playerId) {
         const container = this.getPlayerCardContainer(playerId);
-        if (!container) return;
-        const cardEl = this.createCardElement(card);
+        if (!container || !card) return;
+        const cardEl = card.toElement();
         container.appendChild(cardEl);
         this.updateDeckCount(window.Flip7?.engine?.deck?.getCardsRemaining?.() ?? '');
     }
@@ -257,64 +544,6 @@ class DisplayManager {
         }
         const el = document.getElementById(`${playerId}-cards`);
         return el || null;
-    }
-
-    /**
-     * Create a card element using image mapping from legacy game.js
-     */
-    createCardElement(card) {
-        const cardDiv = document.createElement('div');
-        cardDiv.className = `card ${card.type}`;
-        
-        if (this.hasCustomCardImage(card)) {
-            const imageName = this.getCardImageName(card);
-            if (imageName) {
-                cardDiv.classList.add('custom-image');
-                cardDiv.style.backgroundImage = `url('./images/${imageName}')`;
-                cardDiv.style.backgroundSize = 'cover';
-                cardDiv.style.backgroundPosition = 'center';
-                return cardDiv;
-            }
-        }
-        
-        // Fallback to text display
-        const span = document.createElement('span');
-        span.textContent = card.display ?? String(card.value);
-        cardDiv.appendChild(span);
-        return cardDiv;
-    }
-
-    /** Check if we have a custom image for the card (mirrors game.js logic) */
-    hasCustomCardImage(card) {
-        if (!card || !card.type) return false;
-        if (card.type === 'number') {
-            const availableNumbers = [0,1,2,3,4,5,6,7,8,9,10,11,12];
-            return availableNumbers.includes(card.value);
-        }
-        if (card.type === 'modifier') {
-            return [2,4,6,8,10,'x2'].includes(card.value);
-        }
-        if (card.type === 'action') {
-            return ['freeze','flip3','second_chance'].includes(card.value);
-        }
-        return false;
-    }
-
-    /** Map card to image file name (mirrors game.js mapping) */
-    getCardImageName(card) {
-        if (card.type === 'number') {
-            return `card-${card.value}.png`;
-        }
-        if (card.type === 'modifier') {
-            if (card.value === 'x2') return 'card-*2.png';
-            if (typeof card.value === 'number') return `card-+${card.value}.png`;
-        }
-        if (card.type === 'action') {
-            if (card.value === 'flip3') return 'card-Flip3.png';
-            if (card.value === 'freeze') return 'card-Freeze.png';
-            if (card.value === 'second_chance') return 'card-SecondChance.png';
-        }
-        return null;
     }
 }
 

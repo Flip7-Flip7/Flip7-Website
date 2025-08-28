@@ -17,8 +17,8 @@ class Deck {
         
         // Add number cards (0-12) - multiple copies of each
         const numberCardCounts = {
-            0: 4, 1: 4, 2: 4, 3: 4, 4: 4, 5: 4,
-            6: 4, 7: 4, 8: 4, 9: 4, 10: 4, 11: 4, 12: 4
+            0: 1, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5,
+            6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 11, 12: 12
         };
         
         for (const [value, count] of Object.entries(numberCardCounts)) {
@@ -29,13 +29,12 @@ class Deck {
         
         // Add modifier cards
         const modifierCards = [
-            { value: 2, count: 8 },      // +2
-            { value: 4, count: 8 },      // +4
-            { value: 6, count: 6 },      // +6
-            { value: 8, count: 4 },      // +8
-            { value: 10, count: 2 },     // +10
-            { value: 'x2', count: 4 },   // ×2
-            { value: 'second chance', count: 6 } // Second Chance
+            { value: 2, count: 1 },      // +2
+            { value: 4, count: 1 },      // +4
+            { value: 6, count: 1 },      // +6
+            { value: 8, count: 1 },      // +8
+            { value: 10, count: 1 },     // +10
+            { value: 'x2', count: 1 },   // ×2
         ];
         
         modifierCards.forEach(({ value, count }) => {
@@ -46,8 +45,9 @@ class Deck {
         
         // Add action cards
         const actionCards = [
-            { value: 'freeze', count: 4 },
-            { value: 'flip3', count: 4 }
+            { value: 'freeze', count: 3 },
+            { value: 'flip3', count: 3 },
+            { value: 'second chance', count: 3 } // Second Chance
         ];
         
         actionCards.forEach(({ value, count }) => {

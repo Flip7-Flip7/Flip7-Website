@@ -29,28 +29,6 @@ const GameConstants = {
         TURN_HIGHLIGHT_DELAY: 800
     },
     
-    // Card Distribution
-    CARDS: {
-        NUMBERS: {
-            MIN: 0,
-            MAX: 12,
-            COUNT_PER_VALUE: 4
-        },
-        MODIFIERS: {
-            PLUS_2: { value: 2, count: 8 },
-            PLUS_4: { value: 4, count: 8 },
-            PLUS_6: { value: 6, count: 6 },
-            PLUS_8: { value: 8, count: 4 },
-            PLUS_10: { value: 10, count: 2 },
-            MULTIPLIER: { value: 'x2', count: 4 },
-            SECOND_CHANCE: { value: 'second chance', count: 6 }
-        },
-        ACTIONS: {
-            FREEZE: { value: 'freeze', count: 4 },
-            FLIP3: { value: 'flip3', count: 4 }
-        }
-    },
-    
     // Player Status Values
     PLAYER_STATUS: {
         WAITING: 'waiting',

@@ -77,6 +77,11 @@ class GameEngine {
         this.gameActive = true;
         this.players.forEach(player => player.totalScore = 0);
         
+        // Fresh deck only at the start of a NEW GAME (not each round)
+        if (this.deck && typeof this.deck.reset === 'function') {
+            this.deck.reset();
+        }
+        
         // Emit game start event
         this.eventBus.emit(GameEvents.GAME_START, {
             players: this.players.map(p => p.getState()),
@@ -92,9 +97,6 @@ class GameEngine {
      */
     async startNewRound() {
         console.log(`Starting round ${this.roundNumber}`);
-        
-        // Reset deck
-        this.deck.reset();
         
         // Reset players for new round
         this.players.forEach(player => {
@@ -113,6 +115,15 @@ class GameEngine {
         
         // Deal initial cards
         await this.cardManager.dealInitialCards(this.players, true);
+
+        this.players.forEach(player => {
+            // Update the player's round score display immediately
+            this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
+                playerId: player.id,
+                roundScore: player.calculateScore(),
+                totalScore: player.totalScore
+            });
+        });
         
         // Start first turn
         this.currentPlayerIndex = (this.dealerIndex + 1) % this.players.length;
@@ -184,6 +195,7 @@ class GameEngine {
      * @param {Player} player - The player hitting
      */
     executePlayerHit(player) {
+        console.log(`Player ${player.id} hit`);
         const result = this.cardManager.drawCardForPlayer(player);
         
         // Emit card drawn event
@@ -202,10 +214,10 @@ class GameEngine {
             });
             this.endTurn();
         } else if (result.requiresAction) {
-            // Handle special action card
-            this.eventBus.emit('action:required', {
-                card: result.card,
-                player: player
+            // Handle special action cards immediately (minimal flow)
+            this.executeActionCardFlow(result.card, player).then(() => {
+                // After handling action, end turn to keep flow moving
+                this.endTurn();
             });
         } else if (result.isFlip7) {
             // Player got Flip 7
@@ -217,7 +229,102 @@ class GameEngine {
                 roundScore: player.calculateScore(),
                 totalScore: player.totalScore
             });
+            this.endTurn();
         }
+    }
+
+    /**
+     * Minimal special action handling to keep game flow
+     * @param {Card} card
+     * @param {Player} sourcePlayer
+     */
+    async executeActionCardFlow(card, sourcePlayer) {
+        // Determine a target (simple AI-style targeting for now)
+        const target = this.determineActionTarget(sourcePlayer, card);
+        if (!target) return;
+        
+        if (card.value === 'freeze') {
+            // Apply freeze via CardManager
+            this.cardManager.handleActionCard(card, sourcePlayer, target);
+            // Discard the action card
+            this.cardManager.discardCards([card]);
+            // Frozen players effectively stop playing; emit score/state update
+            this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
+                playerId: target.id,
+                roundScore: target.calculateScore(),
+                totalScore: target.totalScore
+            });
+            return;
+        }
+        
+        if (card.value === 'flip3') {
+            const outcome = await this.cardManager.handleActionCard(card, sourcePlayer, target);
+            // Add drawn cards to target and emit events for display
+            const cards = outcome.cards || [];
+            let busted = false;
+            for (let i = 0; i < cards.length; i++) {
+                const c = cards[i];
+                const addResult = target.addCard(c);
+                this.eventBus.emit(GameEvents.CARD_DEALT, {
+                    card: c,
+                    playerId: target.id,
+                    isInitialDeal: false
+                });
+                if (outcome.bustOnCard && (i + 1) === outcome.bustOnCard) {
+                    target.status = 'busted';
+                    target.roundScore = 0;
+                    this.eventBus.emit(GameEvents.PLAYER_BUST, { player: target, card: c });
+                    busted = true;
+                    break;
+                }
+                if (addResult.isFlip7) {
+                    // End round will be handled by round flow; for now just update
+                    this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
+                        playerId: target.id,
+                        roundScore: target.calculateScore(),
+                        totalScore: target.totalScore
+                    });
+                }
+            }
+            
+            // Discard the action card used
+            this.cardManager.discardCards([card]);
+            
+            if (!busted) {
+                // Update score after flip3 sequence
+                this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
+                    playerId: target.id,
+                    roundScore: target.calculateScore(),
+                    totalScore: target.totalScore
+                });
+            }
+            return;
+        }
+    }
+
+    /**
+     * Simple action targeting used to keep the game moving
+     */
+    determineActionTarget(sourcePlayer, card) {
+        // Prefer active opponents; fallback to self where appropriate
+        const activeOpponents = this.players.filter(p => p.id !== sourcePlayer.id && p.status === 'active');
+        if (card.value === 'freeze') {
+            // Target highest total score among active opponents, else self
+            if (activeOpponents.length > 0) {
+                const sorted = [...activeOpponents].sort((a,b) => b.totalScore - a.totalScore);
+                return sorted[0];
+            }
+            return sourcePlayer;
+        }
+        if (card.value === 'flip3') {
+            // If source has few cards, use self; else random active opponent
+            if (sourcePlayer.numberCards.length < 3) return sourcePlayer;
+            if (activeOpponents.length > 0) {
+                return activeOpponents[Math.floor(Math.random() * activeOpponents.length)];
+            }
+            return sourcePlayer;
+        }
+        return sourcePlayer;
     }
 
     /**
@@ -225,6 +332,7 @@ class GameEngine {
      * @param {Player} player - The player staying
      */
     executePlayerStay(player) {
+        console.log(`Player ${player.id} stayed`);
         player.status = 'stayed';
         player.calculateScore();
         
@@ -320,6 +428,27 @@ class GameEngine {
                 player.totalScore += player.roundScore;
             }
         });
+        
+        // Move all players' cards to discard pile so deck persists across rounds
+        try {
+            const allCards = [];
+            this.players.forEach(player => {
+                if (player.numberCards && player.numberCards.length) {
+                    allCards.push(...player.numberCards);
+                }
+                if (player.modifierCards && player.modifierCards.length) {
+                    allCards.push(...player.modifierCards);
+                }
+                if (player.actionCards && player.actionCards.length) {
+                    allCards.push(...player.actionCards);
+                }
+            });
+            if (allCards.length > 0) {
+                this.cardManager.discardCards(allCards);
+            }
+        } catch (e) {
+            console.warn('Failed to discard round cards:', e);
+        }
         
         // Emit round end event
         this.eventBus.emit(GameEvents.ROUND_END, {
