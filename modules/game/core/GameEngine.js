@@ -321,7 +321,7 @@ export class GameEngine {
         const validTargets = this.getValidTargetsForActionCard(card, player);
         
         if (validTargets.length === 0) {
-            console.warn('⚠️ GameEngine: No valid targets for action card');
+            console.warn('⚠️ GameEngine: No valid targets for action card - completing action');
             this.completeActionCardExecution(player, card, null);
             return;
         }
@@ -547,9 +547,10 @@ export class GameEngine {
         this.players.forEach(player => {
             if (player.status === 'busted') {
                 player.roundScore = 0;
-            } else if (player.status === 'frozen' && player.numberCards.length === 0) {
+            } else if (player.isFrozen && player.numberCards.length === 0) {
+                // Frozen player with no cards gets 0 points
                 player.roundScore = 0;
-            } else if (['active', 'stayed', 'flip7', 'frozen'].includes(player.status)) {
+            } else if (['active', 'stayed', 'flip7'].includes(player.status)) {
                 player.roundScore = scoringEngine.calculateRoundScore(player);
             }
         });
@@ -716,15 +717,19 @@ export class GameEngine {
      * Execute an action card effect
      */
     executeActionCard(card, sourcePlayer, targetPlayer) {
-        console.log(`🎴 GameEngine: Executing ${card.display} from ${sourcePlayer.name} on ${targetPlayer.name}`);
+        console.log(`🎴 GameEngine: Executing ${card.display} from ${sourcePlayer.name} on ${targetPlayer ? targetPlayer.name : 'no target'}`);
         
-        if (card.value === 'freeze') {
+        // Remove the action card from source player's hand first (goes to discard pile)
+        console.log(`🗑️ GameEngine: Removing ${card.display} from ${sourcePlayer.name}'s hand`);
+        sourcePlayer.actionCards = sourcePlayer.actionCards.filter(c => c.id !== card.id);
+        
+        if (card.value === 'freeze' && targetPlayer) {
             targetPlayer.freeze();
             eventBus.emit(GameEvents.PLAYER_FROZEN, {
                 playerId: targetPlayer.id,
                 sourcePlayerId: sourcePlayer.id
             });
-        } else if (card.value === 'flip3') {
+        } else if (card.value === 'flip3' && targetPlayer) {
             // Draw 3 cards for target player - handle action cards specially
             console.log(`🔄 GameEngine: Executing Flip3 on ${targetPlayer.name} - drawing 3 cards`);
             const drawnActionCards = [];
@@ -757,7 +762,7 @@ export class GameEngine {
                     this.processDeferredActionCards(drawnActionCards);
                 }, 1000);
             }
-        } else if (card.value === 'second_chance') {
+        } else if (card.value === 'second_chance' && targetPlayer) {
             targetPlayer.giveSecondChance();
             eventBus.emit(GameEvents.ACTION_SECOND_CHANCE, {
                 targetPlayerId: targetPlayer.id,
@@ -765,15 +770,11 @@ export class GameEngine {
             });
         }
         
-        // Remove the action card from source player's hand (goes to discard pile)
-        console.log(`🗑️ GameEngine: Removing ${card.display} from ${sourcePlayer.name}'s hand`);
-        sourcePlayer.actionCards = sourcePlayer.actionCards.filter(c => c.id !== card.id);
-        
         // Mark action as completed
         eventBus.emit(GameEvents.SPECIAL_ACTION_COMPLETED, {
             card: card,
             sourcePlayerId: sourcePlayer.id,
-            targetPlayerId: targetPlayer.id
+            targetPlayerId: targetPlayer ? targetPlayer.id : null
         });
     }
 

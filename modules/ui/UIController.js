@@ -25,6 +25,7 @@ export class UIController {
         eventBus.on(GameEvents.TURN_STARTED, (data) => this.onTurnStarted(data));
         eventBus.on(GameEvents.PLAYER_BUSTED, () => this.disablePlayerButtons());
         eventBus.on(GameEvents.PLAYER_STAYED, () => this.disablePlayerButtons());
+        eventBus.on(GameEvents.PLAYER_FROZEN, () => this.disablePlayerButtons());
         eventBus.on(GameEvents.ROUND_ENDED, () => this.disablePlayerButtons());
         eventBus.on(GameEvents.GAME_ENDED, () => this.onGameEnded());
         eventBus.on(GameEvents.ACTION_CARD_AWAITING_TARGET, () => this.disablePlayerButtons());

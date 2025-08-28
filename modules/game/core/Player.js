@@ -139,9 +139,9 @@ export class Player {
      * Set player as frozen
      */
     freeze() {
-        this.status = 'frozen';
-        this.isFrozen = true;
-        // Always calculate score to lock in current points, but keep frozen status
+        this.status = 'stayed'; // Frozen players have same game status as stayed players
+        this.isFrozen = true;    // But keep frozen flag for visual effects
+        // Always calculate score to lock in current points
         this.calculateRoundScore();
     }
 

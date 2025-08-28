@@ -3882,7 +3882,7 @@ body {
         flex-direction: column !important;
         flex: 1 !important; /* Take up remaining space between top controls and bottom section */
         gap: 2px !important; /* Increased from 1px to 2px for better visual separation */
-        padding: 10px 0 80px 0 !important; /* Reduced top padding (30px→10px), increased bottom (70px→80px) */
+        padding: 8px 0 95px 0 !important; /* Reduced top padding (10px→8px), increased bottom (80px→95px) */
         overflow: visible !important; /* Changed to visible for indicators */
         min-height: 0 !important; /* Allow flex shrinking */
     }
@@ -3892,19 +3892,19 @@ body {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        width: 28px !important; /* 50% reduction: 55px → 28px */
-        height: 21px !important; /* 50% reduction: 42px → 21px */
+        width: 45px !important; /* Increased size for better visibility */
+        height: 35px !important; /* Increased size for better visibility */
         background: linear-gradient(135deg, #4a90a4 0%, #357a8a 50%, #2c6b7a 100%) !important;
-        border: 1px solid rgba(255, 215, 0, 0.3) !important; /* Thinner border for smaller size */
-        border-radius: 4px !important; /* Smaller radius */
-        padding: 4px !important;
+        border: 2px solid rgba(255, 215, 0, 0.4) !important; /* Slightly thicker border for larger size */
+        border-radius: 6px !important; /* Larger radius for bigger pile */
+        padding: 6px !important;
         margin: 0 !important;
         box-shadow: 
-            0 6px 16px rgba(74, 144, 164, 0.4),
-            0 0 0 1px rgba(90, 159, 181, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            0 8px 20px rgba(74, 144, 164, 0.5),
+            0 0 0 1px rgba(90, 159, 181, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
         position: relative !important;
-        backdrop-filter: blur(6px) !important;
+        backdrop-filter: blur(8px) !important;
         flex-shrink: 0 !important;
     }
     

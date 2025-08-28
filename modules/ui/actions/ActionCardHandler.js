@@ -27,20 +27,20 @@ export class ActionCardHandler {
     showTargetingUI(data) {
         console.log('🎯 ActionCardHandler: Showing targeting UI for', data.card.display);
         
-        this.isTargeting = true;
-        this.pendingActionCard = data.card;
-        this.sourcePlayerId = data.sourcePlayerId;
-        
         // Get targetable players from GameEngine's decision
         const targetablePlayers = data.validTargetIds.map(id => 
             window.gameState?.players?.find(p => p.id === id)
         ).filter(p => p);
 
         if (targetablePlayers.length === 0) {
-            console.warn('⚠️ ActionCardHandler: No targetable players provided');
+            console.warn('⚠️ ActionCardHandler: No targetable players provided - cancelling targeting');
             this.cancelTargeting();
             return;
         }
+
+        this.isTargeting = true;
+        this.pendingActionCard = data.card;
+        this.sourcePlayerId = data.sourcePlayerId;
 
         // Add visual highlighting to targetable players
         this.highlightTargetablePlayers(targetablePlayers);

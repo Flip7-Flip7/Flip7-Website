@@ -315,7 +315,7 @@ export class DisplayManager {
         container.classList.remove('current-turn', 'frozen', 'busted', 'stayed', 'flip7');
         
         // Add appropriate state class
-        if (player.status === 'frozen') {
+        if (player.isFrozen) {
             container.classList.add('frozen');
         } else if (player.status === 'busted') {
             container.classList.add('busted');
@@ -540,7 +540,7 @@ export class DisplayManager {
             indicators += '<div class="stayed-indicator">STAYED</div>';
         }
         
-        if (player.status === 'frozen') {
+        if (player.isFrozen) {
             indicators += '<div class="frozen-indicator">FROZEN</div>';
         }
         
