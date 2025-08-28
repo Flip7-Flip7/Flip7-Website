@@ -86,6 +86,7 @@ class GameEngine {
         // Reset game state
         this.roundNumber = 1;
         this.gameActive = true;
+        this.dealerIndex = 3; // Start with AI Bot 3 as dealer so human gets first card in round 1
         this.players.forEach(player => player.totalScore = 0);
         
         // Fresh deck only at the start of a NEW GAME (not each round)
@@ -115,8 +116,10 @@ class GameEngine {
             player.status = 'active';
         });
         
-        // Set dealer - human player (index 0) always gets first card, so dealer is always AI Bot 3 (index 3)
-        this.dealerIndex = 3;
+        // Rotate dealer for each new round (except first round where dealer starts at index 3)
+        if (this.roundNumber > 1) {
+            this.dealerIndex = (this.dealerIndex + 1) % this.players.length;
+        }
         
         // Emit round start event
         this.eventBus.emit(GameEvents.ROUND_START, {
@@ -266,8 +269,11 @@ class GameEngine {
      * Handle action card drawn - different logic for human vs AI
      * @param {Card} card - Action card drawn
      * @param {Player} sourcePlayer - Player who drew the card
+     * @param {boolean} skipTurnEnd - If true, don't end turn after AI execution (for Flip3 context)
      */
-    handleActionCard(card, sourcePlayer) {
+    handleActionCard(card, sourcePlayer, skipTurnEnd = false) {
+        console.log(`GameEngine: Handling action card ${card.value} for ${sourcePlayer.name}, skipTurnEnd: ${skipTurnEnd}`);
+        
         if (sourcePlayer.isHuman) {
             // Store action card temporarily for human players
             this.pendingActionCard = {
@@ -288,7 +294,11 @@ class GameEngine {
             if (target) {
                 this.executeActionCard(card, sourcePlayer, target);
             }
-            this.endTurn();
+            
+            // Only end turn if not in Flip3 context
+            if (!skipTurnEnd) {
+                this.endTurn();
+            }
         }
     }
     
@@ -440,45 +450,35 @@ class GameEngine {
      * @param {Player} targetPlayer - Player who gets autonomy over these action cards
      */
     async processFlip3ActionCards(actionCards, targetPlayer) {
+        console.log(`GameEngine: Processing ${actionCards.length} action cards from Flip3 for ${targetPlayer.name}`);
+        
         for (const actionCard of actionCards) {
+            console.log(`GameEngine: Processing Flip3 action card: ${actionCard.value}`);
+            
             if (actionCard.value === 'second chance') {
+                console.log('GameEngine: Handling Second Chance from Flip3');
                 // Handle Second Chance through CardManager (no targeting needed)
                 const result = this.cardManager.handleSecondChanceCard(targetPlayer, actionCard);
                 if (result.addedToHand) {
-                    // Already handled - Second Chance added to hand
+                    console.log('GameEngine: Second Chance added to player hand');
                 } else if (result.givenTo) {
-                    // Already handled - Second Chance given to another player
+                    console.log(`GameEngine: Second Chance given to ${result.givenTo}`);
                 }
                 continue;
             }
             
-            // For Freeze/Flip3 cards, target player gets to choose target
+            // For Freeze/Flip3 cards, use unified processing (card already added to hand above)
             if (actionCard.value === 'freeze' || actionCard.value === 'flip3') {
-                if (targetPlayer.isHuman) {
-                    // Human player gets to choose target via UI
-                    this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
-                        card: actionCard,
-                        sourcePlayer: targetPlayer,
-                        availableTargets: this.getAvailableTargets(targetPlayer, actionCard),
-                        isFlip3Context: true
-                    });
-                    
-                    // Wait for target selection (this will be handled by UI)
-                    // The UI will emit ACTION_CARD_TARGET_SELECTED when ready
-                    
-                } else {
-                    // AI player auto-selects target
-                    const target = this.determineActionTarget(targetPlayer, actionCard);
-                    if (target) {
-                        await this.executeActionCard(actionCard, targetPlayer, target);
-                    } else {
-                        // No valid target - remove from hand and discard
-                        targetPlayer.removeCard(actionCard);
-                        this.cardManager.discardCards([actionCard]);
-                    }
-                }
+                console.log(`GameEngine: Processing ${actionCard.value} card (already in ${targetPlayer.name}'s hand) using unified flow`);
+                
+                // Process using the unified handleActionCard flow (same as regular gameplay)
+                // Note: Card is already in player's hand from the dealtCards loop above
+                // Use skipTurnEnd=true to prevent premature turn ending during Flip3 processing
+                await this.handleActionCard(actionCard, targetPlayer, true);
             }
         }
+        
+        console.log('GameEngine: Finished processing Flip3 action cards');
     }
     
     /**
