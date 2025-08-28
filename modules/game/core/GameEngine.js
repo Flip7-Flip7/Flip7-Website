@@ -405,21 +405,29 @@ export class GameEngine {
      * Move to next player's turn (delegates to TurnManager)
      */
     nextTurn() {
-        console.log('🔄 GameEngine: Delegating turn advancement to TurnManager');
+        console.log('🔄 GameEngine: === DELEGATING TURN ADVANCEMENT ===');
+        console.log('🔄 GameEngine: Context - isInitialDealing:', this.isInitialDealing, 'hasDeferredActions:', this.hasDeferredActions);
         
         // Update TurnManager with latest players
         turnManager.updatePlayers(this.players);
+        
+        // Log current game state before turn advancement
+        console.log('🔄 GameEngine: Current players before turn:', this.players.map(p => `${p.name}:${p.status}`).join(', '));
         
         // Delegate turn advancement to TurnManager
         const success = turnManager.nextTurn();
         
         // If no active players found, check for round end
         if (!success) {
+            console.log('🔄 GameEngine: === TURN ADVANCEMENT FAILED ===');
             console.log('🔄 GameEngine: TurnManager found no active players - checking for round end');
             if (this.checkForRoundEnd()) {
+                console.log('🔄 GameEngine: Round ended due to no active players');
                 return;
             }
             console.warn('⚠️ GameEngine: No active players found but round didn\'t end - continuing');
+        } else {
+            console.log('🔄 GameEngine: === TURN ADVANCEMENT SUCCESSFUL ===');
         }
     }
 

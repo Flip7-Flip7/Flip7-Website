@@ -91,15 +91,20 @@ export class TurnManager {
         const oldPlayerIndex = this.currentPlayerIndex;
         const oldPlayer = this.players[oldPlayerIndex];
         
-        console.log(`🔄 TurnManager: Advancing turn from ${oldPlayer?.name || 'unknown'} (index ${oldPlayerIndex})`);
+        console.log(`🔄 TurnManager: === TURN ADVANCEMENT START ===`);
+        console.log(`🔄 TurnManager: Current player: ${oldPlayer?.name || 'unknown'} (index ${oldPlayerIndex})`);
+        console.log(`🔄 TurnManager: Player statuses:`, this.players.map(p => `${p.name}:${p.status}`).join(', '));
         
         // Always advance to next player first
         this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
         let currentPlayer = this.players[this.currentPlayerIndex];
         let attempts = 0;
         
+        console.log(`🔄 TurnManager: Initial advancement to index ${this.currentPlayerIndex} (${currentPlayer.name})`);
+        
         // Find next active player from the new position
         while (currentPlayer.status !== 'active' && attempts < this.players.length) {
+            console.log(`🔄 TurnManager: Player ${currentPlayer.name} is ${currentPlayer.status}, advancing...`);
             this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
             currentPlayer = this.players[this.currentPlayerIndex];
             attempts++;
@@ -108,13 +113,17 @@ export class TurnManager {
         // Update global state
         this.updateGlobalState();
         
-        console.log(`🔄 TurnManager: Turn advanced to ${currentPlayer.name} (index ${this.currentPlayerIndex})`);
+        console.log(`🔄 TurnManager: Final player: ${currentPlayer.name} (index ${this.currentPlayerIndex}), attempts: ${attempts}`);
         
         // Check if we found an active player
         if (currentPlayer.status !== 'active' || attempts >= this.players.length) {
-            console.log('🔄 TurnManager: No active players found, returning false for round end check');
+            console.log(`🔄 TurnManager: === NO ACTIVE PLAYERS FOUND ===`);
+            console.log(`🔄 TurnManager: Final status: ${currentPlayer.status}, attempts: ${attempts}/${this.players.length}`);
             return false; // No active players found - caller should check for round end
         }
+
+        console.log(`🔄 TurnManager: === TURN ADVANCED SUCCESSFULLY ===`);
+        console.log(`🔄 TurnManager: New current player: ${currentPlayer.name} (${currentPlayer.isHuman ? 'Human' : 'AI'})`);
 
         // Emit turn started event
         eventBus.emit(GameEvents.TURN_STARTED, {
@@ -125,6 +134,7 @@ export class TurnManager {
 
         // If it's AI turn, request AI action
         if (!currentPlayer.isHuman) {
+            console.log(`🔄 TurnManager: Requesting AI action for ${currentPlayer.name}`);
             eventBus.emit(GameEvents.AI_TURN_REQUESTED, {
                 playerId: currentPlayer.id,
                 player: currentPlayer
