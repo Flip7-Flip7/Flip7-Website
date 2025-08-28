@@ -13,6 +13,7 @@ import aiPlayer from './game/ai/AIPlayer.js';
 import deckManager from './game/deck/DeckManager.js';
 import uiController from './ui/UIController.js';
 import actionCardHandler from './ui/actions/ActionCardHandler.js';
+import flip3AnimationManager from './ui/animations/Flip3AnimationManager.js';
 import turnManager from './game/flow/TurnManager.js';
 
 
@@ -30,7 +31,7 @@ class Flip7ModularGame {
         console.log('🎮 Flip7ModularGame: Game system initialized');
         
         // All modules are already loaded and listening for events
-        // GameEngine, TurnManager, AIPlayer, DeckManager, DisplayManager, CardAnimations, PlayerAnimations, UIController, ActionCardHandler
+        // GameEngine, TurnManager, AIPlayer, DeckManager, DisplayManager, CardAnimations, PlayerAnimations, UIController, ActionCardHandler, Flip3AnimationManager
         
         // Start the game automatically after a short delay
         setTimeout(() => {
@@ -68,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.turnManager = turnManager;
     window.uiController = uiController;
     window.actionCardHandler = actionCardHandler;
+    window.flip3AnimationManager = flip3AnimationManager;
     
     console.log('✅ All modules loaded and game ready!');
     console.log('🎮 Game will start automatically in 0.5 seconds');

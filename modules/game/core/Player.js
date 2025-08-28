@@ -63,6 +63,29 @@ export class Player {
     }
 
     /**
+     * Check if a card would be a duplicate against player's hand
+     */
+    wouldBeDuplicate(card) {
+        if (card.type !== 'number') return false;
+        return this.hasDuplicate(card.value);
+    }
+
+    /**
+     * Check if a card would be a duplicate against a list of cards
+     */
+    checkDuplicateAgainstCards(card, cardList) {
+        if (card.type !== 'number') return false;
+        
+        // Check against existing hand
+        if (this.hasDuplicate(card.value)) return true;
+        
+        // Check against provided card list
+        return cardList.some(existingCard => 
+            existingCard.type === 'number' && existingCard.value === card.value
+        );
+    }
+
+    /**
      * Check if player achieved Flip 7
      */
     hasFlip7() {

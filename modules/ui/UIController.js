@@ -30,6 +30,10 @@ export class UIController {
         eventBus.on(GameEvents.GAME_ENDED, () => this.onGameEnded());
         eventBus.on(GameEvents.ACTION_CARD_AWAITING_TARGET, () => this.disablePlayerButtons());
         eventBus.on(GameEvents.PLAYER_TAPPED_FOR_TARGET, () => this.updateButtonStates());
+        
+        // Flip3 animation events
+        eventBus.on(GameEvents.FLIP3_ANIMATION_STARTED, () => this.onFlip3AnimationStarted());
+        eventBus.on(GameEvents.FLIP3_ANIMATION_COMPLETED, () => this.onFlip3AnimationCompleted());
     }
 
     /**
@@ -266,6 +270,22 @@ export class UIController {
                 messageElement.style.display = 'none';
             }, 3000);
         }
+    }
+
+    /**
+     * Handle Flip3 animation started - disable player buttons
+     */
+    onFlip3AnimationStarted() {
+        console.log('🎬 UIController: Flip3 animation started - disabling buttons');
+        this.disablePlayerButtons();
+    }
+
+    /**
+     * Handle Flip3 animation completed - update button states
+     */
+    onFlip3AnimationCompleted() {
+        console.log('🎬 UIController: Flip3 animation completed - updating button states');
+        this.updateButtonStates();
     }
 }
 

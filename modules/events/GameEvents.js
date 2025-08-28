@@ -31,6 +31,13 @@ export const GameEvents = {
     ACTION_SECOND_CHANCE: 'action:secondChance',
     SPECIAL_ACTION_COMPLETED: 'action:completed',
     
+    // Flip3 animation events
+    FLIP3_ANIMATION_STARTED: 'flip3:animationStarted',
+    FLIP3_CARD_REVEALED: 'flip3:cardRevealed',
+    FLIP3_DUPLICATE_FOUND: 'flip3:duplicateFound',
+    FLIP3_ANIMATION_COMPLETED: 'flip3:animationCompleted',
+    FLIP3_NESTED_DEFERRED: 'flip3:nestedDeferred',
+    
     // Game state events
     PLAYER_BUSTED: 'player:busted',
     PLAYER_FROZEN: 'player:frozen',

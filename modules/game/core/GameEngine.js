@@ -41,6 +41,10 @@ export class GameEngine {
         eventBus.on(GameEvents.ACTION_CARD_AWAITING_TARGET, (data) => this.handleActionCardTargeting(data));
         eventBus.on(GameEvents.PLAYER_TAPPED_FOR_TARGET, (data) => this.handleTargetSelected(data));
         eventBus.on(GameEvents.ACTION_CARD_TARGETING_CANCELLED, (data) => this.handleTargetingCancelled(data));
+        
+        // Flip3 animation events
+        eventBus.on(GameEvents.FLIP3_ANIMATION_COMPLETED, (data) => this.handleFlip3AnimationCompleted(data));
+        eventBus.on(GameEvents.FLIP3_NESTED_DEFERRED, (data) => this.handleFlip3NestedDeferred(data));
     }
 
     /**
@@ -730,38 +734,17 @@ export class GameEngine {
                 sourcePlayerId: sourcePlayer.id
             });
         } else if (card.value === 'flip3' && targetPlayer) {
-            // Draw 3 cards for target player - handle action cards specially
-            console.log(`🔄 GameEngine: Executing Flip3 on ${targetPlayer.name} - drawing 3 cards`);
-            const drawnActionCards = [];
-            
-            for (let i = 0; i < 3; i++) {
-                const drawnCard = deckManager.drawCard();
-                if (drawnCard) {
-                    if (drawnCard.type === 'action') {
-                        // Defer action cards to prevent cascade targeting
-                        console.log(`⏸️ GameEngine: Deferring action card ${drawnCard.display} from Flip3`);
-                        drawnActionCards.push({ card: drawnCard, targetPlayer: targetPlayer });
-                    } else {
-                        // Handle non-action cards immediately
-                        this.handleCardDraw(targetPlayer, drawnCard);
-                    }
-                }
-            }
+            // Use animated Flip3 system instead of drawing cards immediately
+            console.log(`🎬 GameEngine: Triggering animated Flip3 on ${targetPlayer.name}`);
             
             eventBus.emit(GameEvents.ACTION_FLIP3, {
                 targetPlayerId: targetPlayer.id,
                 sourcePlayerId: sourcePlayer.id
             });
             
-            // Process deferred action cards after Flip3 completes
-            if (drawnActionCards.length > 0) {
-                console.log(`🎴 GameEngine: Will process ${drawnActionCards.length} deferred action cards from Flip3`);
-                // Set flag to prevent turn advancement until deferred actions complete
-                this.hasDeferredActions = true;
-                setTimeout(() => {
-                    this.processDeferredActionCards(drawnActionCards);
-                }, 1000);
-            }
+            // The Flip3AnimationManager will handle the card drawing, duplicate detection,
+            // and deferred action cards. We don't advance the turn here - it will be
+            // handled after the animation completes.
         } else if (card.value === 'second_chance' && targetPlayer) {
             targetPlayer.giveSecondChance();
             eventBus.emit(GameEvents.ACTION_SECOND_CHANCE, {
@@ -770,12 +753,14 @@ export class GameEngine {
             });
         }
         
-        // Mark action as completed
-        eventBus.emit(GameEvents.SPECIAL_ACTION_COMPLETED, {
-            card: card,
-            sourcePlayerId: sourcePlayer.id,
-            targetPlayerId: targetPlayer ? targetPlayer.id : null
-        });
+        // Mark action as completed (except for Flip3 which handles its own completion)
+        if (card.value !== 'flip3') {
+            eventBus.emit(GameEvents.SPECIAL_ACTION_COMPLETED, {
+                card: card,
+                sourcePlayerId: sourcePlayer.id,
+                targetPlayerId: targetPlayer ? targetPlayer.id : null
+            });
+        }
     }
 
     /**
@@ -870,6 +855,35 @@ export class GameEngine {
      */
     isGamePaused() {
         return this.isWaitingForTargeting;
+    }
+
+    /**
+     * Handle Flip3 animation completion
+     */
+    handleFlip3AnimationCompleted(data) {
+        console.log('🎬 GameEngine: Flip3 animation completed for', data.targetPlayerId);
+        
+        // Resume normal game flow - advance turn from the original source player
+        this.resumeGameFlow();
+    }
+
+    /**
+     * Handle nested Flip3 action cards that were deferred during animation
+     */
+    handleFlip3NestedDeferred(data) {
+        console.log(`🎴 GameEngine: Processing ${data.deferredCards.length} deferred action cards from Flip3`);
+        
+        const { targetPlayer, deferredCards } = data;
+        
+        // Set flag to prevent turn advancement until deferred actions complete
+        this.hasDeferredActions = true;
+        
+        // Process each deferred action card
+        setTimeout(() => {
+            this.processDeferredActionCards(
+                deferredCards.map(card => ({ card, targetPlayer }))
+            );
+        }, 500);
     }
 }
 
