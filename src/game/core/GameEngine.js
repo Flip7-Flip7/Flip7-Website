@@ -331,14 +331,52 @@ class GameEngine {
      * @param {Object} data - Target selection data
      */
     handleActionTargetSelected(data) {
-        const { card, sourcePlayer, targetPlayer, isInitialDeal } = data;
+        const { card, sourcePlayer, targetPlayer, isInitialDeal, isSecondChanceRedistribution } = data;
         
         // Clear pending action card for regular gameplay
         if (!isInitialDeal && this.pendingActionCard) {
             this.pendingActionCard = null;
         }
         
-        this.executeActionCard(card, sourcePlayer, targetPlayer);
+        if (isSecondChanceRedistribution) {
+            // Handle Second Chance redistribution - manually redistribute the card
+            console.log(`GameEngine: Redistributing Second Chance from ${sourcePlayer.name} to ${targetPlayer.name}`);
+            
+            // Remove card from source player's hand
+            sourcePlayer.removeCard(card);
+            
+            // Update source player's hasSecondChance flag
+            const remainingSecondChanceCards = sourcePlayer.actionCards.filter(c => c.value === 'second chance');
+            if (remainingSecondChanceCards.length === 0) {
+                sourcePlayer.hasSecondChance = false;
+            }
+            
+            // Add card to target player's hand
+            targetPlayer.addCard(card);
+            targetPlayer.hasSecondChance = true;
+            
+            // Emit event for UI updates
+            this.eventBus.emit(GameEvents.SECOND_CHANCE_GIVEN, {
+                giver: sourcePlayer,
+                recipient: targetPlayer,
+                card: card
+            });
+            
+            // Refresh UI for both players
+            this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
+                type: 'refreshPlayerCards',
+                playerId: sourcePlayer.id,
+                player: sourcePlayer
+            });
+            this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
+                type: 'refreshPlayerCards',
+                playerId: targetPlayer.id,
+                player: targetPlayer
+            });
+        } else {
+            // Regular action card execution (Freeze/Flip3)
+            this.executeActionCard(card, sourcePlayer, targetPlayer);
+        }
         
         // Only end turn if not during initial deal
         if (!isInitialDeal) {
