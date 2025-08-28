@@ -261,8 +261,22 @@ class CardManager {
             console.log(`CardManager: AI auto-selecting recipient for Second Chance`);
             // Auto-select recipient (prefer player with lowest total score)
             const recipient = eligibleRecipients.sort((a, b) => a.totalScore - b.totalScore)[0];
+            
+            // Remove the duplicate Second Chance card from the giver's hand first
+            player.removeCard(card);
+            console.log(`CardManager: Removed duplicate Second Chance from ${player.name}'s hand`);
+            
+            // Update giver's hasSecondChance flag if they no longer have any Second Chance cards
+            const remainingSecondChanceCards = player.actionCards.filter(c => c.value === 'second chance');
+            if (remainingSecondChanceCards.length === 0) {
+                player.hasSecondChance = false;
+                console.log(`CardManager: ${player.name} no longer has Second Chance`);
+            }
+            
+            // Add card to recipient
             recipient.addCard(card);
             recipient.hasSecondChance = true;
+            console.log(`CardManager: Second Chance given to ${recipient.name}`);
             
             this.eventBus.emit(GameEvents.SECOND_CHANCE_GIVEN, {
                 giver: player,
