@@ -439,7 +439,11 @@ class CardManager {
      * @param {Array<Card>} cards - Cards to discard
      */
     discardCards(cards) {
+        if (!cards || cards.length === 0) return;
+        const before = this.deck.getDiscardCount();
         cards.forEach(card => this.deck.discard(card));
+        const after = this.deck.getDiscardCount();
+        console.log(`[Discard Debug] +${cards.length} discarded → pile size ${after}`);
     }
 
     /**
