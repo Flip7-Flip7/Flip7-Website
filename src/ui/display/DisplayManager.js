@@ -39,7 +39,7 @@ class DisplayManager {
         this.eventBus.on(GameEvents.PLAYER_SCORE_UPDATE, this.updatePlayerScore.bind(this));
         this.eventBus.on(GameEvents.PLAYER_BUST, this.onPlayerBust.bind(this));
         this.eventBus.on(GameEvents.PLAYER_FLIP7, this.onPlayerFlip7.bind(this));
-        this.eventBus.on(GameEvents.PLAYER_STAY, this.onPlayerStay.bind(this));
+        this.eventBus.on(GameEvents.PLAYER_STAY_COMPLETED, this.onPlayerStay.bind(this));
         this.eventBus.on(GameEvents.FREEZE_CARD_USED, this.onFreezeUsed.bind(this));
         this.eventBus.on(GameEvents.PLAYER_FROZEN, this.onPlayerFrozen.bind(this));
         this.eventBus.on(GameEvents.SECOND_CHANCE_ACTIVATED, this.onSecondChanceActivated.bind(this));

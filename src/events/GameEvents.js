@@ -15,6 +15,7 @@ const GameEvents = {
     // Player Events
     PLAYER_HIT: 'player:hit',
     PLAYER_STAY: 'player:stay',
+    PLAYER_STAY_COMPLETED: 'player:stayCompleted',
     PLAYER_BUST: 'player:bust',
     PLAYER_FLIP7: 'player:flip7',
     PLAYER_FROZEN: 'player:frozen',
@@ -25,6 +26,13 @@ const GameEvents = {
     CARD_DEALT: 'card:dealt',
     CARD_ANIMATION_START: 'card:animationStart',
     CARD_ANIMATION_END: 'card:animationEnd',
+    
+    // Initial Deal Flow Events
+    INITIAL_DEAL_START: 'initialDeal:start',
+    INITIAL_DEAL_PAUSED: 'initialDeal:paused',
+    INITIAL_DEAL_ACTION_REQUIRED: 'initialDeal:actionRequired',
+    INITIAL_DEAL_RESUMED: 'initialDeal:resumed',
+    INITIAL_DEAL_COMPLETE: 'initialDeal:complete',
     
     // Special Card Events
     ACTION_CARD_USED: 'actionCard:used',

@@ -391,7 +391,7 @@ class GameEngine {
      */
     handleInitialDealAction(data) {
         const { card, sourcePlayer, availableTargets, isInitialDeal } = data;
-        console.log(`GameEngine: Handling initial deal action - ${sourcePlayer.name} drew ${card.value}`);
+        console.log(`GameEngine: Handling initial deal action - ${sourcePlayer?.name} drew ${card?.value}`);
         
         if (sourcePlayer.isHuman) {
             console.log('GameEngine: Human player needs to select target via UI');
@@ -614,7 +614,7 @@ class GameEngine {
         player.status = 'stayed';
         player.calculateScore();
         
-        this.eventBus.emit(GameEvents.PLAYER_STAY, {
+        this.eventBus.emit(GameEvents.PLAYER_STAY_COMPLETED, {
             player: player,
             score: player.roundScore
         });
