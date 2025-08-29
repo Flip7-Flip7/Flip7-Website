@@ -34,8 +34,15 @@ class Player {
         this.modifierCards = [];
         this.actionCards = [];
         this.uniqueNumbers.clear();
-        this.status = 'waiting'; // This resets frozen status
+        
+        // Explicitly reset status - clears frozen, busted, stayed, etc.
+        this.status = 'waiting';
+        
+        // Clear any special card effects
         this.hasSecondChance = false;
+        
+        // Log status reset for debugging
+        console.log(`Player ${this.name}: Status reset to 'waiting' from '${this.status}'`);
     }
 
     /**
@@ -61,10 +68,15 @@ class Player {
                 this.numberCards.push(card);
                 this.uniqueNumbers.add(card.value);
                 
-                // Check for Flip 7
+                // Check for Flip 7 with detailed logging
+                console.log(`Player ${this.name}: Added ${card.value}, unique count now ${this.uniqueNumbers.size}`);
                 if (this.uniqueNumbers.size === 7) {
+                    console.log(`Player ${this.name}: FLIP 7 ACHIEVED! Setting status to 'flip7' and result.isFlip7 = true`);
                     result.isFlip7 = true;
                     this.status = 'flip7';
+                    console.log(`Player ${this.name}: Status confirmed as '${this.status}'`);
+                } else if (this.uniqueNumbers.size > 7) {
+                    console.warn(`Player ${this.name}: WARNING - unique count is ${this.uniqueNumbers.size} (>7)! Current numbers: [${Array.from(this.uniqueNumbers).join(', ')}]`);
                 }
                 break;
                 
@@ -93,7 +105,15 @@ class Player {
                 const index = this.numberCards.findIndex(c => c.value === card.value);
                 if (index !== -1) {
                     this.numberCards.splice(index, 1);
-                    this.uniqueNumbers.delete(card.value);
+                    
+                    // Only delete from uniqueNumbers if no other cards have this value
+                    const hasOtherCardWithSameValue = this.numberCards.some(c => c.value === card.value);
+                    if (!hasOtherCardWithSameValue) {
+                        this.uniqueNumbers.delete(card.value);
+                        console.log(`Player ${this.name}: Removed ${card.value} from uniqueNumbers, unique count now ${this.uniqueNumbers.size}`);
+                    } else {
+                        console.log(`Player ${this.name}: Kept ${card.value} in uniqueNumbers (still have another), unique count remains ${this.uniqueNumbers.size}`);
+                    }
                 }
                 break;
                 
@@ -108,9 +128,15 @@ class Player {
                 const actionIndex = this.actionCards.findIndex(c => c.value === card.value);
                 if (actionIndex !== -1) {
                     this.actionCards.splice(actionIndex, 1);
-                    // If removing a Second Chance card, update flag
+                    // If removing a Second Chance card, update flag only if no more remain
                     if (card.value === 'second chance') {
-                        this.hasSecondChance = false;
+                        const remainingSecondChance = this.actionCards.filter(c => c.value === 'second chance');
+                        if (remainingSecondChance.length === 0) {
+                            this.hasSecondChance = false;
+                            console.log(`Player ${this.name}: No Second Chance cards remaining, setting hasSecondChance = false`);
+                        } else {
+                            console.log(`Player ${this.name}: Still has ${remainingSecondChance.length} Second Chance card(s), keeping hasSecondChance = true`);
+                        }
                     }
                 }
                 break;

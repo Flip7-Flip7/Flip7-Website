@@ -13,9 +13,9 @@ const GameConstants = {
     
     // AI Configuration
     AI_NAMES: ['AI Bot 1', 'AI Bot 2', 'AI Bot 3'],
-    AI_DECISION_DELAY: 1200,
-    AI_EXTRA_DELAY_MOBILE: 2000,
-    AI_EXTRA_DELAY_DESKTOP: 1500,
+    AI_DECISION_DELAY: 600,  // Reduced from 1200ms (50% faster)
+    AI_EXTRA_DELAY_MOBILE: 800,  // Reduced from 2000ms (60% faster)
+    AI_EXTRA_DELAY_DESKTOP: 600,  // Reduced from 1500ms (60% faster)
     
     // Animation Timings (in milliseconds)
     ANIMATIONS: {

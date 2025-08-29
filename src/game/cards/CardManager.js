@@ -57,6 +57,19 @@ class CardManager {
                 isInitialDeal: true
             });
             
+            // Check if the player busted on duplicate during initial deal
+            if (result.isDuplicate && !player.hasSecondChance) {
+                console.log(`CardManager: ${player.name} busted on duplicate ${card.value} during initial deal`);
+                player.status = 'busted';
+                player.roundScore = 0;
+                this.eventBus.emit(GameEvents.PLAYER_BUST, {
+                    player: player,
+                    card: card
+                });
+                // Continue dealing to other players
+                continue;
+            }
+            
             // Check if this card requires immediate action (Freeze/Flip3)
             if (card.type === 'action' && (card.value === 'freeze' || card.value === 'flip3')) {
                 console.log(`CardManager: Action card ${card.value} drawn during initial deal by ${player.name} - pausing deal`);
@@ -118,6 +131,13 @@ class CardManager {
         if (card.requiresSpecialHandling()) {
             // Add card to player's hand so it can be properly removed later
             player.addCard(card);
+            
+            // Emit CARD_DRAWN so the card appears visually in the player's hand
+            this.eventBus.emit(GameEvents.CARD_DRAWN, {
+                player: player,
+                card: card,
+                isInitialDeal: false
+            });
             
             return {
                 success: true,
@@ -241,6 +261,14 @@ class CardManager {
             console.log(`CardManager: No eligible recipients - discarding Second Chance`);
             // No eligible recipients - discard it
             this.discardCards([card]);
+            
+            // Refresh player's UI to remove the discarded card from visual display
+            this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
+                type: 'refreshPlayerCards',
+                playerId: player.id,
+                player: player
+            });
+            
             return {
                 success: true,
                 card: card,
@@ -324,6 +352,7 @@ class CardManager {
      * @param {Player} targetPlayer - Target player for the action
      */
     async handleActionCard(card, sourcePlayer, targetPlayer) {
+        
         if (card.value === 'freeze') {
             return this.handleFreezeCard(sourcePlayer, targetPlayer);
         } else if (card.value === 'flip3') {
@@ -347,6 +376,12 @@ class CardManager {
         });
         console.log('CardManager: FREEZE_CARD_USED event emitted');
         
+        // Check if we froze the current turn player - if so, signal turn should advance
+        this.eventBus.emit(GameEvents.PLAYER_FROZEN, {
+            player: targetPlayer,
+            needsTurnAdvance: true
+        });
+        
         return {
             success: true,
             message: `${sourcePlayer.name} froze ${targetPlayer.name}!`
@@ -368,18 +403,10 @@ class CardManager {
         const actionCards = [];
         let bustOnCard = null;
         
-        // Draw cards one by one, stopping at bust or 3 cards
+        // Draw cards one by one, dealing 3 cards (bust detection handled in GameEngine)
         for (let i = 0; i < 3; i++) {
             const card = this.deck.draw();
             if (!card) break;
-            
-            // Check if this card would cause a bust BEFORE adding it
-            if (card.type === 'number' && targetPlayer.uniqueNumbers.has(card.value) && !targetPlayer.hasSecondChance) {
-                bustOnCard = i + 1;
-                // Put the bust card back on top of deck (it wasn't dealt)
-                this.deck.cards.push(card);
-                break;
-            }
             
             // Card is dealt - add to dealt cards
             dealtCards.push(card);

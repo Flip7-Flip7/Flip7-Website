@@ -73,6 +73,9 @@ class GameEngine {
         // Initial deal events
         this.eventBus.on(GameEvents.INITIAL_DEAL_ACTION_REQUIRED, this.handleInitialDealAction.bind(this));
         
+        // Player state changes
+        this.eventBus.on(GameEvents.PLAYER_FROZEN, this.handlePlayerFrozen.bind(this));
+        
         // Animation completion
         this.eventBus.on(GameEvents.ANIMATION_COMPLETE, this.handleAnimationComplete.bind(this));
     }
@@ -81,7 +84,9 @@ class GameEngine {
      * Start a new game
      */
     startNewGame() {
-        console.log('Starting new game');
+        console.log('\n╔════════════════════════════════════╗');
+        console.log('║      🎮 NEW GAME STARTING! 🎮      ║');
+        console.log('╚════════════════════════════════════╝');
         
         // Reset game state
         this.roundNumber = 1;
@@ -108,12 +113,24 @@ class GameEngine {
      * Start a new round
      */
     async startNewRound() {
-        console.log(`Starting round ${this.roundNumber}`);
+        console.log('\n=====================================');
+        console.log(`🎲 ROUND ${this.roundNumber} STARTING 🎲`);
+        console.log('=====================================');
         
-        // Reset players for new round
+        // Reset players for new round - log frozen players for debugging
         this.players.forEach(player => {
+            const previousStatus = player.status;
+            if (previousStatus === 'frozen') {
+                console.log(`GameEngine: Player ${player.name} was frozen, resetting status`);
+            }
+            
+            // Reset player state (this sets status to 'waiting')
             player.resetForNewRound();
+            
+            // Set all players to active for the new round
             player.status = 'active';
+            
+            console.log(`GameEngine: ${player.name} status: ${previousStatus} -> ${player.status}`);
         });
         
         // Rotate dealer for each new round (except first round where dealer starts at index 3)
@@ -150,6 +167,19 @@ class GameEngine {
      * Start the next turn
      */
     startNextTurn() {
+        // Safety check: Verify no players have >7 unique numbers
+        this.players.forEach(p => {
+            if (p.uniqueNumbers.size > 7) {
+                console.error(`GameEngine: SAFETY CHECK FAILED! ${p.name} has ${p.uniqueNumbers.size} unique numbers but status is '${p.status}'`);
+                console.error(`  Numbers: [${Array.from(p.uniqueNumbers).join(', ')}]`);
+                // Force Flip 7 status if somehow missed
+                if (p.status !== 'flip7') {
+                    console.error(`GameEngine: Force-setting ${p.name} status to 'flip7'`);
+                    p.status = 'flip7';
+                }
+            }
+        });
+        
         // Check if round should end
         if (this.shouldEndRound()) {
             this.endRound();
@@ -197,6 +227,8 @@ class GameEngine {
      */
     handlePlayerHit(data) {
         const player = this.players[this.currentPlayerIndex];
+        
+        
         if (!player.isHuman || !player.canPlay()) return;
         
         this.executePlayerHit(player);
@@ -251,6 +283,10 @@ class GameEngine {
                 isSecondChanceRedistribution: true
             });
             // Turn will continue when target is selected
+        } else if (result.givenTo) {
+            // AI auto-redistributed Second Chance - end turn
+            console.log(`GameEngine: AI ${player.name} auto-redistributed Second Chance to ${result.givenTo}`);
+            this.endTurn();
         } else if (result.secondChanceUsed) {
             // Second Chance was used - cards already removed from hand and discarded
             // Update score and continue turn
@@ -262,6 +298,10 @@ class GameEngine {
             this.endTurn();
         } else if (result.isFlip7) {
             // Player got Flip 7
+            console.log(`GameEngine: ${player.name} achieved Flip 7! Ending turn and round.`);
+            this.eventBus.emit(GameEvents.PLAYER_FLIP7, {
+                player: player
+            });
             this.endTurn();
         } else {
             // Normal card - continue turn
@@ -285,19 +325,6 @@ class GameEngine {
         
         if (sourcePlayer.isHuman) {
             const availableTargets = this.getAvailableTargets(sourcePlayer, card);
-            
-            // Auto-target ONLY if they are the sole remaining active player (no choice)
-            if (availableTargets.length === 1 && availableTargets[0].id === sourcePlayer.id) {
-                console.log(`GameEngine: ${sourcePlayer.name} is the only active player left, auto-targeting themselves`);
-                this.executeActionCard(card, sourcePlayer, availableTargets[0]);
-                if (!skipTurnEnd) {
-                    this.endTurn();
-                }
-                return;
-            }
-            
-            // Debug logging for troubleshooting
-            console.log(`GameEngine: ${availableTargets.length} targets available for ${sourcePlayer.name}:`, availableTargets.map(t => `${t.name}(${t.status})`));
             
             // Store action card temporarily for human players
             this.pendingActionCard = {
@@ -409,10 +436,11 @@ class GameEngine {
             const target = this.determineActionTarget(sourcePlayer, card);
             if (target) {
                 console.log(`GameEngine: AI ${sourcePlayer.name} targeting ${target.name} with ${card.value}`);
-                // Use setTimeout to ensure CardManager listeners are set up first
+                // Small delay only for initial deal to ensure event listeners are ready
                 setTimeout(async () => {
                     await this.executeActionCard(card, sourcePlayer, target);
-                }, 10);
+                    console.log(`GameEngine: AI ${sourcePlayer.name} completed ${card.value} action during initial deal`);
+                }, 5);
             } else {
                 console.log('GameEngine: No valid target found for AI player');
             }
@@ -428,6 +456,7 @@ class GameEngine {
      */
     async executeActionCard(card, sourcePlayer, targetPlayer) {
         console.log(`GameEngine: Executing action card ${card.value} from ${sourcePlayer.name} to ${targetPlayer.name}`);
+        
         
         if (card.value === 'freeze') {
             console.log('GameEngine: Processing freeze card');
@@ -463,14 +492,88 @@ class GameEngine {
             const actionCards = outcome.actionCards || [];
             let busted = false;
             
-            // Add all dealt cards to target player
-            for (const c of dealtCards) {
+            // Add all dealt cards to target player, but stop early on bust
+            for (let i = 0; i < dealtCards.length; i++) {
+                const c = dealtCards[i];
+                
+                // Check for bust BEFORE adding card to hand
+                if (c.type === 'number' && targetPlayer.uniqueNumbers.has(c.value) && !targetPlayer.hasSecondChance) {
+                    console.log(`GameEngine: ${targetPlayer.name} would bust on duplicate ${c.value} during Flip3 - stopping early`);
+                    targetPlayer.status = 'busted';
+                    targetPlayer.roundScore = 0;
+                    this.eventBus.emit(GameEvents.PLAYER_BUST, {
+                        player: targetPlayer,
+                        card: c
+                    });
+                    busted = true;
+                    break; // Stop Flip3 immediately, don't deal remaining cards
+                }
+                
+                // Special handling for Second Chance cards during Flip3
+                if (c.type === 'action' && c.value === 'second chance') {
+                    console.log(`GameEngine: ${targetPlayer.name} drew Second Chance during Flip3`);
+                    
+                    // Check if player already has Second Chance
+                    if (targetPlayer.hasSecondChance) {
+                        console.log(`GameEngine: ${targetPlayer.name} already has Second Chance - routing through redistribution logic`);
+                        // Route through proper Second Chance handling instead of adding directly
+                        const redistributionResult = this.cardManager.handleSecondChanceCard(targetPlayer, c);
+                        
+                        if (redistributionResult.givenTo) {
+                            console.log(`GameEngine: Second Chance redistributed to ${redistributionResult.givenTo}`);
+                        } else if (redistributionResult.discarded) {
+                            console.log(`GameEngine: Second Chance discarded (no eligible recipients)`);
+                        } else if (redistributionResult.requiresTargeting) {
+                            console.log(`GameEngine: Second Chance requires human targeting`);
+                            this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
+                                card: c,
+                                sourcePlayer: targetPlayer,
+                                availableTargets: redistributionResult.availableTargets,
+                                isSecondChanceRedistribution: true
+                            });
+                        }
+                        continue; // Skip normal addCard processing
+                    } else {
+                        // Player doesn't have Second Chance yet - add normally
+                        console.log(`GameEngine: Adding first Second Chance to ${targetPlayer.name} during Flip3`);
+                    }
+                }
+                
                 const addResult = targetPlayer.addCard(c);
                 this.eventBus.emit(GameEvents.CARD_DEALT, {
                     card: c,
                     playerId: targetPlayer.id,
                     isInitialDeal: false
                 });
+                
+                // Handle Second Chance activation for duplicates during Flip3
+                if (addResult.isDuplicate && targetPlayer.hasSecondChance) {
+                    console.log(`GameEngine: ${targetPlayer.name} drew duplicate ${c.value} during Flip3 - activating Second Chance`);
+                    
+                    // Find and remove the Second Chance card from hand
+                    const secondChanceCard = targetPlayer.actionCards.find(sc => sc.value === 'second chance');
+                    if (secondChanceCard) {
+                        targetPlayer.removeCard(secondChanceCard);
+                        // Remove the duplicate card that was just added
+                        targetPlayer.removeCard(c);
+                        // Update hasSecondChance flag
+                        targetPlayer.hasSecondChance = false;
+                        
+                        // Discard both cards
+                        this.cardManager.discardCards([secondChanceCard, c]);
+                        
+                        // Emit Second Chance activation event
+                        this.eventBus.emit(GameEvents.SECOND_CHANCE_ACTIVATED, {
+                            player: targetPlayer,
+                            card: c,
+                            secondChanceCard: secondChanceCard,
+                            discardedCards: [secondChanceCard, c]
+                        });
+                        
+                        console.log(`GameEngine: Second Chance activated for ${targetPlayer.name} - removed duplicate ${c.value} and Second Chance card`);
+                    }
+                    continue; // Skip to next card
+                }
                 
                 if (addResult.isFlip7) {
                     this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
@@ -528,6 +631,9 @@ class GameEngine {
     async processFlip3ActionCards(actionCards, targetPlayer) {
         console.log(`GameEngine: Processing ${actionCards.length} action cards from Flip3 for ${targetPlayer.name}`);
         
+        // Save current game state to detect any unintended status changes
+        const preFlip3PlayerStates = this.players.map(p => ({ id: p.id, status: p.status }));
+        
         for (const actionCard of actionCards) {
             console.log(`GameEngine: Processing Flip3 action card: ${actionCard.value}`);
             
@@ -555,14 +661,41 @@ class GameEngine {
                 continue;
             }
             
-            // For Freeze/Flip3 cards, use unified processing (card already added to hand above)
+            // For Freeze/Flip3 cards drawn during Flip3, do NOT auto-process for human players
             if (actionCard.value === 'freeze' || actionCard.value === 'flip3') {
-                console.log(`GameEngine: Processing ${actionCard.value} card (already in ${targetPlayer.name}'s hand) using unified flow`);
-                
-                // Process using the unified handleActionCard flow (same as regular gameplay)
-                // Note: Card is already in player's hand from the dealtCards loop above
-                // Use skipTurnEnd=true to prevent premature turn ending during Flip3 processing
-                await this.handleActionCard(actionCard, targetPlayer, true);
+                if (targetPlayer.isHuman) {
+                    console.log(`🎯 FLIP3 ACTION: Human ${targetPlayer.name} drew ${actionCard.value} from Flip3`);
+                    console.log(`🎯 FLIP3 ACTION: Adding ${actionCard.value} to human hand for later manual use`);
+                    
+                    // Add action card to human's hand but DON'T auto-execute
+                    // Human will use it manually on their next turn like a normal action card
+                    targetPlayer.addCard(actionCard);
+                    
+                    // Emit card dealt event so it shows in UI
+                    this.eventBus.emit(GameEvents.CARD_DEALT, {
+                        card: actionCard,
+                        playerId: targetPlayer.id,
+                        isInitialDeal: false
+                    });
+                    
+                    console.log(`🎯 FLIP3 ACTION: ${actionCard.value} added to ${targetPlayer.name}'s hand for manual use later`);
+                    // Human will use it on their turn with full targeting control
+                } else {
+                    console.log(`GameEngine: AI player ${targetPlayer.name} auto-processing ${actionCard.value} from Flip3`);
+                    // AI auto-processes immediately during their turn - must complete before turn ends
+                    await this.handleActionCard(actionCard, targetPlayer, true);
+                    console.log(`GameEngine: AI ${targetPlayer.name} completed ${actionCard.value} action from Flip3`);
+                }
+            }
+        }
+        
+        // Verify no unintended status changes occurred
+        const postFlip3PlayerStates = this.players.map(p => ({ id: p.id, status: p.status }));
+        for (let i = 0; i < preFlip3PlayerStates.length; i++) {
+            const pre = preFlip3PlayerStates[i];
+            const post = postFlip3PlayerStates[i];
+            if (pre.status !== post.status && pre.id !== targetPlayer.id) {
+                console.warn(`GameEngine: Unexpected status change during Flip3 - ${pre.id}: ${pre.status} -> ${post.status}`);
             }
         }
         
@@ -576,8 +709,20 @@ class GameEngine {
      * @returns {Array<Player>} Available targets
      */
     getAvailableTargets(sourcePlayer, card) {
+        // Debug: Log all player statuses for freeze targeting issues
+        console.log(`GameEngine: Getting targets for ${card.value} - All player statuses:`);
+        this.players.forEach(p => {
+            console.log(`  ${p.name}: ${p.status} (canPlay: ${p.canPlay()})`);
+        });
+        
         // For Freeze and Flip3, can target any active player (including self)
-        return this.players.filter(p => p.status === 'active');
+        // Use canPlay() instead of just checking status === 'active' for consistency
+        const activeTargets = this.players.filter(p => p.canPlay());
+        
+        console.log(`GameEngine: Found ${activeTargets.length} active targets for ${sourcePlayer.name}:`, 
+            activeTargets.map(t => `${t.name}(${t.status})`));
+            
+        return activeTargets;
     }
 
     /**
@@ -674,6 +819,51 @@ class GameEngine {
             return;
         }
         
+        const currentPlayer = this.players[this.currentPlayerIndex];
+        
+        // Check if player has multiple Second Chance cards that need redistribution
+        const secondChanceCards = currentPlayer.actionCards.filter(c => c.value === 'second chance');
+        if (secondChanceCards.length > 1) {
+            console.log(`GameEngine: ${currentPlayer.name} has ${secondChanceCards.length} Second Chance cards - must redistribute extras before turn ends`);
+            
+            // Process each extra Second Chance card
+            const extrasToRedistribute = secondChanceCards.slice(1); // Keep first one, redistribute the rest
+            
+            if (currentPlayer.isHuman) {
+                // For human players, show targeting UI for the first extra card
+                // The rest will be handled sequentially after each redistribution
+                const cardToRedistribute = extrasToRedistribute[0];
+                const eligibleRecipients = this.cardManager.getEligibleSecondChanceRecipients(currentPlayer);
+                
+                if (eligibleRecipients.length > 0) {
+                    console.log(`GameEngine: Human player must choose recipient for extra Second Chance`);
+                    this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
+                        card: cardToRedistribute,
+                        sourcePlayer: currentPlayer,
+                        availableTargets: eligibleRecipients,
+                        isSecondChanceRedistribution: true
+                    });
+                    // Turn will end after redistribution is complete
+                    return;
+                } else {
+                    // No eligible recipients - discard the extra
+                    console.log(`GameEngine: No eligible recipients for extra Second Chance - discarding`);
+                    currentPlayer.removeCard(cardToRedistribute);
+                    this.cardManager.discardCards([cardToRedistribute]);
+                }
+            } else {
+                // AI player - auto-redistribute all extras
+                for (const extraCard of extrasToRedistribute) {
+                    const result = this.cardManager.handleSecondChanceCard(currentPlayer, extraCard);
+                    if (result.givenTo) {
+                        console.log(`GameEngine: AI ${currentPlayer.name} auto-redistributed extra Second Chance`);
+                    } else if (result.discarded) {
+                        console.log(`GameEngine: AI ${currentPlayer.name} discarded extra Second Chance (no recipients)`);
+                    }
+                }
+            }
+        }
+        
         this.eventBus.emit(GameEvents.TURN_END, {
             player: this.players[this.currentPlayerIndex]
         });
@@ -703,13 +893,20 @@ class GameEngine {
      * End the current round
      */
     endRound() {
-        console.log('Ending round');
+        console.log('\n-------------------------------------');
+        console.log(`📊 ROUND ${this.roundNumber} ENDING 📊`);
+        console.log('-------------------------------------');
         
         // Calculate scores
+        console.log(`GameEngine: Calculating scores for round ${this.roundNumber}`);
         this.players.forEach(player => {
+            const previousTotal = player.totalScore;
             if (player.status !== 'busted') {
                 player.calculateScore();
                 player.totalScore += player.roundScore;
+                console.log(`GameEngine: ${player.name} scored ${player.roundScore} this round (${previousTotal} -> ${player.totalScore})`);
+            } else {
+                console.log(`GameEngine: ${player.name} busted, no points added (total remains ${player.totalScore})`);
             }
         });
         
@@ -745,23 +942,31 @@ class GameEngine {
         });
         
         // Check for game end - highest score >= winning score wins
+        console.log(`GameEngine: Checking for game end (winning score: ${this.winningScore})`);
+        console.log('GameEngine: Current total scores:', this.players.map(p => `${p.name}: ${p.totalScore}`).join(', '));
+        
         const qualifyingPlayers = this.players.filter(p => p.totalScore >= this.winningScore);
+        console.log(`GameEngine: ${qualifyingPlayers.length} players qualify for win:`, qualifyingPlayers.map(p => `${p.name} (${p.totalScore})`).join(', '));
         
         if (qualifyingPlayers.length > 0) {
             // Find highest score among qualifying players
             const highestScore = Math.max(...qualifyingPlayers.map(p => p.totalScore));
             const winners = qualifyingPlayers.filter(p => p.totalScore === highestScore);
+            console.log(`GameEngine: Highest qualifying score: ${highestScore}, ${winners.length} winner(s): ${winners.map(w => w.name).join(', ')}`);
             
             if (winners.length === 1) {
                 // Clear winner
+                console.log(`GameEngine: Game ending with winner: ${winners[0].name} (${winners[0].totalScore} points)`);
                 this.endGame(winners[0]);
             } else {
                 // Tie - continue to next round
+                console.log(`GameEngine: Tie detected with ${winners.length} players at ${highestScore} points - continuing to next round`);
                 this.roundNumber++;
                 setTimeout(() => this.startNewRound(), 2000);
             }
         } else {
             // No one reached winning score - continue
+            console.log('GameEngine: No qualifying players - continuing to next round');
             this.roundNumber++;
             setTimeout(() => this.startNewRound(), 2000);
         }
@@ -774,6 +979,15 @@ class GameEngine {
     endGame(winner) {
         this.gameActive = false;
         
+        console.log('\n╔════════════════════════════════════╗');
+        console.log(`║    🏆 GAME OVER - ${winner.name.toUpperCase()} WINS! 🏆`);
+        console.log('╚════════════════════════════════════╝');
+        console.log('Final Scores:');
+        this.players.forEach(p => {
+            console.log(`  ${p.name}: ${p.totalScore} points${p.id === winner.id ? ' 👑' : ''}`);
+        });
+        console.log('=====================================\n');
+        
         this.eventBus.emit(GameEvents.GAME_END, {
             winner: winner.getState(),
             finalScores: this.players.map(p => ({
@@ -781,6 +995,21 @@ class GameEngine {
                 totalScore: p.totalScore
             }))
         });
+    }
+
+    /**
+     * Handle player frozen event - advance turn if current player was frozen
+     * @param {Object} data - Player frozen data
+     */
+    handlePlayerFrozen(data) {
+        const { player } = data;
+        const currentPlayer = this.players[this.currentPlayerIndex];
+        
+        // If the frozen player is the current turn player, end their turn
+        if (player.id === currentPlayer.id && !this.isInitialDealPhase) {
+            console.log(`GameEngine: Current player ${player.name} was frozen, ending their turn`);
+            this.endTurn();
+        }
     }
 
     /**

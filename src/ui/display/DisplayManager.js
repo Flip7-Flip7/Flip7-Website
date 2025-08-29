@@ -43,6 +43,7 @@ class DisplayManager {
         this.eventBus.on(GameEvents.FREEZE_CARD_USED, this.onFreezeUsed.bind(this));
         this.eventBus.on(GameEvents.PLAYER_FROZEN, this.onPlayerFrozen.bind(this));
         this.eventBus.on(GameEvents.SECOND_CHANCE_ACTIVATED, this.onSecondChanceActivated.bind(this));
+        this.eventBus.on(GameEvents.SECOND_CHANCE_GIVEN, this.onSecondChanceGiven.bind(this));
         this.eventBus.on(GameEvents.ACTION_CARD_TARGET_NEEDED, this.onActionCardTargetNeeded.bind(this));
         
         // Card events
@@ -273,6 +274,8 @@ class DisplayManager {
         const winnerName = winner?.name || 'Winner';
         const isHumanWin = winner?.isHuman;
         
+        console.log(`DisplayManager: Game ended - Winner: ${winnerName}, isHuman: ${isHumanWin}`);
+        
         // Show celebration overlay
         const celebration = document.getElementById('winning-celebration');
         if (celebration) {
@@ -294,10 +297,14 @@ class DisplayManager {
         // Add dismissal handlers
         this.setupCelebrationDismissal();
         
-        // Update mobile banner
+        // Update mobile banner - fix to respect win/lose state
         const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
         const mobileGameInfo = document.getElementById('mobile-game-info');
-        if (mobileTurnIndicator) mobileTurnIndicator.textContent = `🎉 ${winnerName} Wins!`;
+        if (mobileTurnIndicator) {
+            mobileTurnIndicator.textContent = isHumanWin ? 
+                '🎉 You Won!' : 
+                `🎯 ${winnerName} Wins!`;
+        }
         if (mobileGameInfo) mobileGameInfo.textContent = 'Click "Start Game" to play again';
         
         // Disable action buttons
@@ -502,44 +509,87 @@ class DisplayManager {
      * Clear all board visuals at the start of a new round
      */
     resetBoardForNewRound() {
+        console.log('DisplayManager: Resetting board for new round');
         const playerIds = ['player', 'opponent1', 'opponent2', 'opponent3'];
+        
         playerIds.forEach(id => {
             const container = document.getElementById(id);
             if (!container) return;
+            
+            // Log if player was frozen for debugging
+            if (container.classList.contains('frozen')) {
+                console.log(`DisplayManager: Clearing frozen state from ${id}`);
+            }
 
-            // Remove state classes
+            // Remove ALL state classes including frozen
             container.classList.remove(
                 GameConstants.UI_CLASSES?.BUSTED || 'busted',
                 GameConstants.UI_CLASSES?.FROZEN || 'frozen',
                 GameConstants.UI_CLASSES?.CURRENT_TURN || 'current-turn',
                 GameConstants.UI_CLASSES?.INACTIVE || 'inactive',
                 GameConstants.UI_CLASSES?.DEALER || 'dealer',
-                'stayed'
+                'stayed',
+                'freeze-effect'
             );
 
-            // Remove overlays/indicators if any
-            ['freeze-overlay','freeze-ice-shards','freeze-particles','ice-particles','stayed-indicator'].forEach(cls => {
-                container.querySelectorAll(`.${cls}`).forEach(el => el.remove());
+            // Remove ALL freeze overlays and effects with logging
+            const overlaysToRemove = [
+                'freeze-overlay',
+                'freeze-ice-shards', 
+                'freeze-particles',
+                'ice-particles',
+                'stayed-indicator',
+                'freeze-overlay-text'
+            ];
+            
+            overlaysToRemove.forEach(cls => {
+                const elements = container.querySelectorAll(`.${cls}`);
+                if (elements.length > 0) {
+                    console.log(`DisplayManager: Removing ${elements.length} ${cls} element(s) from ${id}`);
+                    elements.forEach(el => el.remove());
+                }
             });
-
+            
+            // Clear any persistent inline styles
+            container.style.removeProperty('pointer-events');
+            container.style.removeProperty('opacity');
+            
             // Clear card containers
             const cardsEl = id === 'player' ? document.getElementById('player-cards') : document.getElementById(`${id}-cards`);
             if (cardsEl) cardsEl.innerHTML = '';
 
-            // Reset status text to Active
+            // Reset status text to Active (clear frozen text)
             const statusEl = container.querySelector('.player-status');
-            if (statusEl) statusEl.textContent = 'Active';
+            if (statusEl) {
+                if (statusEl.textContent.includes('Frozen')) {
+                    console.log(`DisplayManager: Clearing frozen status text from ${id}`);
+                }
+                statusEl.textContent = 'Active';
+            }
 
             // Reset round score display to 0, keep total score as is
             const headerRound = container.querySelector('.player-header .round-value');
             if (headerRound) headerRound.textContent = '0';
         });
 
-        // Disable actions until first TURN_START
+        // Initially disable all action buttons
         ['hit-btn','stay-btn','mobile-hit-btn','mobile-stay-btn'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = true;
         });
+        
+        // Force enable human player action buttons after clearing frozen state
+        // This ensures buttons work properly even if turn order doesn't start with human
+        setTimeout(() => {
+            console.log('DisplayManager: Force-enabling human player action buttons after round reset');
+            ['hit-btn','stay-btn','mobile-hit-btn','mobile-stay-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.disabled = false;
+                    console.log(`DisplayManager: Re-enabled ${id} after round reset`);
+                }
+            });
+        }, 100); // Small delay to ensure all cleanup is complete
     }
 
     /**
@@ -607,6 +657,10 @@ class DisplayManager {
             logContent.scrollTop = logContent.scrollHeight;
         }
     }
+
+    /**
+     * Show user message for feedback
+     */
 
     /**
      * Render a card into a player's container (with image support)
@@ -679,10 +733,30 @@ class DisplayManager {
     }
     
     /**
+     * Handle Second Chance given - refresh both players' card displays
+     */
+    onSecondChanceGiven(data) {
+        const { giver, recipient, card } = data;
+        console.log(`Display: Second Chance transferred from ${giver.name} to ${recipient.name}`);
+        
+        // Refresh both players' card displays to show accurate counts
+        this.refreshPlayerCards(giver.id, giver);
+        this.refreshPlayerCards(recipient.id, recipient);
+    }
+
+    /**
      * Handle action card target needed - enable click targeting on player boxes
      */
     onActionCardTargetNeeded(data) {
         const { card, sourcePlayer, availableTargets, isInitialDeal } = data;
+        
+        // Disable action buttons for human players during targeting to prevent accidental clicks
+        if (sourcePlayer.isHuman) {
+            ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = true;
+            });
+        }
         
         // Enter targeting mode
         this.targetingMode = true;
@@ -704,6 +778,11 @@ class DisplayManager {
             
             // Create click handler
             const clickHandler = (event) => {
+                // Safety check: ignore clicks that originated from buttons to prevent auto-targeting
+                if (event.target.tagName === 'BUTTON' || event.target.closest('button')) {
+                    return;
+                }
+                
                 event.preventDefault();
                 event.stopPropagation();
                 
@@ -717,6 +796,16 @@ class DisplayManager {
                 
                 // Exit targeting mode
                 this.exitTargetingMode();
+                
+                // Re-enable action buttons if this was the human player's action
+                if (this.targetingSourcePlayer && this.targetingSourcePlayer.isHuman) {
+                    // Re-enable buttons - simplified logic, updateActionButtons will handle proper state later
+                    const humanButtons = ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'];
+                    humanButtons.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.disabled = false;
+                    });
+                }
             };
             
             // Store handler reference for cleanup

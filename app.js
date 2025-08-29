@@ -148,10 +148,26 @@ function initializeGame() {
     };
     
     bind('new-game-btn', () => engine.startNewGame());
-    bind('hit-btn', () => bus.emit(window.GameEvents.PLAYER_HIT));
-    bind('stay-btn', () => bus.emit(window.GameEvents.PLAYER_STAY));
-    bind('mobile-hit-btn', () => bus.emit(window.GameEvents.PLAYER_HIT));
-    bind('mobile-stay-btn', () => bus.emit(window.GameEvents.PLAYER_STAY));
+    bind('hit-btn', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        bus.emit(window.GameEvents.PLAYER_HIT);
+    });
+    bind('stay-btn', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        bus.emit(window.GameEvents.PLAYER_STAY);
+    });
+    bind('mobile-hit-btn', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        bus.emit(window.GameEvents.PLAYER_HIT);
+    });
+    bind('mobile-stay-btn', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        bus.emit(window.GameEvents.PLAYER_STAY);
+    });
     
     // Basic rules modal wiring
     bind('rules-btn', () => {
@@ -181,8 +197,8 @@ async function startApp() {
             });
         }
         
-        // Load all modules
-        await loadModules();
+        // Skip module loading - scripts are already loaded by index.html to prevent duplicates
+        // await loadModules();
         
         // Initialize the game
         initializeGame();
