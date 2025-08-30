@@ -294,11 +294,15 @@ class CardManager {
             player.removeCard(card);
             console.log(`CardManager: Removed duplicate Second Chance from ${player.name}'s hand`);
             
-            // Update giver's hasSecondChance flag if they no longer have any Second Chance cards
+            // Update giver's hasSecondChance flag - they should keep their original Second Chance
             const remainingSecondChanceCards = player.actionCards.filter(c => c.value === 'second chance');
             if (remainingSecondChanceCards.length === 0) {
                 player.hasSecondChance = false;
                 console.log(`CardManager: ${player.name} no longer has Second Chance`);
+            } else {
+                // Player still has their original Second Chance
+                player.hasSecondChance = true;
+                console.log(`CardManager: ${player.name} still has ${remainingSecondChanceCards.length} Second Chance card(s)`);
             }
             
             // Add card to recipient

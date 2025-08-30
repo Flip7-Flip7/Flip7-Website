@@ -16,6 +16,7 @@ class GameEngine {
         this.roundNumber = 1;
         this.gameActive = false;
         this.winningScore = config.winningScore || GameConstants.WINNING_SCORE;
+        this.roundEnding = false;
         
         // Temporary storage for action cards awaiting target selection
         this.pendingActionCard = null;
@@ -113,24 +114,20 @@ class GameEngine {
      * Start a new round
      */
     async startNewRound() {
+        // Reset round ending flag for new round
+        this.roundEnding = false;
+        
         console.log('\n=====================================');
         console.log(`🎲 ROUND ${this.roundNumber} STARTING 🎲`);
         console.log('=====================================');
         
-        // Reset players for new round - log frozen players for debugging
+        // Reset players for new round
         this.players.forEach(player => {
-            const previousStatus = player.status;
-            if (previousStatus === 'frozen') {
-                console.log(`GameEngine: Player ${player.name} was frozen, resetting status`);
-            }
-            
             // Reset player state (this sets status to 'waiting')
             player.resetForNewRound();
             
             // Set all players to active for the new round
             player.status = 'active';
-            
-            console.log(`GameEngine: ${player.name} status: ${previousStatus} -> ${player.status}`);
         });
         
         // Rotate dealer for each new round (except first round where dealer starts at index 3)
@@ -310,6 +307,14 @@ class GameEngine {
                 roundScore: player.calculateScore(),
                 totalScore: player.totalScore
             });
+            
+            // Check if human player has action cards to resolve before ending turn
+            if (player.isHuman && this.hasUnusedActionCards(player)) {
+                console.log(`GameEngine: ${player.name} has action cards to resolve - not ending turn yet`);
+                this.showActionCardPrompt(player);
+                return; // Don't end turn yet
+            }
+            
             this.endTurn();
         }
     }
@@ -484,6 +489,59 @@ class GameEngine {
                 totalScore: targetPlayer.totalScore
             });
             console.log(`GameEngine: Updated ${targetPlayer.name} status to ${targetPlayer.status}`);
+            
+            // Check if human player still has action cards to resolve after freeze
+            if (sourcePlayer.isHuman && this.hasUnusedActionCards(sourcePlayer)) {
+                console.log(`GameEngine: ${sourcePlayer.name} still has action cards to resolve after using freeze`);
+                this.showActionCardPrompt(sourcePlayer);
+                return; // Don't end turn yet
+            }
+        }
+        
+        if (card.value === 'second chance') {
+            console.log('GameEngine: Processing second chance redistribution');
+            
+            // Remove from source player's hand
+            const removed = sourcePlayer.removeCard(card);
+            console.log(`GameEngine: Removed Second Chance from ${sourcePlayer.name}: ${removed ? 'success' : 'failed'}`);
+            
+            // Update source player's hasSecondChance flag
+            const remainingSecondChanceCards = sourcePlayer.actionCards.filter(c => c.value === 'second chance');
+            if (remainingSecondChanceCards.length === 0) {
+                sourcePlayer.hasSecondChance = false;
+                console.log(`GameEngine: ${sourcePlayer.name} no longer has Second Chance`);
+            }
+            
+            // Add card to target player's hand
+            targetPlayer.addCard(card);
+            targetPlayer.hasSecondChance = true;
+            console.log(`GameEngine: Added Second Chance to ${targetPlayer.name}`);
+            
+            // Emit event for game logic
+            this.eventBus.emit(GameEvents.SECOND_CHANCE_GIVEN, {
+                giver: sourcePlayer,
+                recipient: targetPlayer,
+                card: card
+            });
+            
+            // Force UI refresh for both players to show transfer
+            this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
+                type: 'refreshPlayerCards',
+                playerId: sourcePlayer.id,
+                player: sourcePlayer
+            });
+            this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
+                type: 'refreshPlayerCards',
+                playerId: targetPlayer.id,
+                player: targetPlayer
+            });
+            
+            // Check if human player still has action cards to resolve after second chance
+            if (sourcePlayer.isHuman && this.hasUnusedActionCards(sourcePlayer)) {
+                console.log(`GameEngine: ${sourcePlayer.name} still has action cards to resolve after using second chance`);
+                this.showActionCardPrompt(sourcePlayer);
+                return; // Don't end turn yet
+            }
         }
         
         if (card.value === 'flip3') {
@@ -595,22 +653,22 @@ class GameEngine {
                 busted = true;
             }
             
-            // If no bust, give target player autonomy over action cards they drew
-            if (!busted && actionCards.length > 0) {
-                // Target player now has control over action cards they drew
-                await this.processFlip3ActionCards(actionCards, targetPlayer);
-            }
-            
-            // Remove from source player's hand and discard the original Flip3 card
+            // Remove from source player's hand and discard the original Flip3 card BEFORE processing new cards
             sourcePlayer.removeCard(card);
             this.cardManager.discardCards([card]);
             
-            // Force UI refresh for source player to remove the used action card
+            // Force immediate UI refresh to remove the used Flip3 card
             this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
                 type: 'refreshPlayerCards',
                 playerId: sourcePlayer.id,
                 player: sourcePlayer
             });
+            
+            // If no bust, give target player autonomy over action cards they drew
+            if (!busted && actionCards.length > 0) {
+                // Target player now has control over action cards they drew
+                await this.processFlip3ActionCards(actionCards, targetPlayer);
+            }
             
             if (!busted) {
                 // Update score after flip3 sequence
@@ -619,6 +677,13 @@ class GameEngine {
                     roundScore: targetPlayer.calculateScore(),
                     totalScore: targetPlayer.totalScore
                 });
+            }
+            
+            // Check if human player still has action cards to resolve after flip3
+            if (sourcePlayer.isHuman && this.hasUnusedActionCards(sourcePlayer)) {
+                console.log(`GameEngine: ${sourcePlayer.name} still has action cards to resolve after using flip3`);
+                this.showActionCardPrompt(sourcePlayer);
+                return; // Don't end turn yet
             }
         }
     }
@@ -726,18 +791,45 @@ class GameEngine {
     }
 
     /**
-     * Simple action targeting used to keep the game moving
+     * Strategic action targeting with priority-based selection
      */
     determineActionTarget(sourcePlayer, card) {
-        // Prefer active opponents; fallback to self where appropriate
         const activeOpponents = this.players.filter(p => p.id !== sourcePlayer.id && p.status === 'active');
+        
         if (card.value === 'freeze') {
-            // Target highest total score among active opponents, else self
-            if (activeOpponents.length > 0) {
-                const sorted = [...activeOpponents].sort((a,b) => b.totalScore - a.totalScore);
-                return sorted[0];
+            if (activeOpponents.length === 0) return sourcePlayer;
+            
+            // Priority 1: Target point leader (highest total score)
+            const pointLeader = activeOpponents.reduce((leader, player) => 
+                player.totalScore > leader.totalScore ? player : leader
+            );
+            if (pointLeader.totalScore > sourcePlayer.totalScore) {
+                return pointLeader;
             }
-            return sourcePlayer;
+            
+            // Priority 2: Target players with x2 multiplier
+            const x2Players = activeOpponents.filter(p => 
+                p.modifierCards.some(card => card.value === 'x2')
+            );
+            if (x2Players.length > 0) {
+                return x2Players.reduce((best, player) => 
+                    player.calculateScore() > best.calculateScore() ? player : best
+                );
+            }
+            
+            // Priority 3: Target players with Second Chance
+            const secondChancePlayers = activeOpponents.filter(p => p.hasSecondChance);
+            if (secondChancePlayers.length > 0) {
+                return secondChancePlayers.reduce((best, player) => 
+                    player.calculateScore() > best.calculateScore() ? player : best
+                );
+            }
+            
+            // Priority 4: Target highest round score
+            const bestRoundPlayer = activeOpponents.reduce((best, player) => 
+                player.calculateScore() > best.calculateScore() ? player : best
+            );
+            return bestRoundPlayer;
         }
         if (card.value === 'flip3') {
             // If source has few cards, use self; else random active opponent
@@ -796,7 +888,13 @@ class GameEngine {
         const uniqueCount = player.uniqueNumbers.size;
         const currentScore = player.calculateScore();
         
-        // Priority: Get Flip 7 if close
+        // Priority 1: If AI has Second Chance, be aggressive and keep hitting
+        if (player.hasSecondChance) {
+            console.log(`AI ${player.name}: Has Second Chance protection - hitting aggressively`);
+            return true;
+        }
+        
+        // Priority 2: Get Flip 7 if close
         if (uniqueCount >= 5 && uniqueCount < 7) return true;
         
         // Conservative if high score
@@ -893,6 +991,13 @@ class GameEngine {
      * End the current round
      */
     endRound() {
+        // Prevent multiple calls to endRound for the same round
+        if (this.roundEnding) {
+            console.log(`GameEngine: Round ${this.roundNumber} already ending - ignoring duplicate endRound call`);
+            return;
+        }
+        this.roundEnding = true;
+        
         console.log('\n-------------------------------------');
         console.log(`📊 ROUND ${this.roundNumber} ENDING 📊`);
         console.log('-------------------------------------');
@@ -1007,7 +1112,7 @@ class GameEngine {
         
         // If the frozen player is the current turn player, end their turn
         if (player.id === currentPlayer.id && !this.isInitialDealPhase) {
-            console.log(`GameEngine: Current player ${player.name} was frozen, ending their turn`);
+            // End turn for frozen current player
             this.endTurn();
         }
     }
@@ -1020,6 +1125,45 @@ class GameEngine {
         // Continue game flow after animations
         if (data.type === 'cardDeal' && data.isLastCard) {
             // All initial cards dealt, can start game
+        }
+    }
+
+    /**
+     * Check if player has unused action cards that require manual use
+     * @param {Player} player - The player to check
+     * @returns {boolean}
+     */
+    hasUnusedActionCards(player) {
+        const actionCards = player.actionCards.filter(card => 
+            card.value === 'freeze' || card.value === 'flip3'
+        );
+        return actionCards.length > 0;
+    }
+
+    /**
+     * Show action card resolution prompt for human player
+     * @param {Player} player - The human player
+     */
+    showActionCardPrompt(player) {
+        const actionCards = player.actionCards.filter(card => 
+            card.value === 'freeze' || card.value === 'flip3'
+        );
+        
+        if (actionCards.length > 0) {
+            // Update UI to show action card resolution phase
+            this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
+                type: 'showActionCardPrompt',
+                playerId: player.id,
+                player: player,
+                actionCards: actionCards
+            });
+            
+            // Update game status
+            const message = `You must use your ${actionCards.length} action card${actionCards.length > 1 ? 's' : ''} before continuing`;
+            this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
+                type: 'updateGameStatus',
+                message: message
+            });
         }
     }
 

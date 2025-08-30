@@ -40,9 +40,6 @@ class Player {
         
         // Clear any special card effects
         this.hasSecondChance = false;
-        
-        // Log status reset for debugging
-        console.log(`Player ${this.name}: Status reset to 'waiting' from '${this.status}'`);
     }
 
     /**

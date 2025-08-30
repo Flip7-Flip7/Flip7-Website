@@ -388,25 +388,33 @@ class DisplayManager {
         if (!container) return;
 
         // Clean any previous frozen visuals first
-        ['freeze-overlay','freeze-ice-shards','freeze-particles','ice-particles'].forEach(cls => {
+        ['freeze-overlay','js-freeze-overlay','freeze-ice-shards','freeze-particles','ice-particles'].forEach(cls => {
             container.querySelectorAll(`.${cls}`).forEach(el => el.remove());
         });
 
         container.classList.add('frozen');
-        container.style.position = container.style.position || 'relative';
+        // Ensure proper container positioning and overflow containment
+        container.style.position = 'relative';
+        container.style.overflow = 'hidden';
 
-        // Simple overlay (no animations)
+        // Simple overlay with !important to override CSS conflicts
         const overlay = document.createElement('div');
-        overlay.className = 'freeze-overlay';
+        overlay.className = 'js-freeze-overlay'; // Use unique class to avoid CSS conflicts
         overlay.style.cssText = `
-            position: absolute;
-            inset: 0;
-            background: rgba(96, 165, 250, 0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-            backdrop-filter: saturate(0.8);
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(96, 165, 250, 0.25) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            pointer-events: none !important;
+            backdrop-filter: saturate(0.8) !important;
+            z-index: 10 !important;
         `;
         const label = document.createElement('div');
         label.className = 'freeze-overlay-text';
@@ -516,10 +524,7 @@ class DisplayManager {
             const container = document.getElementById(id);
             if (!container) return;
             
-            // Log if player was frozen for debugging
-            if (container.classList.contains('frozen')) {
-                console.log(`DisplayManager: Clearing frozen state from ${id}`);
-            }
+            // Clear frozen state
 
             // Remove ALL state classes including frozen
             container.classList.remove(
@@ -543,11 +548,8 @@ class DisplayManager {
             ];
             
             overlaysToRemove.forEach(cls => {
-                const elements = container.querySelectorAll(`.${cls}`);
-                if (elements.length > 0) {
-                    console.log(`DisplayManager: Removing ${elements.length} ${cls} element(s) from ${id}`);
-                    elements.forEach(el => el.remove());
-                }
+                const elements = container.querySelectorAll(`.${cls}, .js-freeze-overlay`);
+                elements.forEach(el => el.remove());
             });
             
             // Clear any persistent inline styles
@@ -558,12 +560,9 @@ class DisplayManager {
             const cardsEl = id === 'player' ? document.getElementById('player-cards') : document.getElementById(`${id}-cards`);
             if (cardsEl) cardsEl.innerHTML = '';
 
-            // Reset status text to Active (clear frozen text)
+            // Reset status text to Active
             const statusEl = container.querySelector('.player-status');
             if (statusEl) {
-                if (statusEl.textContent.includes('Frozen')) {
-                    console.log(`DisplayManager: Clearing frozen status text from ${id}`);
-                }
                 statusEl.textContent = 'Active';
             }
 
@@ -579,17 +578,12 @@ class DisplayManager {
         });
         
         // Force enable human player action buttons after clearing frozen state
-        // This ensures buttons work properly even if turn order doesn't start with human
         setTimeout(() => {
-            console.log('DisplayManager: Force-enabling human player action buttons after round reset');
             ['hit-btn','stay-btn','mobile-hit-btn','mobile-stay-btn'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) {
-                    el.disabled = false;
-                    console.log(`DisplayManager: Re-enabled ${id} after round reset`);
-                }
+                if (el) el.disabled = false;
             });
-        }, 100); // Small delay to ensure all cleanup is complete
+        }, 100);
     }
 
     /**
@@ -624,6 +618,12 @@ class DisplayManager {
                 break;
             case 'refreshPlayerCards':
                 this.refreshPlayerCards(params.playerId, params.player);
+                break;
+            case 'showActionCardPrompt':
+                this.showActionCardPrompt(params.playerId, params.player, params.actionCards);
+                break;
+            case 'updateGameStatus':
+                this.updateGameStatus(params.message);
                 break;
             default:
                 console.log('Unknown UI update type:', type);
@@ -663,13 +663,26 @@ class DisplayManager {
      */
 
     /**
-     * Render a card into a player's container (with image support)
+     * Render a card into a player's container in sorted position (with image support)
      */
     renderCardToPlayer(card, playerId) {
         const container = this.getPlayerCardContainer(playerId);
         if (!container || !card) return;
-        const cardEl = card.toElement();
-        container.appendChild(cardEl);
+        
+        // Get current player to re-sort and refresh entire hand
+        // This ensures new cards appear in correct position immediately
+        const playerIds = ['player', 'opponent1', 'opponent2', 'opponent3'];
+        const playerIndex = playerIds.indexOf(playerId);
+        
+        if (playerIndex !== -1 && window.Flip7?.engine?.players?.[playerIndex]) {
+            const player = window.Flip7.engine.players[playerIndex];
+            this.refreshPlayerCards(playerId, player);
+        } else {
+            // Fallback: just append the card if we can't get player reference
+            const cardEl = card.toElement();
+            container.appendChild(cardEl);
+        }
+        
         this.updateDeckCount(window.Flip7?.engine?.deck?.getCardsRemaining?.() ?? '');
     }
 
@@ -715,6 +728,40 @@ class DisplayManager {
     }
 
     /**
+     * Sort cards for organized display: Numbers -> Modifiers -> Actions
+     */
+    sortCardsForDisplay(cards) {
+        return cards.slice().sort((a, b) => {
+            // Type priority: number (0), modifier (1), action (2)
+            const typeOrder = { number: 0, modifier: 1, action: 2 };
+            const aType = typeOrder[a.type] || 3;
+            const bType = typeOrder[b.type] || 3;
+            
+            if (aType !== bType) return aType - bType;
+            
+            // Within same type, sort by value
+            if (a.type === 'number') {
+                return a.value - b.value; // 0, 1, 2, ... 12
+            }
+            
+            if (a.type === 'modifier') {
+                // Sort modifiers: +2, +4, +6, +8, +10, x2
+                if (a.value === 'x2') return b.value === 'x2' ? 0 : 1;
+                if (b.value === 'x2') return -1;
+                return a.value - b.value;
+            }
+            
+            if (a.type === 'action') {
+                // Consistent action order: freeze, flip3, second chance
+                const actionOrder = { 'freeze': 0, 'flip3': 1, 'second chance': 2 };
+                return (actionOrder[a.value] || 3) - (actionOrder[b.value] || 3);
+            }
+            
+            return 0;
+        });
+    }
+
+    /**
      * Refresh player's entire card display based on their current hand
      */
     refreshPlayerCards(playerId, player) {
@@ -724,9 +771,10 @@ class DisplayManager {
         // Clear all existing cards
         container.innerHTML = '';
 
-        // Re-add all cards from player's current hand
+        // Re-add all cards from player's current hand in sorted order
         const allCards = player.getAllCards ? player.getAllCards() : [];
-        allCards.forEach(card => {
+        const sortedCards = this.sortCardsForDisplay(allCards);
+        sortedCards.forEach(card => {
             const cardEl = card.toElement();
             container.appendChild(cardEl);
         });
@@ -845,6 +893,40 @@ class DisplayManager {
         this.targetingAvailableTargets = [];
     }
     
+    /**
+     * Show action card prompt for human player
+     * @param {string} playerId - Player ID
+     * @param {Player} player - Player object  
+     * @param {Array} actionCards - Action cards to resolve
+     */
+    showActionCardPrompt(playerId, player, actionCards) {
+        console.log(`DisplayManager: Showing action card prompt for ${player.name} with ${actionCards.length} cards`);
+        
+        // Highlight action cards in player's hand
+        const container = this.getPlayerCardContainer(playerId);
+        if (container) {
+            const cardElements = container.querySelectorAll('.action');
+            cardElements.forEach(cardEl => {
+                cardEl.classList.add('action-card-highlight');
+                cardEl.style.border = '3px solid #FFD700';
+                cardEl.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.8)';
+                cardEl.style.transform = 'scale(1.05)';
+            });
+        }
+        
+        // Disable Hit/Stay buttons during action resolution
+        ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = true;
+        });
+        
+        // Update mobile status
+        const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
+        if (mobileTurnIndicator) {
+            mobileTurnIndicator.textContent = 'Tap action cards to use them!';
+        }
+    }
+
     /**
      * Clear all targeting click handlers and visual feedback
      */
