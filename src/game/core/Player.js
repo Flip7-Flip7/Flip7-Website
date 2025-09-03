@@ -97,11 +97,14 @@ class Player {
      * @param {Card} card - The card to remove
      */
     removeCard(card) {
+        let removed = false;
+        
         switch (card.type) {
             case 'number':
                 const index = this.numberCards.findIndex(c => c.value === card.value);
                 if (index !== -1) {
                     this.numberCards.splice(index, 1);
+                    removed = true;
                     
                     // Only delete from uniqueNumbers if no other cards have this value
                     const hasOtherCardWithSameValue = this.numberCards.some(c => c.value === card.value);
@@ -118,6 +121,7 @@ class Player {
                 const modIndex = this.modifierCards.findIndex(c => c.value === card.value);
                 if (modIndex !== -1) {
                     this.modifierCards.splice(modIndex, 1);
+                    removed = true;
                 }
                 break;
                 
@@ -125,6 +129,8 @@ class Player {
                 const actionIndex = this.actionCards.findIndex(c => c.value === card.value);
                 if (actionIndex !== -1) {
                     this.actionCards.splice(actionIndex, 1);
+                    removed = true;
+                    
                     // If removing a Second Chance card, update flag only if no more remain
                     if (card.value === 'second chance') {
                         const remainingSecondChance = this.actionCards.filter(c => c.value === 'second chance');
@@ -138,6 +144,9 @@ class Player {
                 }
                 break;
         }
+        
+        console.log(`Player ${this.name}: removeCard(${card.type}:${card.value}) = ${removed}`);
+        return removed;
     }
 
     /**

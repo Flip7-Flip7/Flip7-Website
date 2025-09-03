@@ -5189,3 +5189,58 @@ body {
         font-size: 0.95em;
     }
 }
+
+/* Enhanced Second Chance Animation Keyframes */
+@keyframes second-chance-card-collision-vibrate {
+    0% { transform: translateX(0px) translateY(0px); }
+    25% { transform: translateX(1px) translateY(-1px); }
+    50% { transform: translateX(-1px) translateY(0px); }
+    75% { transform: translateX(0px) translateY(1px); }
+    100% { transform: translateX(0px) translateY(0px); }
+}
+
+@keyframes second-chance-collision-impact {
+    0% { 
+        transform: scale(0) rotate(0deg); 
+        opacity: 1;
+    }
+    30% { 
+        transform: scale(1.8) rotate(90deg); 
+        opacity: 0.9;
+    }
+    100% { 
+        transform: scale(4) rotate(180deg); 
+        opacity: 0;
+    }
+}
+
+@keyframes second-chance-particle-burst {
+    0% { 
+        transform: scale(1) rotate(0deg) translate(0px, 0px);
+        opacity: 1;
+    }
+    70% {
+        opacity: 0.6;
+    }
+    100% { 
+        transform: scale(0) rotate(var(--particle-rotation, 720deg)) 
+                  translate(var(--particle-x, 100px), var(--particle-y, 100px));
+        opacity: 0;
+    }
+}
+
+/* Mobile optimizations for particle effects */
+@media (max-width: 1024px) {
+    .second-chance-enhanced-backdrop {
+        border-radius: 8px;
+    }
+    
+    .second-chance-collision-impact {
+        transform: scale(0.8) !important;
+    }
+    
+    .second-chance-enhanced-notification {
+        font-size: 1em !important;
+        padding: 10px 18px !important;
+    }
+}

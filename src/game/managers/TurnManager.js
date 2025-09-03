@@ -39,6 +39,11 @@ class TurnManager {
      * Set the current player index
      */
     setCurrentPlayerIndex(index) {
+        console.log(`🔍 DEBUG TurnManager.setCurrentPlayerIndex called:`, {
+            oldIndex: this.currentPlayerIndex,
+            newIndex: index,
+            stackTrace: new Error().stack.split('\n').slice(1, 4).join('\n')
+        });
         this.currentPlayerIndex = index;
     }
 
@@ -56,7 +61,7 @@ class TurnManager {
      * @param {Object} context - Additional context (gameState, aiManager, etc)
      */
     startNextTurn(players, dealerIndex, context) {
-        const { isInitialDealPhase, gameState, aiManager } = context;
+        const { isInitialDealPhase, gameState, aiManager, isFirstTurn } = context;
         
         // Block if any action is in progress
         if (this.actionInProgress || this.actionDisplayPhase) {
@@ -103,6 +108,12 @@ class TurnManager {
             return;
         }
         
+        // For the first turn of the round, set starting position based on dealer
+        if (isFirstTurn) {
+            this.currentPlayerIndex = (dealerIndex + 1) % players.length;
+            console.log(`TurnManager: First turn of round - setting starting index to ${this.currentPlayerIndex} (dealer ${dealerIndex} + 1)`);
+        }
+        
         // Debug: Log all player statuses before finding next player
         console.log('TurnManager: Current player statuses:');
         players.forEach((p, i) => {
@@ -129,6 +140,13 @@ class TurnManager {
         const currentPlayer = players[this.currentPlayerIndex];
         
         console.log(`TurnManager: Found active player ${currentPlayer.name} (index ${this.currentPlayerIndex}) after ${attempts} attempts`);
+        
+        // 🔍 DEBUG: Verify currentPlayerIndex is correct before emitting turn start
+        console.log(`🔍 DEBUG startNextTurn final state:`, {
+            currentPlayerIndex: this.currentPlayerIndex,
+            currentPlayerName: currentPlayer.name,
+            currentPlayerIsHuman: currentPlayer.isHuman
+        });
         
         // Emit turn start event
         this.eventBus.emit(GameEvents.TURN_START, {
@@ -170,13 +188,36 @@ class TurnManager {
      * Handle player hit action from event
      */
     async handlePlayerHit(data = {}) {
+        console.log('🔍 DEBUG handlePlayerHit called:', {
+            currentPlayerIndex: this.currentPlayerIndex,
+            gameEngineExists: !!window.Flip7?.gameEngine,
+            playersArrayLength: window.Flip7?.gameEngine?.players?.length || 0
+        });
+        
         // Get current player from GameEngine
         const gameEngine = window.Flip7?.gameEngine;
         const players = gameEngine?.players || [];
         const player = players[this.currentPlayerIndex];
         
-        if (!player || !player.isHuman || !player.canPlay()) return;
+        console.log('🔍 DEBUG player validation:', {
+            playerExists: !!player,
+            playerName: player?.name,
+            isHuman: player?.isHuman,
+            status: player?.status,
+            canPlay: player?.canPlay(),
+            allPlayersStatus: players.map(p => ({ name: p.name, status: p.status, canPlay: p.canPlay() }))
+        });
         
+        if (!player || !player.isHuman || !player.canPlay()) {
+            console.log('🔍 DEBUG handlePlayerHit BLOCKED - conditions failed:', {
+                noPlayer: !player,
+                notHuman: !player?.isHuman,
+                cantPlay: !player?.canPlay()
+            });
+            return;
+        }
+        
+        console.log('🔍 DEBUG handlePlayerHit PROCEEDING with hit');
         await this.executePlayerHit(player);
     }
 
@@ -525,8 +566,20 @@ class TurnManager {
         const players = gameEngine?.players || [];
         const currentPlayer = players[this.currentPlayerIndex];
         
-        if (!this.actionInProgress && currentPlayer && !currentPlayer.isHuman && !this.turnEnding) {
-            console.log('TurnManager: Flip3 sequence complete, continuing turn flow');
+        if (!this.actionInProgress && currentPlayer && !this.turnEnding) {
+            console.log(`TurnManager: Flip3 sequence complete for ${currentPlayer.name}`);
+            
+            // Check if human player has more action cards to resolve
+            if (currentPlayer.isHuman) {
+                const actionCardHandler = window.Flip7?.gameEngine?.actionCardHandler;
+                if (actionCardHandler?.hasUnusedActionCards(currentPlayer)) {
+                    console.log(`TurnManager: ${currentPlayer.name} has remaining action cards after Flip3 - showing prompt`);
+                    actionCardHandler.showActionCardPrompt(currentPlayer);
+                    return; // Don't end turn yet
+                }
+            }
+            
+            console.log('TurnManager: No remaining action cards, continuing turn flow');
             // Small delay to ensure clean transition
             setTimeout(() => {
                 if (!this.turnEnding && !this.actionInProgress) {

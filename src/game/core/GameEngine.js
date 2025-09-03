@@ -86,9 +86,17 @@ class GameEngine {
     async handleRequestInitialDeal(data) {
         const { players, dealerIndex } = data;
         
+        console.log(`🔍 DEBUG GameEngine.handleRequestInitialDeal:`, {
+            dealerIndex: dealerIndex,
+            playersLength: players.length,
+            dealerName: players[dealerIndex]?.name,
+            calculatedStartingIndex: (dealerIndex + 1) % players.length,
+            startingPlayerName: players[(dealerIndex + 1) % players.length]?.name
+        });
+        
         // Deal initial cards
         this.isInitialDealPhase = true;
-        await this.cardManager.dealInitialCards(players, true);
+        await this.cardManager.dealInitialCards(players, dealerIndex);
         this.isInitialDealPhase = false;
 
         players.forEach(player => {
@@ -100,8 +108,9 @@ class GameEngine {
             });
         });
         
-        // Set starting turn position
-        this.turnManager.setCurrentPlayerIndex((dealerIndex + 1) % players.length);
+        // Note: Don't set turn index here - startNextTurn() will find the correct starting player
+        // after initial deal completes. This prevents race condition where we override the correct index.
+        console.log(`🔍 DEBUG GameEngine: Initial deal complete, startNextTurn will find starting player after dealer ${dealerIndex}`);
     }
 
     /**
@@ -111,8 +120,14 @@ class GameEngine {
         const context = {
             isInitialDealPhase: this.isInitialDealPhase,
             gameState: this.getGameState(),
-            aiManager: this.aiManager
+            aiManager: this.aiManager,
+            isFirstTurn: this.isFirstTurnOfRound || false
         };
+        
+        // Clear the first turn flag after using it
+        if (this.isFirstTurnOfRound) {
+            this.isFirstTurnOfRound = false;
+        }
         
         this.turnManager.startNextTurn(
             this.players, 
@@ -150,6 +165,9 @@ class GameEngine {
      */
     handleInitialDealComplete(data) {
         console.log('GameEngine: Initial deal completed, starting first turn');
+        
+        // Mark that this is the first turn of the round for proper dealer rotation
+        this.isFirstTurnOfRound = true;
         
         // Request first turn from TurnManager
         this.eventBus.emit(GameEvents.REQUEST_NEXT_TURN);

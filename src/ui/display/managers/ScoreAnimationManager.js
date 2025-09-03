@@ -24,14 +24,21 @@ class ScoreAnimationManager {
         
         const scores = data?.scores || [];
         
-        // Trigger animations for players with round points > 0
+        // Trigger animations for players with round points > 0 who didn't bust
         let hasAnimations = false;
         scores.forEach((entry, index) => {
             const playerId = entry?.player?.id;
             const roundPoints = entry?.roundScore || 0;
             const newTotal = entry?.totalScore || 0;
+            const player = entry?.player;
             
             if (!playerId) return;
+            
+            // Skip animation if player busted (should have 0 points anyway)
+            if (player?.status === 'busted') {
+                console.log(`🎯 ScoreAnimationManager: Skipping animation for ${playerId} - player busted`);
+                return;
+            }
             
             if (roundPoints > 0) {
                 console.log(`🎯 ScoreAnimationManager: Scheduling animation for ${playerId}: +${roundPoints}`);

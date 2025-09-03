@@ -20,17 +20,22 @@ class CardManager {
     /**
      * Deal initial cards to all players
      * @param {Array<Player>} players - Array of players
+     * @param {number} dealerIndex - Index of the dealer (to determine starting player)
      */
-    async dealInitialCards(players) {
+    async dealInitialCards(players, dealerIndex = 0) {
         console.log('CardManager: Starting initial deal to players');
         
         this.eventBus.emit(GameEvents.INITIAL_DEAL_START, {
             players: players.map(p => ({ id: p.id, name: p.name, status: p.status }))
         });
         
-        // Deal one card to each active player sequentially with animation waits
-        for (let i = 0; i < players.length; i++) {
-            const player = players[i];
+        // Deal one card to each active player sequentially starting with player after dealer
+        const startingPlayerIndex = (dealerIndex + 1) % players.length;
+        console.log(`CardManager: Initial deal starting with player ${startingPlayerIndex} (${players[startingPlayerIndex]?.name}) after dealer ${dealerIndex}`);
+        
+        for (let round = 0; round < players.length; round++) {
+            const playerIndex = (startingPlayerIndex + round) % players.length;
+            const player = players[playerIndex];
             
             // Skip frozen or busted players during initial deal
             if (player.status !== 'active') {
@@ -53,7 +58,7 @@ class CardManager {
             this.eventBus.emit(GameEvents.CARD_DEALT, {
                 card: card,
                 playerId: player.id,
-                playerIndex: i,
+                playerIndex: playerIndex,
                 isInitialDeal: true
             });
             
@@ -83,8 +88,8 @@ class CardManager {
                 this.eventBus.emit(GameEvents.INITIAL_DEAL_PAUSED, {
                     pausedPlayer: player,
                     actionCard: card,
-                    currentPlayerIndex: i,
-                    remainingPlayers: players.slice(i + 1).filter(p => p.status === 'active')
+                    currentPlayerIndex: playerIndex,
+                    remainingPlayers: players.slice(playerIndex + 1).filter(p => p.status === 'active')
                 });
                 
                 this.eventBus.emit(GameEvents.INITIAL_DEAL_ACTION_REQUIRED, {
@@ -97,13 +102,13 @@ class CardManager {
                 // Wait for action to be resolved before continuing
                 await actionResolutionPromise;
                 
-                console.log(`CardManager: Action resolved, continuing initial deal from player ${i + 1}`);
+                console.log(`CardManager: Action resolved, continuing initial deal from player ${round + 1}`);
                 this.eventBus.emit(GameEvents.INITIAL_DEAL_RESUMED, {
-                    resumingPlayerIndex: i + 1
+                    resumingPlayerIndex: round + 1
                 });
                 
                 // Continue with remaining players after action resolution
-                // Note: The for loop will naturally continue to i+1, i+2, etc.
+                // Note: The for loop will naturally continue to round+1, round+2, etc.
             }
         }
         

@@ -18,7 +18,7 @@ class AnimationManager {
         this.eventBus.on(GameEvents.PLAYER_FLIP7, this.animateFlip7.bind(this));
         this.eventBus.on(GameEvents.PLAYER_STAY_COMPLETED, this.animatePlayerStay.bind(this));
         this.eventBus.on(GameEvents.FREEZE_CARD_USED, this.animateFreezeEffect.bind(this));
-        this.eventBus.on(GameEvents.SECOND_CHANCE_ACTIVATED, this.animateSecondChance.bind(this));
+        // Second Chance animations handled by SecondChanceAnimationManager
         
         // Card animations
         this.eventBus.on(GameEvents.CARD_DEALT, this.animateCardDeal.bind(this));
@@ -153,29 +153,7 @@ class AnimationManager {
         });
     }
 
-    /**
-     * Animate Second Chance activation
-     */
-    animateSecondChance(data) {
-        const { player, card, secondChanceCard, discardedCards } = data;
-        const container = document.getElementById(player.id);
-        if (!container) return;
-
-        // Create shield effect
-        const shield = this.createShieldEffect();
-        container.appendChild(shield);
-
-        // Animate card removal
-        discardedCards.forEach(discardedCard => {
-            const cardEl = this.findCardElement(container, discardedCard);
-            if (cardEl) {
-                this.animateCardRemoval(cardEl);
-            }
-        });
-
-        // Show Second Chance used notification
-        this.createNotification(container, '🛡️ Second Chance Used!', 'success');
-    }
+    // Note: Second Chance animations now handled by SecondChanceAnimationManager
 
     /**
      * Animate card being dealt

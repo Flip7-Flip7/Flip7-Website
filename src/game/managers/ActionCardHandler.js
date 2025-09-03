@@ -433,11 +433,13 @@ class ActionCardHandler {
             }
             
             if (addResult.isFlip7) {
+                console.log(`ActionCardHandler: ${targetPlayer.name} achieved Flip7 during Flip3 - stopping immediately`);
                 this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
                     playerId: targetPlayer.id,
                     roundScore: targetPlayer.calculateScore(),
                     totalScore: targetPlayer.totalScore
                 });
+                break; // Stop dealing cards immediately when Flip7 is achieved
             }
         }
         
@@ -500,6 +502,10 @@ class ActionCardHandler {
         
         const { players, aiManager } = context;
         
+        // Check if we're in initial deal phase
+        const gameEngine = window.Flip7?.gameEngine;
+        const isInitialDeal = gameEngine?.isInitialDealPhase;
+        
         // Save current game state to detect any unintended status changes
         const preFlip3PlayerStates = players.map(p => ({ id: p.id, status: p.status }));
         
@@ -530,23 +536,37 @@ class ActionCardHandler {
                 continue;
             }
             
-            // For Freeze/Flip3 cards drawn during Flip3, do NOT auto-process for human players
+            // For Freeze/Flip3 cards drawn during Flip3
             if (actionCard.value === 'freeze' || actionCard.value === 'flip3') {
                 if (targetPlayer.isHuman) {
                     console.log(`🎯 FLIP3 ACTION: Human ${targetPlayer.name} drew ${actionCard.value} from Flip3`);
-                    console.log(`🎯 FLIP3 ACTION: Adding ${actionCard.value} to human hand for later manual use`);
                     
-                    // Add action card to human's hand but DON'T auto-execute
+                    // Add action card to human's hand first
                     targetPlayer.addCard(actionCard);
                     
                     // Emit card dealt event so it shows in UI
                     this.eventBus.emit(GameEvents.CARD_DEALT, {
                         card: actionCard,
                         playerId: targetPlayer.id,
-                        isInitialDeal: false
+                        isInitialDeal: isInitialDeal
                     });
                     
-                    console.log(`🎯 FLIP3 ACTION: ${actionCard.value} added to ${targetPlayer.name}'s hand for manual use later`);
+                    if (isInitialDeal) {
+                        console.log(`🎯 FLIP3 ACTION: Initial deal phase - pausing for human to use ${actionCard.value}`);
+                        
+                        // During initial deal, pause for immediate action (like top-level action cards)
+                        this.eventBus.emit(GameEvents.INITIAL_DEAL_ACTION_REQUIRED, {
+                            card: actionCard,
+                            sourcePlayer: targetPlayer,
+                            availableTargets: this.getAvailableTargets(targetPlayer, actionCard, players),
+                            isInitialDeal: true
+                        });
+                        
+                        // Wait for action to be resolved before continuing
+                        return; // Exit early - action resolution will handle continuation
+                    } else {
+                        console.log(`🎯 FLIP3 ACTION: Regular turn - adding ${actionCard.value} to human hand for later manual use`);
+                    }
                 } else {
                     console.log(`ActionCardHandler: AI player ${targetPlayer.name} auto-processing ${actionCard.value} from Flip3`);
                     

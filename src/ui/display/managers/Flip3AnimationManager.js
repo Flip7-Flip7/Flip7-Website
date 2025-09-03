@@ -58,6 +58,16 @@ class Flip3AnimationManager {
         this.createFlip3Popup();
         this.showPopup();
         
+        // Debug all slot positions to verify left-to-right order
+        console.log('🎯 SLOT LAYOUT DEBUG: Checking all slot positions...');
+        for (let i = 1; i <= 3; i++) {
+            const slotEl = document.getElementById(`flip3-slot-${i}`);
+            if (slotEl) {
+                const rect = slotEl.getBoundingClientRect();
+                console.log(`🎯 Slot ${i}: X=${rect.left} (should be ${i === 1 ? 'leftmost' : i === 2 ? 'middle' : 'rightmost'})`);
+            }
+        }
+        
         // Update target name
         const targetNameEl = document.getElementById('flip3-target-name');
         if (targetNameEl) {
@@ -284,6 +294,7 @@ class Flip3AnimationManager {
         // Get slot position and center screen for flip animation  
         const slotRect = slot.getBoundingClientRect();
         console.log(`Flip3AnimationManager: Slot ${slotNumber} position:`, slotRect);
+        console.log(`🎯 SLOT DEBUG: Card ${slotNumber} targeting slot at X=${slotRect.left} (expected: 1=leftmost, 2=middle, 3=rightmost)`);
         const screenCenterX = window.innerWidth / 2;
         const screenCenterY = window.innerHeight / 2;
         
@@ -299,6 +310,7 @@ class Flip3AnimationManager {
             z-index: 2500;
             transform-style: preserve-3d;
             transform: rotateY(0deg);
+            transform-origin: center;
             pointer-events: none;
         `;
         
@@ -344,9 +356,14 @@ class Flip3AnimationManager {
         // Phase 2: Slide to slot (600ms)
         setTimeout(() => {
             animatedCard.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-            const deltaX = slotRect.left + slotRect.width/2 - screenCenterX;
-            const deltaY = slotRect.top + slotRect.height/2 - screenCenterY;
-            animatedCard.style.transform = `rotateY(180deg) translate(${deltaX}px, ${deltaY}px) scale(0.9)`;
+            const targetX = slotRect.left + slotRect.width/2 - 60; // Center of slot minus half card width
+            const targetY = slotRect.top + slotRect.height/2 - 80; // Center of slot minus half card height
+            console.log(`🎯 ANIMATION DEBUG: Card ${slotNumber} moving to slot center at (${targetX + 60}, ${targetY + 80})`);
+            
+            // Move to absolute position and scale down
+            animatedCard.style.left = `${targetX}px`;
+            animatedCard.style.top = `${targetY}px`;
+            animatedCard.style.transform = 'rotateY(180deg) scale(0.9)';
         }, 500);
         
         // Phase 3: Settle into slot (1200ms total)
