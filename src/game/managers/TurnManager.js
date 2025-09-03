@@ -315,7 +315,8 @@ class TurnManager {
                 console.log(`TurnManager: Animation complete for ${player.name}, ending turn`);
                 // Remove this specific listener
                 this.eventBus.off(GameEvents.CARD_ANIMATION_END, animationCompleteHandler);
-                this.endTurn();
+                // Pass the player whose turn is ending
+                this.endTurn(player);
             }
         };
         
@@ -348,8 +349,9 @@ class TurnManager {
 
     /**
      * End the current turn
+     * @param {Player} player - Optional player whose turn is ending (used when called from animation callbacks)
      */
-    endTurn() {
+    endTurn(player = null) {
         const gameEngine = window.Flip7?.gameEngine;
         const isInitialDealPhase = gameEngine?.isInitialDealPhase;
         
@@ -376,9 +378,9 @@ class TurnManager {
             this.currentTurnTimeout = null;
         }
         
-        // Get current player for Second Chance redistribution check
+        // Get current player - use passed player if available, otherwise use index
         const players = gameEngine?.players || [];
-        const currentPlayer = players[this.currentPlayerIndex];
+        const currentPlayer = player || players[this.currentPlayerIndex];
         
         if (currentPlayer) {
             // Check if player has multiple Second Chance cards that need redistribution
@@ -430,9 +432,13 @@ class TurnManager {
             player: currentPlayer
         });
         
-        // Don't increment here - let startNextTurn handle finding the next active player
-        const oldIndex = this.currentPlayerIndex;
-        console.log(`TurnManager: Turn ending for ${players[oldIndex]?.name} (index ${oldIndex})`);
+        // Log using the actual player whose turn is ending
+        if (currentPlayer) {
+            const actualIndex = players.findIndex(p => p.id === currentPlayer.id);
+            console.log(`TurnManager: Turn ending for ${currentPlayer.name} (index ${actualIndex})`);
+        } else {
+            console.log(`TurnManager: Turn ending but no current player found`);
+        }
         
         // Start next turn after a brief delay
         this.currentTurnTimeout = setTimeout(() => {
