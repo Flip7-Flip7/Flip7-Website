@@ -31,7 +31,12 @@ const moduleLoadOrder = [
     // 'game/ai/AIPlayer.js',
     // 'game/ai/AIStrategy.js',
     
-    // UI modules
+    // UI modules  
+    'src/ui/display/managers/AnimationManager.js',
+    'src/ui/display/managers/TargetingManager.js',
+    'src/ui/display/managers/UIUpdateManager.js',
+    'src/ui/display/managers/Flip3AnimationManager.js',
+    'src/ui/display/managers/SecondChanceAnimationManager.js',
     'src/ui/display/DisplayManager.js',
     // 'ui/display/CardDisplay.js',
     // 'ui/animations/AnimationManager.js',

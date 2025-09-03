@@ -18,11 +18,25 @@ class GameEngine {
         this.winningScore = config.winningScore || GameConstants.WINNING_SCORE;
         this.roundEnding = false;
         
+        // Action blocking state
+        this.actionInProgress = false;
+        this.actionDisplayPhase = false;
+        this.turnEnding = false;
+        
+        // Turn management
+        this.currentTurnTimeout = null;
+        this.aiTurnInProgress = false;
+        
         // Temporary storage for action cards awaiting target selection
         this.pendingActionCard = null;
+        this.pendingFlip3ActionCards = null;
+        this.processingNestedFlip3 = false;
         
         // Track if we're in initial deal phase
         this.isInitialDealPhase = false;
+        
+        // Promise resolver for Flip 3 animation completion
+        this.flip3AnimationResolver = null;
         
         // Initialize players
         this.initializePlayers(config.playerName);
@@ -73,18 +87,20 @@ class GameEngine {
         
         // Initial deal events
         this.eventBus.on(GameEvents.INITIAL_DEAL_ACTION_REQUIRED, this.handleInitialDealAction.bind(this));
+        this.eventBus.on(GameEvents.INITIAL_DEAL_COMPLETE, this.handleInitialDealComplete.bind(this));
         
         // Player state changes
         this.eventBus.on(GameEvents.PLAYER_FROZEN, this.handlePlayerFrozen.bind(this));
         
         // Animation completion
         this.eventBus.on(GameEvents.ANIMATION_COMPLETE, this.handleAnimationComplete.bind(this));
+        this.eventBus.on(GameEvents.FLIP3_ANIMATION_COMPLETE, this.handleFlip3AnimationComplete.bind(this));
     }
 
     /**
      * Start a new game
      */
-    startNewGame() {
+    async startNewGame() {
         console.log('\n╔════════════════════════════════════╗');
         console.log('║      🎮 NEW GAME STARTING! 🎮      ║');
         console.log('╚════════════════════════════════════╝');
@@ -107,7 +123,7 @@ class GameEngine {
         });
         
         // Start first round
-        this.startNewRound();
+        await this.startNewRound();
     }
 
     /**
@@ -164,6 +180,19 @@ class GameEngine {
      * Start the next turn
      */
     startNextTurn() {
+        // Block if any action is in progress
+        if (this.actionInProgress || this.actionDisplayPhase) {
+            console.log('GameEngine: Blocking startNextTurn - action in progress');
+            return;
+        }
+        
+        // Block if Flip3 animation is active
+        const displayManager = window.Flip7?.display;
+        if (displayManager?.isFlip3Active()) {
+            console.log('GameEngine: Blocking startNextTurn - Flip3 animation active');
+            return;
+        }
+        
         // Safety check: Verify no players have >7 unique numbers
         this.players.forEach(p => {
             if (p.uniqueNumbers.size > 7) {
@@ -206,6 +235,8 @@ class GameEngine {
         
         const currentPlayer = this.players[this.currentPlayerIndex];
         
+        console.log(`GameEngine: Starting turn for ${currentPlayer.name} (index ${this.currentPlayerIndex})`);
+        
         // Emit turn start event
         this.eventBus.emit(GameEvents.TURN_START, {
             player: currentPlayer,
@@ -214,7 +245,9 @@ class GameEngine {
         
         // Handle AI turn
         if (!currentPlayer.isHuman) {
-            setTimeout(() => this.executeAITurn(currentPlayer), GameConstants.AI_DECISION_DELAY);
+            this.currentTurnTimeout = setTimeout(async () => {
+                await this.executeAITurn(currentPlayer);
+            }, GameConstants.AI_DECISION_DELAY);
         }
     }
 
@@ -222,13 +255,13 @@ class GameEngine {
      * Handle player hit action
      * @param {Object} data - Event data
      */
-    handlePlayerHit(data) {
+    async handlePlayerHit(data) {
         const player = this.players[this.currentPlayerIndex];
         
         
         if (!player.isHuman || !player.canPlay()) return;
         
-        this.executePlayerHit(player);
+        await this.executePlayerHit(player);
     }
 
     /**
@@ -246,7 +279,20 @@ class GameEngine {
      * Execute hit action for a player
      * @param {Player} player - The player hitting
      */
-    executePlayerHit(player) {
+    async executePlayerHit(player) {
+        // Block if any action is in progress
+        if (this.actionInProgress || this.actionDisplayPhase || this.turnEnding) {
+            console.log(`GameEngine: Blocking ${player.id} hit - game state locked`);
+            return;
+        }
+        
+        // Block if Flip3 animation is active
+        const displayManager = window.Flip7?.display;
+        if (displayManager?.isFlip3Active()) {
+            console.log(`GameEngine: Blocking ${player.id} hit - Flip3 animation active`);
+            return;
+        }
+        
         console.log(`Player ${player.id} hit`);
         const result = this.cardManager.drawCardForPlayer(player);
         
@@ -263,14 +309,24 @@ class GameEngine {
         if (!result.success && result.reason === 'bust') {
             // Player busts
             player.status = 'busted';
+            player.roundScore = 0;
             this.eventBus.emit(GameEvents.PLAYER_BUST, {
                 player: player,
                 card: result.card
             });
             this.endTurn();
         } else if (result.requiresAction) {
-            // Handle special action cards - different flow for human vs AI
-            this.handleActionCard(result.card, player);
+            // Handle special action cards - block game and show card for 1 second
+            this.actionDisplayPhase = true;
+            console.log(`GameEngine: Action card ${result.card.value} drawn by ${player.name} - starting 1-second display phase`);
+            
+            // Wait 1 second to show action card in player's hand
+            setTimeout(async () => {
+                this.actionDisplayPhase = false;
+                this.actionInProgress = true;
+                await this.handleActionCard(result.card, player);
+                this.actionInProgress = false;
+            }, 1000);
         } else if (result.requiresTargeting) {
             // Handle Second Chance redistribution targeting for human players
             this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
@@ -325,7 +381,7 @@ class GameEngine {
      * @param {Player} sourcePlayer - Player who drew the card
      * @param {boolean} skipTurnEnd - If true, don't end turn after AI execution (for Flip3 context)
      */
-    handleActionCard(card, sourcePlayer, skipTurnEnd = false) {
+    async handleActionCard(card, sourcePlayer, skipTurnEnd = false) {
         console.log(`GameEngine: Handling action card ${card.value} for ${sourcePlayer.name}, skipTurnEnd: ${skipTurnEnd}`);
         
         if (sourcePlayer.isHuman) {
@@ -348,7 +404,7 @@ class GameEngine {
             // AI player - auto-target and execute immediately
             const target = this.determineActionTarget(sourcePlayer, card);
             if (target) {
-                this.executeActionCard(card, sourcePlayer, target);
+                await this.executeActionCard(card, sourcePlayer, target);
             }
             
             // Only end turn if not in Flip3 context
@@ -362,7 +418,7 @@ class GameEngine {
      * Handle action card target selection from UI
      * @param {Object} data - Target selection data
      */
-    handleActionTargetSelected(data) {
+    async handleActionTargetSelected(data) {
         const { card, sourcePlayer, targetPlayer, isInitialDeal, isSecondChanceRedistribution } = data;
         
         // Clear pending action card for regular gameplay
@@ -407,7 +463,7 @@ class GameEngine {
             });
         } else {
             // Regular action card execution (Freeze/Flip3)
-            this.executeActionCard(card, sourcePlayer, targetPlayer);
+            await this.executeActionCard(card, sourcePlayer, targetPlayer);
         }
         
         // Only end turn if not during initial deal
@@ -441,11 +497,10 @@ class GameEngine {
             const target = this.determineActionTarget(sourcePlayer, card);
             if (target) {
                 console.log(`GameEngine: AI ${sourcePlayer.name} targeting ${target.name} with ${card.value}`);
-                // Small delay only for initial deal to ensure event listeners are ready
-                setTimeout(async () => {
-                    await this.executeActionCard(card, sourcePlayer, target);
+                // Execute action immediately during initial deal - no setTimeout needed
+                this.executeActionCard(card, sourcePlayer, target).then(() => {
                     console.log(`GameEngine: AI ${sourcePlayer.name} completed ${card.value} action during initial deal`);
-                }, 5);
+                });
             } else {
                 console.log('GameEngine: No valid target found for AI player');
             }
@@ -462,6 +517,14 @@ class GameEngine {
     async executeActionCard(card, sourcePlayer, targetPlayer) {
         console.log(`GameEngine: Executing action card ${card.value} from ${sourcePlayer.name} to ${targetPlayer.name}`);
         
+        // Animate card transfer from source to target (if not self-targeting)
+        if (sourcePlayer.id !== targetPlayer.id) {
+            const displayManager = window.Flip7?.display;
+            if (displayManager?.animationManager) {
+                console.log(`GameEngine: Animating card transfer ${sourcePlayer.id} → ${targetPlayer.id}`);
+                await displayManager.animationManager.animateActionCardTransfer(card, sourcePlayer.id, targetPlayer.id);
+            }
+        }
         
         if (card.value === 'freeze') {
             console.log('GameEngine: Processing freeze card');
@@ -545,6 +608,11 @@ class GameEngine {
         }
         
         if (card.value === 'flip3') {
+            // Start Flip 3 animation and wait for completion
+            const animationPromise = new Promise((resolve) => {
+                this.flip3AnimationResolver = resolve;
+            });
+            
             const outcome = await this.cardManager.handleActionCard(card, sourcePlayer, targetPlayer);
             const dealtCards = outcome.dealtCards || [];
             const actionCards = outcome.actionCards || [];
@@ -554,15 +622,25 @@ class GameEngine {
             for (let i = 0; i < dealtCards.length; i++) {
                 const c = dealtCards[i];
                 
+                // Add delay between cards for animation
+                if (i > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                }
+                
                 // Check for bust BEFORE adding card to hand
                 if (c.type === 'number' && targetPlayer.uniqueNumbers.has(c.value) && !targetPlayer.hasSecondChance) {
-                    console.log(`GameEngine: ${targetPlayer.name} would bust on duplicate ${c.value} during Flip3 - stopping early`);
+                    console.log(`GameEngine: ${targetPlayer.name} would bust on duplicate ${c.value} during Flip3 - will emit bust after animation`);
                     targetPlayer.status = 'busted';
                     targetPlayer.roundScore = 0;
-                    this.eventBus.emit(GameEvents.PLAYER_BUST, {
-                        player: targetPlayer,
-                        card: c
-                    });
+                    
+                    // Delay PLAYER_BUST emission until after card animation (1200ms to match animation timing)
+                    setTimeout(() => {
+                        this.eventBus.emit(GameEvents.PLAYER_BUST, {
+                            player: targetPlayer,
+                            card: c
+                        });
+                    }, 1200);
+                    
                     busted = true;
                     break; // Stop Flip3 immediately, don't deal remaining cards
                 }
@@ -598,9 +676,10 @@ class GameEngine {
                 }
                 
                 const addResult = targetPlayer.addCard(c);
-                this.eventBus.emit(GameEvents.CARD_DEALT, {
+                this.eventBus.emit(GameEvents.FLIP3_CARD_DEALT, {
                     card: c,
                     playerId: targetPlayer.id,
+                    cardIndex: i + 1, // 1-based index for slot number
                     isInitialDeal: false
                 });
                 
@@ -664,10 +743,11 @@ class GameEngine {
                 player: sourcePlayer
             });
             
-            // If no bust, give target player autonomy over action cards they drew
+            // Store action cards for processing after animation completes
             if (!busted && actionCards.length > 0) {
-                // Target player now has control over action cards they drew
-                await this.processFlip3ActionCards(actionCards, targetPlayer);
+                // Store action cards to be processed after Flip3 animation completes
+                this.pendingFlip3ActionCards = { actionCards, targetPlayer };
+                console.log(`GameEngine: Stored ${actionCards.length} action cards for processing after Flip3 animation`);
             }
             
             if (!busted) {
@@ -678,6 +758,9 @@ class GameEngine {
                     totalScore: targetPlayer.totalScore
                 });
             }
+            
+            // Wait for Flip 3 animation to complete before continuing
+            await animationPromise;
             
             // Check if human player still has action cards to resolve after flip3
             if (sourcePlayer.isHuman && this.hasUnusedActionCards(sourcePlayer)) {
@@ -747,9 +830,17 @@ class GameEngine {
                     // Human will use it on their turn with full targeting control
                 } else {
                     console.log(`GameEngine: AI player ${targetPlayer.name} auto-processing ${actionCard.value} from Flip3`);
+                    
+                    // Mark that we're processing a nested Flip3 if this is another Flip3
+                    if (actionCard.value === 'flip3') {
+                        this.processingNestedFlip3 = true;
+                    }
+                    
                     // AI auto-processes immediately during their turn - must complete before turn ends
                     await this.handleActionCard(actionCard, targetPlayer, true);
                     console.log(`GameEngine: AI ${targetPlayer.name} completed ${actionCard.value} action from Flip3`);
+                    
+                    this.processingNestedFlip3 = false;
                 }
             }
         }
@@ -847,6 +938,13 @@ class GameEngine {
      * @param {Player} player - The player staying
      */
     executePlayerStay(player) {
+        // Block if Flip3 animation is active
+        const displayManager = window.Flip7?.display;
+        if (displayManager?.isFlip3Active()) {
+            console.log(`GameEngine: Blocking ${player.id} stay - Flip3 animation active`);
+            return;
+        }
+        
         console.log(`Player ${player.id} stayed`);
         player.status = 'stayed';
         player.calculateScore();
@@ -863,7 +961,15 @@ class GameEngine {
      * Execute AI turn
      * @param {Player} aiPlayer - The AI player
      */
-    executeAITurn(aiPlayer) {
+    async executeAITurn(aiPlayer) {
+        // Block if turn is ending or actions in progress
+        if (this.turnEnding || this.actionInProgress || this.actionDisplayPhase || this.aiTurnInProgress) {
+            console.log(`GameEngine: Blocking AI ${aiPlayer.id} turn - game state locked`);
+            return;
+        }
+        
+        this.aiTurnInProgress = true;
+        
         // Simple AI logic - can be enhanced with AI modules
         const shouldHit = this.calculateAIShouldHit(aiPlayer);
         
@@ -873,10 +979,13 @@ class GameEngine {
         });
         
         if (shouldHit) {
-            this.executePlayerHit(aiPlayer);
+            await this.executePlayerHit(aiPlayer);
         } else {
             this.executePlayerStay(aiPlayer);
         }
+        
+        // Reset AI turn flag after action completes
+        this.aiTurnInProgress = false;
     }
 
     /**
@@ -915,6 +1024,23 @@ class GameEngine {
         if (this.isInitialDealPhase) {
             console.warn('GameEngine: endTurn called during initial deal phase - ignoring');
             return;
+        }
+        
+        // Prevent endTurn during Flip3 animation
+        const displayManager = window.Flip7?.display;
+        if (displayManager?.isFlip3Active()) {
+            console.log('GameEngine: endTurn called during Flip3 animation - ignoring');
+            return;
+        }
+        
+        // Immediately block further actions and clear any pending AI turns
+        this.turnEnding = true;
+        this.aiTurnInProgress = false;
+        
+        // Clear any pending turn timeouts
+        if (this.currentTurnTimeout) {
+            clearTimeout(this.currentTurnTimeout);
+            this.currentTurnTimeout = null;
         }
         
         const currentPlayer = this.players[this.currentPlayerIndex];
@@ -967,10 +1093,18 @@ class GameEngine {
         });
         
         // Move to next player
+        const oldIndex = this.currentPlayerIndex;
         this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+        const nextPlayer = this.players[this.currentPlayerIndex];
         
-        // Start next turn after a delay
-        setTimeout(() => this.startNextTurn(), 500);
+        console.log(`GameEngine: Turn ending - ${this.players[oldIndex].name} (index ${oldIndex}) → ${nextPlayer.name} (index ${this.currentPlayerIndex})`);
+        
+        // Start next turn after a brief delay
+        this.currentTurnTimeout = setTimeout(() => {
+            this.turnEnding = false; // Reset turn ending flag
+            this.aiTurnInProgress = false; // Reset AI turn flag
+            this.startNextTurn();
+        }, 100);
     }
 
     /**
@@ -1067,15 +1201,16 @@ class GameEngine {
                 // Tie - continue to next round
                 console.log(`GameEngine: Tie detected with ${winners.length} players at ${highestScore} points - continuing to next round`);
                 this.roundNumber++;
-                setTimeout(() => this.startNewRound(), 2000);
+                setTimeout(async () => await this.startNewRound(), 5000);
             }
         } else {
             // No one reached winning score - continue
             console.log('GameEngine: No qualifying players - continuing to next round');
             this.roundNumber++;
-            setTimeout(() => this.startNewRound(), 2000);
+            setTimeout(async () => await this.startNewRound(), 5000);
         }
     }
+
 
     /**
      * End the game
@@ -1126,6 +1261,60 @@ class GameEngine {
         if (data.type === 'cardDeal' && data.isLastCard) {
             // All initial cards dealt, can start game
         }
+    }
+
+    /**
+     * Handle Flip 3 animation completion
+     * @param {Object} data - Animation completion data
+     */
+    async handleFlip3AnimationComplete(data) {
+        console.log('GameEngine: Flip 3 animation completed', data);
+        
+        // Check if we're in a nested Flip3 situation
+        const isNestedFlip3 = this.processingNestedFlip3;
+        
+        // Process any pending action cards from Flip3 AFTER animation completes
+        if (this.pendingFlip3ActionCards && data.completed) {
+            const { actionCards, targetPlayer } = this.pendingFlip3ActionCards;
+            console.log(`GameEngine: Processing ${actionCards.length} action cards after Flip3 animation completed`);
+            
+            // Clear pending cards before processing to avoid re-processing
+            this.pendingFlip3ActionCards = null;
+            
+            // Process the action cards
+            await this.processFlip3ActionCards(actionCards, targetPlayer);
+        }
+        
+        // Resolve the flip3 animation promise to continue game flow
+        if (this.flip3AnimationResolver) {
+            this.flip3AnimationResolver();
+            this.flip3AnimationResolver = null;
+        }
+        
+        // If this was the last nested Flip3 and we're still in an AI turn, ensure turn continues
+        if (!isNestedFlip3 && !this.actionInProgress && this.currentPlayerIndex !== null) {
+            const currentPlayer = this.players[this.currentPlayerIndex];
+            if (currentPlayer && !currentPlayer.isHuman && !this.turnEnding) {
+                console.log('GameEngine: Nested Flip3 sequence complete, continuing turn flow');
+                // Small delay to ensure clean transition
+                setTimeout(() => {
+                    if (!this.turnEnding && !this.actionInProgress) {
+                        this.endTurn();
+                    }
+                }, 500);
+            }
+        }
+    }
+
+    /**
+     * Handle initial deal completion
+     */
+    handleInitialDealComplete(data) {
+        console.log('GameEngine: Initial deal completed, starting first turn');
+        
+        // Start first turn
+        this.currentPlayerIndex = (this.dealerIndex + 1) % this.players.length;
+        this.startNextTurn();
     }
 
     /**
