@@ -276,6 +276,13 @@ class DisplayManager {
     isFlip3Active() {
         return this.flip3AnimationManager.isActive;
     }
+
+    /**
+     * Check if Second Chance animation is currently active
+     */
+    isSecondChanceActive() {
+        return this.secondChanceAnimationManager.isActive;
+    }
 }
 
 // Create singleton instance

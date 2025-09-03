@@ -32,6 +32,7 @@ class TurnManager {
         // Action card completion
         this.eventBus.on(GameEvents.ACTION_CARD_EXECUTION_COMPLETE, this.handleActionCardComplete.bind(this));
         this.eventBus.on(GameEvents.FLIP3_PROCESSING_COMPLETE, this.handleFlip3ProcessingComplete.bind(this));
+        this.eventBus.on(GameEvents.SECOND_CHANCE_ANIMATION_COMPLETE, this.handleSecondChanceAnimationComplete.bind(this));
     }
 
     /**
@@ -67,6 +68,12 @@ class TurnManager {
         const displayManager = window.Flip7?.display;
         if (displayManager?.isFlip3Active()) {
             console.log('TurnManager: Blocking startNextTurn - Flip3 animation active');
+            return;
+        }
+        
+        // Block if Second Chance animation is active
+        if (displayManager?.isSecondChanceActive?.()) {
+            console.log('TurnManager: Blocking startNextTurn - Second Chance animation active');
             return;
         }
         
@@ -205,6 +212,12 @@ class TurnManager {
             return;
         }
         
+        // Block if Second Chance animation is active
+        if (displayManager?.isSecondChanceActive?.()) {
+            console.log(`TurnManager: Blocking ${player.id} hit - Second Chance animation active`);
+            return;
+        }
+        
         console.log(`TurnManager: Player ${player.id} hit`);
         
         // Emit hit event for GameEngine to handle (will call CardManager)
@@ -332,6 +345,12 @@ class TurnManager {
         const displayManager = window.Flip7?.display;
         if (displayManager?.isFlip3Active()) {
             console.log(`TurnManager: Blocking ${player.id} stay - Flip3 animation active`);
+            return;
+        }
+        
+        // Block if Second Chance animation is active
+        if (displayManager?.isSecondChanceActive?.()) {
+            console.log(`TurnManager: Blocking ${player.id} stay - Second Chance animation active`);
             return;
         }
         
@@ -514,6 +533,23 @@ class TurnManager {
                     this.endTurn();
                 }
             }, 500);
+        }
+    }
+
+    /**
+     * Handle Second Chance animation complete
+     */
+    handleSecondChanceAnimationComplete(data) {
+        const { player } = data;
+        console.log(`TurnManager: Second Chance animation complete for ${player?.name || 'unknown'}, ending turn`);
+        
+        if (player && !this.turnEnding && !this.actionInProgress) {
+            // Small delay to ensure clean state transition
+            setTimeout(() => {
+                if (!this.turnEnding && !this.actionInProgress) {
+                    this.endTurn(player);
+                }
+            }, 100);
         }
     }
 
