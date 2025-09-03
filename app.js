@@ -144,6 +144,7 @@ function initializeGame() {
     // Expose instances
     window.Flip7.display = displayManager;
     window.Flip7.engine = engine;
+    window.Flip7.gameEngine = engine; // Also expose as gameEngine for managers
     
     // Wire UI buttons to EventBus
     const bus = window.gameEventBus;

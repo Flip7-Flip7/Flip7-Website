@@ -260,6 +260,12 @@ class UIUpdateManager {
                     console.log(`UIUpdateManager: Animation complete, adding card to player`);
                     // Add card to player's hand after animation completes
                     this.renderCardToPlayer(card, playerId);
+                    
+                    // Emit animation end event for turn management
+                    this.eventBus.emit(GameEvents.CARD_ANIMATION_END, {
+                        playerId: playerId,
+                        card: card
+                    });
                 });
             
         } else {

@@ -59,7 +59,16 @@ const GameEvents = {
     
     // Score Events
     SCORE_CALCULATED: 'score:calculated',
-    WINNING_SCORE_REACHED: 'score:winningReached'
+    WINNING_SCORE_REACHED: 'score:winningReached',
+    
+    // Cross-module coordination events
+    REQUEST_INITIAL_DEAL: 'coordination:requestInitialDeal',
+    REQUEST_NEXT_TURN: 'coordination:requestNextTurn',
+    EXECUTE_HIT: 'coordination:executeHit',
+    ACTION_CARD_DRAWN: 'coordination:actionCardDrawn',
+    ACTION_CARD_EXECUTION_COMPLETE: 'coordination:actionCardExecutionComplete',
+    FLIP3_PROCESSING_COMPLETE: 'coordination:flip3ProcessingComplete',
+    ROUND_SHOULD_END: 'coordination:roundShouldEnd'
 };
 
 // Freeze to prevent modifications
