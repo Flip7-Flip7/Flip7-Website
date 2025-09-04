@@ -595,7 +595,12 @@ class ActionCardHandler {
                     await this.handleActionCard(actionCard, targetPlayer, { skipTurnEnd: true, aiManager, players });
                     console.log(`ActionCardHandler: AI ${targetPlayer.name} completed ${actionCard.value} action from Flip3`);
                     
-                    this.processingNestedFlip3 = false;
+                    if (actionCard.value === 'flip3') {
+                        // Keep the flag set until nested Flip3 completes
+                        console.log('ActionCardHandler: Nested Flip3 started, keeping processingNestedFlip3 flag');
+                    } else {
+                        this.processingNestedFlip3 = false;
+                    }
                 }
             }
         }
@@ -638,14 +643,29 @@ class ActionCardHandler {
                 aiManager: gameEngine?.aiManager
             };
             
-            // Process the action cards
+            // Process the action cards (this may start nested Flip3s)
             await this.processFlip3ActionCards(actionCards, targetPlayer, context);
+            
+            // If we just processed nested Flip3s, wait for them to complete
+            if (this.processingNestedFlip3) {
+                console.log('ActionCardHandler: Nested Flip3 in progress, not resolving primary Flip3 yet');
+                return; // Don't resolve the main Flip3 promise yet
+            }
+        }
+        
+        // Check if this is completing a nested Flip3
+        if (isNestedFlip3 && !this.pendingFlip3ActionCards) {
+            console.log('ActionCardHandler: Nested Flip3 completed, clearing flag');
+            this.processingNestedFlip3 = false;
         }
         
         // Resolve the flip3 animation promise to continue game flow
-        if (this.flip3AnimationResolver) {
+        if (this.flip3AnimationResolver && !this.processingNestedFlip3) {
+            console.log('ActionCardHandler: Resolving Flip3 animation promise');
             this.flip3AnimationResolver();
             this.flip3AnimationResolver = null;
+        } else if (this.processingNestedFlip3) {
+            console.log('ActionCardHandler: Still processing nested Flip3, keeping resolver for later');
         }
         
         // Emit completion event for GameEngine to handle turn flow

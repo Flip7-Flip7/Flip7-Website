@@ -39,11 +39,6 @@ class TurnManager {
      * Set the current player index
      */
     setCurrentPlayerIndex(index) {
-        console.log(`🔍 DEBUG TurnManager.setCurrentPlayerIndex called:`, {
-            oldIndex: this.currentPlayerIndex,
-            newIndex: index,
-            stackTrace: new Error().stack.split('\n').slice(1, 4).join('\n')
-        });
         this.currentPlayerIndex = index;
     }
 
@@ -141,12 +136,8 @@ class TurnManager {
         
         console.log(`TurnManager: Found active player ${currentPlayer.name} (index ${this.currentPlayerIndex}) after ${attempts} attempts`);
         
-        // 🔍 DEBUG: Verify currentPlayerIndex is correct before emitting turn start
-        console.log(`🔍 DEBUG startNextTurn final state:`, {
-            currentPlayerIndex: this.currentPlayerIndex,
-            currentPlayerName: currentPlayer.name,
-            currentPlayerIsHuman: currentPlayer.isHuman
-        });
+        // Log current turn player
+        console.log(`TurnManager: Starting turn for ${currentPlayer.name} (${currentPlayer.isHuman ? 'Human' : 'AI'})`);
         
         // Emit turn start event
         this.eventBus.emit(GameEvents.TURN_START, {
@@ -188,36 +179,15 @@ class TurnManager {
      * Handle player hit action from event
      */
     async handlePlayerHit(data = {}) {
-        console.log('🔍 DEBUG handlePlayerHit called:', {
-            currentPlayerIndex: this.currentPlayerIndex,
-            gameEngineExists: !!window.Flip7?.gameEngine,
-            playersArrayLength: window.Flip7?.gameEngine?.players?.length || 0
-        });
-        
         // Get current player from GameEngine
         const gameEngine = window.Flip7?.gameEngine;
         const players = gameEngine?.players || [];
         const player = players[this.currentPlayerIndex];
         
-        console.log('🔍 DEBUG player validation:', {
-            playerExists: !!player,
-            playerName: player?.name,
-            isHuman: player?.isHuman,
-            status: player?.status,
-            canPlay: player?.canPlay(),
-            allPlayersStatus: players.map(p => ({ name: p.name, status: p.status, canPlay: p.canPlay() }))
-        });
-        
         if (!player || !player.isHuman || !player.canPlay()) {
-            console.log('🔍 DEBUG handlePlayerHit BLOCKED - conditions failed:', {
-                noPlayer: !player,
-                notHuman: !player?.isHuman,
-                cantPlay: !player?.canPlay()
-            });
             return;
         }
         
-        console.log('🔍 DEBUG handlePlayerHit PROCEEDING with hit');
         await this.executePlayerHit(player);
     }
 

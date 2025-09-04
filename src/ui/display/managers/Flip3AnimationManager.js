@@ -50,7 +50,6 @@ class Flip3AnimationManager {
         }
         
         console.log(`Flip3AnimationManager: Starting Flip 3 animation - ${sourcePlayer.name} → ${targetPlayer.name}`);
-        console.log(`Flip3AnimationManager: State before start - isActive: ${this.isActive}, targetPlayer: ${this.targetPlayer?.name || 'null'}, queueLength: ${this.animationQueue.length}`);
         
         this.isActive = true;
         this.targetPlayer = targetPlayer;
@@ -58,19 +57,19 @@ class Flip3AnimationManager {
         this.dealtCards = [];
         this.isCancelled = false;
         
-        console.log(`Flip3AnimationManager: State after initialization - targetPlayer: ${this.targetPlayer.name}, isActive: ${this.isActive}`);
-        
         // Create and show the popup
         this.createFlip3Popup();
         this.showPopup();
         
-        // Debug all slot positions to verify left-to-right order
-        console.log('🎯 SLOT LAYOUT DEBUG: Checking all slot positions...');
-        for (let i = 1; i <= 3; i++) {
-            const slotEl = document.getElementById(`flip3-slot-${i}`);
-            if (slotEl) {
-                const rect = slotEl.getBoundingClientRect();
-                console.log(`🎯 Slot ${i}: X=${rect.left} (should be ${i === 1 ? 'leftmost' : i === 2 ? 'middle' : 'rightmost'})`);
+        // Debug slot positions only in development mode
+        if (window.DEBUG_MODE) {
+            console.log('🎯 SLOT LAYOUT DEBUG: Checking all slot positions...');
+            for (let i = 1; i <= 3; i++) {
+                const slotEl = document.getElementById(`flip3-slot-${i}`);
+                if (slotEl) {
+                    const rect = slotEl.getBoundingClientRect();
+                    console.log(`🎯 Slot ${i}: X=${rect.left} (should be ${i === 1 ? 'leftmost' : i === 2 ? 'middle' : 'rightmost'})`);
+                }
             }
         }
         
@@ -81,6 +80,14 @@ class Flip3AnimationManager {
         }
         
         // Cards will be dealt through FLIP3_CARD_DEALT events
+        
+        // Set a safety timeout in case no cards are dealt (immediate bust scenario)
+        this.safetyTimeout = setTimeout(() => {
+            if (this.isActive && this.dealtCards.length === 0) {
+                console.warn('Flip3AnimationManager: No cards dealt after 3 seconds, completing animation');
+                this.handleSequenceComplete();
+            }
+        }, 3000);
     }
 
     /**
@@ -89,7 +96,12 @@ class Flip3AnimationManager {
     createFlip3Popup() {
         // Check if popup already exists
         let popup = document.getElementById('flip3-popup');
-        if (popup) return;
+        if (popup) {
+            console.log('Flip3AnimationManager: Reusing existing popup for nested Flip3');
+            // Reset popup state for nested Flip3
+            this.resetPopupState();
+            return;
+        }
         
         // Create popup container
         popup = document.createElement('div');
@@ -155,6 +167,51 @@ class Flip3AnimationManager {
         
         document.body.appendChild(backdrop);
         document.body.appendChild(popup);
+    }
+
+    /**
+     * Reset popup state for reuse (nested Flip3)
+     */
+    resetPopupState() {
+        const popup = document.getElementById('flip3-popup');
+        if (!popup) return;
+        
+        // Clear all slots
+        for (let i = 1; i <= 3; i++) {
+            const slot = document.getElementById(`flip3-slot-${i}`);
+            if (slot) {
+                slot.innerHTML = `<span style="color: #60a5fa; font-size: 3em; opacity: 0.3;">${i}</span>`;
+                slot.style.borderColor = '#60a5fa';
+                slot.style.boxShadow = '';
+            }
+        }
+        
+        // Reset progress dots
+        for (let i = 1; i <= 3; i++) {
+            const dot = document.querySelector(`.flip3-dot[data-index="${i}"]`);
+            if (dot) {
+                dot.style.opacity = '0.3';
+                dot.style.background = '#60a5fa';
+                dot.style.transform = 'scale(1)';
+            }
+        }
+        
+        // Reset status text
+        const statusEl = document.getElementById('flip3-status');
+        if (statusEl) {
+            statusEl.textContent = 'Drawing card 1 of 3...';
+            statusEl.style.color = 'white';
+        }
+        
+        // Reset popup styles
+        popup.style.opacity = '0';
+        popup.style.transform = 'translate(-50%, -50%) scale(0.9)';
+        popup.style.display = 'none';
+        
+        const backdrop = document.getElementById('flip3-backdrop');
+        if (backdrop) {
+            backdrop.style.display = 'none';
+        }
     }
 
     /**
@@ -253,12 +310,18 @@ class Flip3AnimationManager {
         }
         
         // Check if this card is for our target player
-        if (playerId !== this.targetPlayer.id) return;
+        if (playerId !== this.targetPlayer.id) {
+            console.log(`Flip3AnimationManager: Card dealt to ${playerId} but we're tracking ${this.targetPlayer.id}, ignoring`);
+            return;
+        }
         
         // Use the cardIndex from the event
         const slotNumber = cardIndex || (this.currentCardIndex + 1);
         
-        console.log(`Flip3AnimationManager: Card targeting debug - cardIndex: ${cardIndex}, currentCardIndex: ${this.currentCardIndex}, calculated slotNumber: ${slotNumber}`);
+        // Debug card targeting only in development mode
+        if (window.DEBUG_MODE) {
+            console.log(`Flip3AnimationManager: Card targeting debug - cardIndex: ${cardIndex}, currentCardIndex: ${this.currentCardIndex}, calculated slotNumber: ${slotNumber}`);
+        }
         
         // Check if this is part of the Flip 3 sequence
         if (slotNumber > 3) return;
@@ -295,12 +358,8 @@ class Flip3AnimationManager {
         // Clear slot placeholder
         slot.innerHTML = '';
         
-        console.log(`Flip3AnimationManager: Animating card ${slotNumber} (${card.type}:${card.value}) to slot #${slotNumber}`);
-        
         // Get slot position and center screen for flip animation  
         const slotRect = slot.getBoundingClientRect();
-        console.log(`Flip3AnimationManager: Slot ${slotNumber} position:`, slotRect);
-        console.log(`🎯 SLOT DEBUG: Card ${slotNumber} targeting slot at X=${slotRect.left} (expected: 1=leftmost, 2=middle, 3=rightmost)`);
         const screenCenterX = window.innerWidth / 2;
         const screenCenterY = window.innerHeight / 2;
         
@@ -364,7 +423,10 @@ class Flip3AnimationManager {
             animatedCard.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
             const targetX = slotRect.left + slotRect.width/2 - 60; // Center of slot minus half card width
             const targetY = slotRect.top + slotRect.height/2 - 80; // Center of slot minus half card height
-            console.log(`🎯 ANIMATION DEBUG: Card ${slotNumber} moving to slot center at (${targetX + 60}, ${targetY + 80})`);
+            // Debug animation positions only in development mode
+            if (window.DEBUG_MODE) {
+                console.log(`🎯 ANIMATION DEBUG: Card ${slotNumber} moving to slot center at (${targetX + 60}, ${targetY + 80})`);
+            }
             
             // Move to absolute position and scale down
             animatedCard.style.left = `${targetX}px`;
@@ -450,6 +512,12 @@ class Flip3AnimationManager {
         if (!this.targetPlayer || player.id !== this.targetPlayer.id) return;
         
         console.log(`Flip3AnimationManager: Player busted during Flip 3 on card ${card.value}`);
+        
+        // Clear safety timeout since we're handling the bust
+        if (this.safetyTimeout) {
+            clearTimeout(this.safetyTimeout);
+            this.safetyTimeout = null;
+        }
         
         // Don't cancel yet - let the bust card complete its animation first
         
@@ -613,6 +681,12 @@ class Flip3AnimationManager {
      */
     handleSequenceComplete() {
         console.log('Flip3AnimationManager: Sequence completed successfully!');
+        
+        // Clear safety timeout
+        if (this.safetyTimeout) {
+            clearTimeout(this.safetyTimeout);
+            this.safetyTimeout = null;
+        }
         
         // Update status
         const statusEl = document.getElementById('flip3-status');

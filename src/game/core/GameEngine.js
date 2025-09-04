@@ -70,9 +70,22 @@ class GameEngine {
     }
 
     /**
+     * Check if a game is currently in progress
+     * @returns {boolean}
+     */
+    isGameInProgress() {
+        return this.gameStateManager?.gameActive || false;
+    }
+
+    /**
      * Start a new game
      */
     async startNewGame() {
+        // Prevent starting a new game if one is already in progress
+        if (this.isGameInProgress()) {
+            console.warn('GameEngine: Game already in progress, ignoring startNewGame request');
+            return;
+        }
         // Reset all managers
         this.turnManager.reset();
         this.gameStateManager.reset();
@@ -86,13 +99,15 @@ class GameEngine {
     async handleRequestInitialDeal(data) {
         const { players, dealerIndex } = data;
         
-        console.log(`🔍 DEBUG GameEngine.handleRequestInitialDeal:`, {
-            dealerIndex: dealerIndex,
-            playersLength: players.length,
-            dealerName: players[dealerIndex]?.name,
-            calculatedStartingIndex: (dealerIndex + 1) % players.length,
-            startingPlayerName: players[(dealerIndex + 1) % players.length]?.name
-        });
+        if (window.DEBUG_MODE) {
+            console.log(`🔍 DEBUG GameEngine.handleRequestInitialDeal:`, {
+                dealerIndex: dealerIndex,
+                playersLength: players.length,
+                dealerName: players[dealerIndex]?.name,
+                calculatedStartingIndex: (dealerIndex + 1) % players.length,
+                startingPlayerName: players[(dealerIndex + 1) % players.length]?.name
+            });
+        }
         
         // Deal initial cards
         this.isInitialDealPhase = true;
@@ -110,7 +125,9 @@ class GameEngine {
         
         // Note: Don't set turn index here - startNextTurn() will find the correct starting player
         // after initial deal completes. This prevents race condition where we override the correct index.
-        console.log(`🔍 DEBUG GameEngine: Initial deal complete, startNextTurn will find starting player after dealer ${dealerIndex}`);
+        if (window.DEBUG_MODE) {
+            console.log(`🔍 DEBUG GameEngine: Initial deal complete, startNextTurn will find starting player after dealer ${dealerIndex}`);
+        }
     }
 
     /**

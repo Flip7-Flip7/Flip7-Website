@@ -215,6 +215,12 @@ async function startApp() {
         
         // Start game after a brief delay
         setTimeout(() => {
+            // Check if game is already in progress
+            if (window.Flip7?.engine?.isGameInProgress && window.Flip7.engine.isGameInProgress()) {
+                console.log('🎮 Game already in progress, skipping autostart');
+                return;
+            }
+            
             console.log('🎮 Autostarting game...');
             if (window.Flip7?.engine?.startNewGame) {
                 window.Flip7.engine.startNewGame();
