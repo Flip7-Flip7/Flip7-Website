@@ -8,7 +8,30 @@
     <meta http-equiv="Expires" content="0">
     <title>Flip 7 - Online Card Game</title>
     
-    <link rel="stylesheet" href="styles.css?v=70.0&t=20250819-fix-card-animation-flip-and-targeting">
+    <!-- Modular CSS Architecture -->
+    <!-- Core styles first -->
+    <link rel="stylesheet" href="src/ui/styles/core/reset.css?v=1.0">
+    <link rel="stylesheet" href="src/ui/styles/core/variables.css?v=1.1">
+    
+    <!-- Components -->
+    <link rel="stylesheet" href="src/ui/styles/components/cards.css?v=1.1">
+    <link rel="stylesheet" href="src/ui/styles/components/buttons.css?v=1.1">
+    <link rel="stylesheet" href="src/ui/styles/components/player-headers.css?v=1.1">
+    <link rel="stylesheet" href="src/ui/styles/components/draw-pile.css?v=2.0">
+    <link rel="stylesheet" href="src/ui/styles/components/controls.css?v=1.0">
+    <link rel="stylesheet" href="src/ui/styles/components/info-panels.css?v=1.0">
+    <link rel="stylesheet" href="src/ui/styles/components/animations.css?v=1.0">
+    
+    <!-- Layout -->
+    <link rel="stylesheet" href="src/ui/styles/layout/desktop.css?v=1.1">
+    
+    <!-- Mobile-specific modules -->
+    <link rel="stylesheet" href="src/ui/styles/mobile/containers.css?v=3.0">
+    <link rel="stylesheet" href="src/ui/styles/mobile/headers.css?v=1.0">
+    <link rel="stylesheet" href="src/ui/styles/mobile/cards.css?v=3.0">
+    
+    <!-- Legacy styles (commented out) -->
+    <!-- <link rel="stylesheet" href="styles.css?v=84.0&t=20250904-final-mobile-headers&cache_bust=1725498100"> -->
     
 </head>
 <body>
@@ -315,6 +338,9 @@
     <script src="src/game/config/GameConstants.js?v=1.0"></script>
     <script src="src/events/GameEvents.js?v=1.0"></script>
     <script src="src/events/EventBus.js?v=1.0"></script>
+    
+    <!-- Debug utilities -->
+    <script src="src/utils/DebugUtilities.js?v=1.0"></script>
     
     <!-- Card system -->
     <script src="src/game/cards/Card.js?v=1.0"></script>

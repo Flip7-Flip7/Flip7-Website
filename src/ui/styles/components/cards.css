@@ -1,0 +1,118 @@
+/* Flip 7 - Card Component Styles */
+
+.card {
+    /* Desktop card sizing */
+    width: 55px;
+    height: 77px;
+    position: relative;
+    border-radius: var(--card-border-radius);
+    background: var(--card-background);
+    border: 2px solid var(--card-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1em;
+    color: #333;
+    box-shadow: 0 2px 6px var(--card-shadow);
+    transition: all var(--animation-medium) ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+}
+
+.card:hover {
+    transform: translateY(-8px) rotateY(10deg) scale(1.05);
+    box-shadow: 0 4px 15px var(--card-shadow);
+}
+
+.card.back {
+    background: linear-gradient(145deg, #fa709a 0%, #fee140 100%);
+    color: #333;
+    box-shadow: 0 4px 15px rgba(250, 112, 154, 0.4);
+}
+
+/* Card Type Styling - Original Desktop Gradients */
+.card.number {
+    background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.card.modifier {
+    background: linear-gradient(145deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+}
+
+.card.action {
+    background: linear-gradient(145deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+}
+
+/* Special card states */
+.card.flip7 {
+    background: linear-gradient(135deg, var(--accent-gold) 0%, #fbbf24 50%, #f59e0b 100%);
+    animation: flip7Glow 1s ease-in-out infinite alternate;
+}
+
+@keyframes flip7Glow {
+    0% { box-shadow: 0 0 10px var(--accent-gold); }
+    100% { box-shadow: 0 0 20px var(--accent-gold), 0 0 30px var(--accent-gold); }
+}
+
+.card.new-card {
+    animation: newCardGlow 1.5s ease-out;
+}
+
+@keyframes newCardGlow {
+    0% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 2px 6px var(--card-shadow);
+    }
+    100% {
+        box-shadow: 0 2px 6px var(--card-shadow);
+    }
+}
+
+/* Player Cards Container - Desktop styling */
+.player-cards {
+    display: flex;
+    gap: 4px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 82px;
+    margin: 4px 0;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    backdrop-filter: blur(3px);
+}
+
+/* Action Buttons Container */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 6px;
+    z-index: var(--z-cards);
+    position: relative;
+    align-items: center;
+}
+
+/* Mobile card sizing overrides */
+@media (max-width: 1024px) {
+    .card {
+        width: 45px;
+        height: 60px;
+        font-size: 0.8em;
+        margin: 2px;
+    }
+}

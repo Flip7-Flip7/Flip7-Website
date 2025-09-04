@@ -1,0 +1,183 @@
+/* Flip 7 - Mobile Container Layout */
+
+@media (max-width: 1024px) {
+    /* Force mobile-only layout */
+    .game-container {
+        display: block !important;
+        grid-template-columns: none !important;
+        grid-template-rows: none !important;
+        gap: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        min-height: 100vh !important;
+    }
+
+    /* Hide desktop elements on mobile only */
+    .game-container > .game-area,
+    .game-container > .draw-pile-column,
+    .game-container > .controls-panel,
+    .game-area,
+    .draw-pile-column,
+    .controls-panel,
+    .desktop-info,
+    .mobile-info-panel {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* Mobile Logo - Much smaller to save space (MOBILE ONLY) */
+    .mobile-logo {
+        height: 18px !important;
+        width: auto !important;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) !important;
+    }
+    
+    /* Mobile Controls Section - Compact layout (MOBILE ONLY) */
+    .mobile-controls-section {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 5px 10px !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(4px) !important;
+        height: auto !important;
+        min-height: 30px !important;
+        max-height: 35px !important;
+    }
+    
+    /* Mobile Game Board - Fill remaining space without scrolling (MOBILE ONLY) */
+    .mobile-game-board {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 !important;
+        padding: 5px !important;
+        overflow: hidden !important;
+        height: calc(100vh - 70px) !important; /* Subtract controls section height */
+    }
+    
+    /* Ensure no scrolling on mobile (MOBILE ONLY) */
+    body {
+        overflow: hidden !important;
+        height: 100vh !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Mobile buttons - much smaller (MOBILE ONLY) */
+    .mobile-game-board .btn,
+    .mobile-game-board .action-buttons button,
+    .mobile-game-board .hit-button,
+    .mobile-game-board .stay-button {
+        padding: 4px 12px !important;
+        font-size: 0.7em !important;
+        min-width: 50px !important;
+        height: 28px !important;
+        border-radius: 4px !important;
+    }
+    
+    /* Mobile action buttons container (MOBILE ONLY) */
+    .mobile-game-board .action-buttons {
+        gap: 5px !important;
+        justify-content: center !important;
+    }
+    
+    /* Mobile player headings - larger text (MOBILE ONLY) */
+    .mobile-game-board .player-header h3,
+    .mobile-game-board .player-area h3 {
+        font-size: 1.1em !important;
+        font-weight: bold !important;
+        margin-bottom: 3px !important;
+    }
+    
+    /* Mobile player stats text - readable size (MOBILE ONLY) */
+    .mobile-game-board .player-stats,
+    .mobile-game-board .round-score,
+    .mobile-game-board .total-score {
+        font-size: 0.85em !important;
+        font-weight: 600 !important;
+    }
+}
+
+/* Desktop layout restoration - ensure elements are visible on desktop */
+@media (min-width: 1025px) {
+    .game-container > .game-area,
+    .game-container > .draw-pile-column,
+    .game-container > .controls-panel,
+    .game-area,
+    .draw-pile-column,
+    .controls-panel {
+        display: block !important;
+        visibility: visible !important;
+        position: relative !important;
+        left: auto !important;
+        width: auto !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* Mobile Game Board */
+    .mobile-game-board {
+        display: flex !important;
+        flex-direction: column !important;
+        height: calc(100vh - 20px - 100px - env(safe-area-inset-bottom, 0px) - 5px) !important;
+        max-height: calc(100vh - 20px - 100px - env(safe-area-inset-bottom, 0px) - 5px) !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        overflow-x: hidden !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: none !important;
+        position: relative !important;
+    }
+
+    /* Mobile Players Container - Flexible middle section */
+    .mobile-players-container {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 0 1 auto !important;
+        max-height: calc(100vh - 35px - 100px) !important;
+        gap: 0px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        overflow-x: hidden !important;
+    }
+
+    /* Mobile player box containers */
+    .mobile-player-box, .mobile-opponent-box {
+        height: auto !important;
+        min-height: 0 !important;
+        flex: 0 0 auto !important;
+        padding: 1px !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* Mobile Status Banner */
+    .mobile-status-banner {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        background: linear-gradient(135deg, #1e3a5f 0%, #2a4d72 50%, #357a8a 100%) !important;
+        color: var(--text-white) !important;
+        padding: 0 var(--spacing-lg) !important;
+        margin: 0 !important;
+        border-radius: 0 0 6px 6px !important;
+        font-size: 0.7em !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(255, 215, 0, 0.4) !important;
+        box-shadow: 0 2px 6px rgba(30, 58, 95, 0.3) !important;
+        height: 35px !important;
+        max-height: 35px !important;
+        min-height: 35px !important;
+        flex-shrink: 0 !important;
+        z-index: var(--z-cards) !important;
+    }
+}

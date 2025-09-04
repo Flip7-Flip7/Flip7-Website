@@ -36,6 +36,44 @@ body {
         position: absolute !important;
         left: -9999px !important;
     }
+    
+    /* Ensure desktop draw pile is visible */
+    .draw-pile-column {
+        display: flex !important;
+        visibility: visible !important;
+        position: relative !important;
+        left: auto !important;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    
+    .draw-pile-area {
+        display: flex !important;
+        visibility: visible !important;
+        width: 160px;
+        height: 200px;
+    }
+    
+    /* Ensure desktop grid layout is preserved */
+    .game-container {
+        display: grid !important;
+        grid-template-columns: 200px 1fr 300px !important;
+        grid-template-areas: "draw-pile game-area controls" !important;
+        gap: 20px !important;
+    }
+    
+    .draw-pile-column {
+        grid-area: draw-pile !important;
+    }
+    
+    .game-area {
+        grid-area: game-area !important;
+    }
+    
+    .controls-panel {
+        grid-area: controls !important;
+    }
 }
 
 /* Mobile responsive layout - Force mobile-only view */
@@ -96,9 +134,10 @@ body {
     /* Mobile unified card container */
     .player-cards {
         gap: 2px;
-        min-height: 65px;
-        padding: 4px;
-        margin: 2px 0;
+        min-height: 0; /* Remove minimum height */
+        height: auto; /* Auto height */
+        padding: 2px; /* Reduce padding */
+        margin: 0; /* Remove margins */
     }
     
     .action-buttons {
@@ -2468,10 +2507,10 @@ body {
 }
 
 .player-area.stayed,
-#mobile-player.stayed,
-#mobile-opponent1.stayed,
-#mobile-opponent2.stayed,
-#mobile-opponent3.stayed {
+#mobile-player-area.stayed,
+#mobile-opponent1-area.stayed,
+#mobile-opponent2-area.stayed,
+#mobile-opponent3-area.stayed {
     background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(16, 185, 129, 0.20) 100%) !important;
     border: 2px solid rgba(34, 197, 94, 0.8) !important;
     box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.3) !important;
@@ -2480,10 +2519,10 @@ body {
 
 /* Keep stayed indicator visible and properly positioned */
 .player-area.stayed .stayed-indicator,
-#mobile-player.stayed .stayed-indicator,
-#mobile-opponent1.stayed .stayed-indicator,
-#mobile-opponent2.stayed .stayed-indicator,
-#mobile-opponent3.stayed .stayed-indicator {
+#mobile-player-area.stayed .stayed-indicator,
+#mobile-opponent1-area.stayed .stayed-indicator,
+#mobile-opponent2-area.stayed .stayed-indicator,
+#mobile-opponent3-area.stayed .stayed-indicator {
     animation: none;
     opacity: 1;
     position: absolute;
@@ -2871,8 +2910,8 @@ body {
 @media (max-width: 1024px) {
     .flip3-progress-indicator {
         padding: 20px 25px;
-        max-width: 95%;
-        margin: 0 10px;
+        max-width: 98%; /* Increased from 95% to use more screen width */
+        margin: 0 5px; /* Reduced from 10px to utilize more space */
         min-width: auto;
     }
     
@@ -2890,14 +2929,14 @@ body {
     }
     
     .flip3-card-preview {
-        gap: 20px;
+        gap: 25px; /* Increased from 20px for better spacing between cards */
         margin: 20px 0;
-        padding: 15px;
+        padding: 20px; /* Increased from 15px to match desktop */
     }
     
     .flip3-card-slot {
-        width: 80px;
-        height: 112px;
+        width: 100px; /* Restored from 80px to match desktop */
+        height: 140px; /* Restored from 112px to match desktop */
     }
 }
 
@@ -3284,27 +3323,9 @@ body {
     margin-left: 20px;
 }
 
-/* NUCLEAR APPROACH: Mobile layout is DEFAULT - always visible */
-/* Mobile elements visible by default */
-.mobile-game-board, .mobile-status-banner {
-    display: flex !important;
-    visibility: visible !important;
-}
+/* Mobile elements only visible on mobile - moved inside media query */
 
-/* Mobile elements hidden on desktop only */
-@media (min-width: 1025px) {
-    .mobile-game-board, .mobile-status-banner {
-        display: none !important;
-        visibility: hidden !important;
-    }
-}
-
-/* Mobile info panel always hidden (prevents overlay issues) */
-@media (min-width: 1025px) {
-    .mobile-info-panel {
-        display: none !important;
-    }
-}
+/* Removed duplicate desktop hiding rules - already handled at line 31 */
 
 /* Hide player status text globally (both desktop and mobile) */
 .player-status {
@@ -3431,11 +3452,13 @@ body {
         overflow: hidden !important;
     }
     
-    /* Show mobile elements (excluding info panel to avoid overlay) */
+    /* Show mobile elements ONLY on mobile */
     .mobile-game-board, .mobile-status-banner {
         display: flex !important;
         visibility: visible !important;
     }
+    
+    /* Mobile player areas - proper styling without debug colors */
     
     /* Hide mobile info panel to prevent game log/scoreboard overlay */
     .mobile-info-panel {
@@ -3458,9 +3481,9 @@ body {
         top: 20px !important;
         left: 0 !important;
         right: 0 !important;
-        bottom: calc(65px + env(safe-area-inset-bottom, 0px) + 5px) !important; /* Reserve space for buttons + safe area + smaller margin */
+        bottom: calc(100px + env(safe-area-inset-bottom, 0px) + 5px) !important; /* Updated for larger button section (100px) */
         width: 100vw !important;
-        height: calc(100vh - 20px - 65px - env(safe-area-inset-bottom, 0px) - 5px) !important; /* Account for top, buttons, safe area, and smaller margin */
+        height: calc(100vh - 20px - 100px - env(safe-area-inset-bottom, 0px) - 5px) !important; /* Updated for larger button section (100px) */
         overflow: visible !important;
         padding: 0 6px 5px 6px !important; /* Minimal bottom padding since buttons have their own space */
         gap: 0 !important;
@@ -3478,10 +3501,10 @@ body {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        gap: 8px !important;
+        gap: 4px !important;
         padding: 4px 8px !important;
         width: 100% !important;
-        height: 45px !important;
+        height: 35px !important;
         background: linear-gradient(135deg, rgba(74, 144, 164, 0.2) 0%, rgba(53, 122, 138, 0.25) 100%) !important;
         border: 1px solid rgba(255, 215, 0, 0.15) !important;
         border-radius: 10px !important;
@@ -3493,17 +3516,19 @@ body {
     
     /* Logo in controls section */
     .mobile-controls-section .mobile-logo {
-        height: 28px !important;
+        height: 22px !important;
         flex-shrink: 0 !important;
     }
     
     /* Rules button in controls section */
     .mobile-controls-section .mobile-rules-btn {
-        padding: 6px 10px !important;
+        padding: 8px 12px !important;
         font-size: 0.75em !important;
-        height: 32px !important;
+        height: 36px !important;
+        min-height: 44px !important; /* Minimum touch target */
         flex-shrink: 0 !important;
-    }
+        touch-action: manipulation;
+        cursor: pointer;
     
     /* GOLDEN RATIO ACTION BUTTONS - Premium styling */
     .mobile-action-btn {
@@ -3546,11 +3571,13 @@ body {
     /* GOLDEN RATIO BOTTOM - Hit/Stay Buttons (50px for better touch) */
     .mobile-bottom-section {
         display: flex !important;
-        justify-content: space-around !important;
+        justify-content: center !important;
         align-items: center !important;
-        padding: 6px 16px calc(8px + env(safe-area-inset-bottom, 0px)) 16px !important; /* Reduced padding for closer spacing */
+        gap: 20px !important; /* Increased from 16px for better spacing */
+        padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)) 16px !important; /* Increased for larger buttons */
         width: 100% !important;
-        height: calc(65px + env(safe-area-inset-bottom, 0px)) !important; /* Reduced height for tighter spacing */
+        flex-shrink: 0 !important; /* Prevent compression - guarantee button space */
+        height: calc(100px + env(safe-area-inset-bottom, 0px)) !important; /* Increased from 85px for bigger buttons */
         background: rgba(0, 0, 0, 0.2) !important; /* More visible background */
         border: none !important;
         border-radius: 0 !important;
@@ -3567,11 +3594,13 @@ body {
     
     /* Hit/Stay buttons in bottom section - Glass-morphism styling */
     .mobile-bottom-section .mobile-action-btn {
-        height: 48px !important;
-        min-width: 120px !important;
-        flex: 1 !important;
-        padding: 12px 24px !important;
-        font-size: 18px !important;
+        height: 80px !important; /* Increased from 64px for better touch */
+        min-width: 180px !important; /* Increased from 160px */
+        max-width: 240px !important; /* Increased from 200px */
+        flex: 0 0 auto !important; /* Changed from flex: 1 to prevent stretching */
+        margin: 0 !important; /* Removed margins, use container gap instead */
+        padding: 20px 40px !important; /* Increased from 16px 32px */
+        font-size: 26px !important; /* Increased from 22px */
         font-weight: 600 !important;
         border: none !important;
         border-radius: 16px !important;
@@ -3583,6 +3612,9 @@ body {
         overflow: hidden !important;
         transition: all 0.3s ease !important;
         z-index: 1001 !important; /* Above mobile UI background */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
         backdrop-filter: blur(15px) !important;
         -webkit-backdrop-filter: blur(15px) !important;
@@ -3636,7 +3668,13 @@ body {
             visibility: visible !important;
             opacity: 1 !important;
             z-index: 1000 !important;
-            position: relative !important;
+            position: fixed !important; /* Keep fixed positioning for bottom centering */
+            bottom: 0 !important; /* Ensure it's at bottom */
+            left: 0 !important; /* Full width */
+            right: 0 !important; /* Full width */
+            justify-content: center !important; /* Center the buttons */
+            align-items: center !important; /* Center vertically */
+            gap: 20px !important; /* Space between buttons */
         }
         
         .mobile-bottom-section .mobile-action-btn,
@@ -3646,7 +3684,13 @@ body {
             visibility: visible !important;
             opacity: 1 !important;
             z-index: 1001 !important; /* Above mobile UI background */
-            min-height: 48px !important;
+            min-height: 80px !important; /* Updated from 64px */
+            height: 80px !important; /* Explicit height */
+            min-width: 180px !important; /* Add min-width */
+            max-width: 240px !important; /* Add max-width */
+            font-size: 26px !important; /* Add font-size */
+            flex: 0 0 auto !important; /* Add flex behavior */
+            margin: 0 !important; /* Remove margins */
             position: relative !important;
             /* Remove problematic backdrop-filter for Chrome */
             backdrop-filter: none !important;
@@ -3655,6 +3699,9 @@ body {
             border: none !important;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 
                         0 2px 8px rgba(0, 0, 0, 0.2) !important;
+            /* Ensure perfect centering */
+            align-items: center !important;
+            justify-content: center !important;
         }
         
         /* Force Hit button visible with ID specificity */
@@ -3837,6 +3884,17 @@ body {
         }
     }
     
+    /* Mobile box containers - force tight content sizing */
+    .mobile-player-box, .mobile-opponent-box {
+        height: auto !important;
+        min-height: 0 !important;
+        flex: 0 0 auto !important;
+        padding: 1px !important; /* Ultra-minimal padding to maximize card space */
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
     /* Mobile specific glow adjustments */
     @media (max-width: 768px) {
         .mobile-player-box.action-target-glow,
@@ -3902,11 +3960,14 @@ body {
     .mobile-players-container {
         display: flex !important;
         flex-direction: column !important;
-        flex: 1 !important; /* Take up remaining space between top controls and bottom section */
-        gap: 1px !important; /* Reduced from 2px to 1px */
-        padding: 1px 0 70px 0 !important; /* Add 70px bottom padding for button area */
-        overflow: hidden !important;
-        min-height: 0 !important; /* Allow flex shrinking */
+        flex: 0 1 auto !important; /* Size to content, don't force equal distribution */
+        max-height: calc(100vh - 35px - 100px) !important; /* Updated for larger button section (100px) */
+        gap: 0px !important; /* Remove gap for tightest packing */
+        padding: 0 !important; /* Remove all padding */
+        margin: 0 !important; /* Remove all margins */
+        overflow-y: auto !important; /* Allow scrolling if needed */
+        -webkit-overflow-scrolling: touch !important; /* Smooth iOS scrolling */
+        overflow-x: hidden !important;
     }
 
     /* GOLDEN RATIO DRAW PILE - Central focal point */
@@ -3914,8 +3975,8 @@ body {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        width: 28px !important; /* 50% reduction: 55px → 28px */
-        height: 21px !important; /* 50% reduction: 42px → 21px */
+        width: 22px !important; /* Further reduced for space */
+        height: 16px !important; /* Fixed size area */
         background: linear-gradient(135deg, #4a90a4 0%, #357a8a 50%, #2c6b7a 100%) !important;
         border: 1px solid rgba(255, 215, 0, 0.3) !important; /* Thinner border for smaller size */
         border-radius: 4px !important; /* Smaller radius */
@@ -4159,7 +4220,7 @@ body {
     
     /* Smaller pile info for mobile draw pile */
     .mobile-draw-pile-area .pile-info {
-        font-size: 0.25em !important; /* Very small text */
+        font-size: 0.2em !important; /* Even smaller text */
         color: #FFD700 !important;
         font-weight: bold !important;
         text-align: center !important;
@@ -4194,8 +4255,8 @@ body {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 32px; /* 50% reduction: 65px → 32px */
-        height: 45px; /* 50% reduction: 91px → 45px */
+        width: 20px; /* Match reduced pile size */
+        height: 24px; /* Match reduced pile ratio */
         z-index: 150;
         pointer-events: none;
     }
@@ -4206,15 +4267,15 @@ body {
     }
     
     /* GOLDEN RATIO PLAYERS - Perfect proportions with flexible heights */
-    #mobile-player {
+    #mobile-player-area {
         width: 100% !important;
-        flex: 1.6 !important; /* Human player gets more space (golden ratio) */
-        min-height: 120px !important; /* Minimum to ensure card visibility */
-        max-height: 180px !important; /* Maximum to prevent oversizing on large screens */
+        flex: 0 0 auto !important; /* Content-driven sizing */
+        height: auto !important; /* Force auto height */
+        min-height: 0 !important; /* Remove minimum height constraints */
         background: linear-gradient(135deg, #22577a 0%, #38a3a5 50%, #57cc99 100%) !important;
-        border: 2px solid rgba(87, 204, 153, 0.6) !important;
+        border: 3px solid #FF0000 !important; /* TEMP DEBUG: Red border to confirm new styles loading */
         border-radius: 12px !important;
-        padding: 6px !important; /* Reduced padding for more card space */
+        padding: 0 !important; /* Remove all padding */
         margin: 0 !important;
         display: flex !important;
         flex-direction: column !important;
@@ -4225,15 +4286,15 @@ body {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     
-    #mobile-opponent1, #mobile-opponent2, #mobile-opponent3 {
+    #mobile-opponent1-area, #mobile-opponent2-area, #mobile-opponent3-area {
         width: 100% !important;
-        flex: 1 !important; /* Equal flexible sizing */
-        min-height: 130px !important; /* Increased to prevent card cutoff */
-        max-height: 150px !important; /* Increased for comfortable card display */
+        flex: 0 0 auto !important; /* Content-driven sizing */
+        height: auto !important; /* Force auto height */
+        min-height: 0 !important; /* Remove minimum height constraints */
         background: linear-gradient(135deg, rgba(44, 62, 80, 0.85) 0%, rgba(74, 95, 122, 0.75) 100%) !important;
-        border: 1px solid rgba(74, 95, 122, 0.4) !important;
+        border: 2px solid #00FF00 !important; /* TEMP DEBUG: Green border for opponents */
         border-radius: 10px !important;
-        padding: 4px !important; /* Reduced padding for more card space */
+        padding: 0 !important; /* Remove all padding */
         margin: 0 !important;
         display: flex !important;
         flex-direction: column !important;
@@ -4245,14 +4306,14 @@ body {
     }
     
     /* Premium human player distinction */
-    #mobile-player {
+    #mobile-player-area {
         box-shadow: 
             0 8px 20px rgba(34, 87, 122, 0.4),
             0 0 0 1px rgba(87, 204, 153, 0.3),
             inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
     }
     
-    #mobile-player.current-turn {
+    #mobile-player-area.current-turn {
         border-color: #ffd700 !important;
         border-width: 3px !important;
         box-shadow: 
@@ -4331,15 +4392,17 @@ body {
         background: #2a4d5e;
         border: 2px solid #3a5d6e;
         border-radius: 6px;
-        padding: 1px; /* Reduced from 2px to 1px */
+        padding: 0 !important; /* No padding for tight fit */
         margin: 0;
         position: relative;
         transition: all 0.3s ease;
-        flex: 1;
+        flex: 0 0 auto !important; /* Content-driven sizing, not equal distribution */
         display: flex;
         flex-direction: column;
-        max-height: calc((100vh - 20px - 45px - 45px - 8px) / 4);
-        overflow: hidden;
+        height: auto !important; /* Auto height, no forced calculations */
+        min-height: 0 !important; /* No minimum height */
+        max-height: none !important; /* Remove height restrictions */
+        overflow: visible !important; /* Allow content to show */
     }
     
     /* Distinct styling for human player */
@@ -4350,7 +4413,7 @@ body {
     
     .mobile-game-board .main-player h3 {
         color: #c7f9cc;
-        font-size: 1.1em;
+        font-size: 0.35em !important; /* Match optimized header size */
         text-transform: uppercase;
         letter-spacing: 1px;
     }
@@ -4419,22 +4482,27 @@ body {
         );
     }
     
-    /* Mobile Player Header (3-column layout) */
+    /* Mobile Player Header (3-column layout) - OPTIMIZED for smaller footprint */
     .mobile-game-board .player-header {
         display: grid !important;
         grid-template-columns: 1fr auto 1fr !important;
         align-items: center !important;
-        gap: 2px !important;
-        margin-bottom: 1px !important;
-        min-height: 14px !important; /* Reduced from 16px to 14px */
+        gap: 0px !important;
+        margin: 0 !important; /* Remove all margins */
+        min-height: 0 !important; /* Force zero minimum height */
+        height: auto !important; /* Auto height only */
+        line-height: 0.6 !important; /* Tighter text packing for smaller headers */
+        padding: 0 !important; /* Remove all padding for maximum space */
     }
 
     .mobile-game-board .player-header h3 {
-        font-size: 0.6em !important; /* Reduced from 0.65em to 0.6em */
-        min-height: 14px !important;
+        font-size: 0.35em !important; /* 22% smaller for maximum space savings */
+        min-height: 0 !important; /* Force zero minimum */
+        height: auto !important; /* Auto height only */
+        line-height: 0.6 !important; /* Tighter line height */
         flex: none !important;
         margin: 0 !important;
-        padding: 0 3px !important;
+        padding: 0 !important; /* Remove all padding */
         font-weight: 700 !important;
         text-shadow: 
             1px 1px 2px rgba(0, 0, 0, 0.8),
@@ -4453,36 +4521,42 @@ body {
     }
 
     .mobile-game-board .player-header .round-score {
-        font-size: 0.75em !important; /* Bigger text for better readability */
-        font-weight: 700 !important; /* Bolder for better visibility */
-        color: #22c55e !important; /* Brighter green for better contrast */
+        font-size: 0.3em !important; /* 25% smaller for maximum space savings */
+        font-weight: 700 !important;
+        color: #22c55e !important;
         text-shadow: 
             1px 1px 0px rgba(0, 0, 0, 1),
-            0 0 8px rgba(34, 197, 94, 0.8) !important; /* Enhanced shadow with glow */
+            0 0 8px rgba(34, 197, 94, 0.8) !important;
         text-align: left !important;
         grid-column: 1 !important;
-        padding: 1px 3px !important; /* Slight padding increase for better spacing */
-        background: rgba(0, 0, 0, 0.4) !important; /* Dark background for contrast */
-        border-radius: 3px !important; /* Rounded corners */
+        padding: 0 !important; /* Remove all padding */
+        background: rgba(0, 0, 0, 0.4) !important;
+        border-radius: 2px !important;
+        line-height: 0.6 !important; /* Tighter line height */
+        height: auto !important;
+        min-height: 0 !important;
     }
 
     .mobile-game-board .player-header .total-score {
-        font-size: 0.75em !important; /* Bigger text for better readability */
-        font-weight: 700 !important; /* Bolder for better visibility */
+        font-size: 0.3em !important; /* 25% smaller for maximum space savings */
+        font-weight: 700 !important;
         color: #fbbf24 !important;
         text-shadow: 
             1px 1px 0px rgba(0, 0, 0, 1),
-            0 0 8px rgba(251, 191, 36, 0.8) !important; /* Enhanced shadow with glow */
+            0 0 8px rgba(251, 191, 36, 0.8) !important;
         text-align: right !important;
         grid-column: 3 !important;
-        padding: 1px 3px !important; /* Slight padding increase for better spacing */
-        background: rgba(0, 0, 0, 0.4) !important; /* Dark background for contrast */
-        border-radius: 3px !important; /* Rounded corners */
+        padding: 0 !important; /* Remove all padding */
+        background: rgba(0, 0, 0, 0.4) !important;
+        border-radius: 2px !important;
+        line-height: 0.6 !important; /* Tighter line height */
+        height: auto !important;
+        min-height: 0 !important;
     }
 
     /* GOLDEN RATIO PLAYER NAMES - Premium typography (fallback for old structure) */
     .mobile-game-board .player-area h3 {
-        font-size: 0.75em !important;
+        font-size: 0.35em !important; /* Match optimized header size */
         min-height: 16px !important; /* Minimum height for name visibility */
         flex: 0 0 auto !important; /* Don't grow/shrink */
         margin: 0 0 3px 0 !important;
@@ -4521,6 +4595,12 @@ body {
     .mobile-game-board .card {
         transition: all 0.3s ease;
         flex-shrink: 0;
+        /* Enhance touch targets for action cards */
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        /* Minimum touch target size for accessibility */
+        min-width: 44px;
+        min-height: 44px;
         /* Fallback size for cards without count classes (low specificity) */
         width: 33px;
         height: 46px;
@@ -4533,93 +4613,164 @@ body {
         transform-style: preserve-3d;
     }
     
+    /* Enhanced touch targets for action cards */
+    .mobile-game-board .card.action {
+        min-width: 48px !important;
+        min-height: 48px !important;
+        cursor: pointer;
+        /* Add subtle visual cue for interactive cards */
+        position: relative;
+    }
+    
+    .mobile-game-board .card.action::after {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        pointer-events: none;
+    }
+    
+    .mobile-game-board .card.action:hover::after,
+    .mobile-game-board .card.action:active::after {
+        opacity: 1;
+    }
+    
+    /* Enhanced feedback for all interactive mobile cards */
+    .mobile-game-board .card:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+    }
+    
     /* OPTIMIZED mobile card sizing - Maximum size within containers */
-    /* 1-2 cards: Use maximum available space */
-    .mobile-game-board .cards-1 .card,
-    .mobile-game-board .cards-2 .card {
-        width: 85px;
+    /* 1-2 cards: Use maximum available space - ENLARGED */
+    #mobile-player-area.cards-1 .card,
+    #mobile-opponent1-area.cards-1 .card,
+    #mobile-opponent2-area.cards-1 .card,
+    #mobile-opponent3-area.cards-1 .card,
+    #mobile-player-area.cards-2 .card,
+    #mobile-opponent1-area.cards-2 .card,
+    #mobile-opponent2-area.cards-2 .card,
+    #mobile-opponent3-area.cards-2 .card {
+        width: 180px; /* 12.5% larger for maximum visibility */
+        height: 252px; /* 180 × 1.4 ratio */
+        font-size: 2.4em; /* Proportionally larger font */
+        margin: 1px; /* Minimal margin */
+    }
+    
+    /* 3 cards: Large sizing - ENLARGED */
+    #mobile-player-area.cards-3 .card,
+    #mobile-opponent1-area.cards-3 .card,
+    #mobile-opponent2-area.cards-3 .card,
+    #mobile-opponent3-area.cards-3 .card {
+        width: 145px; /* 11.5% larger for better visibility */
+        height: 203px; /* 145 × 1.4 ratio */
+        font-size: 2.0em; /* Proportionally larger font */
+        margin: 1px;
+    }
+    
+    /* 4 cards: Large fit - ENLARGED */
+    #mobile-player-area.cards-4 .card,
+    #mobile-opponent1-area.cards-4 .card,
+    #mobile-opponent2-area.cards-4 .card,
+    #mobile-opponent3-area.cards-4 .card {
+        width: 125px; /* 13.6% larger */
+        height: 175px; /* 125 × 1.4 ratio */
+        font-size: 1.7em; /* Proportionally larger font */
+        margin: 1px;
+    }
+    
+    /* 5 cards: Balanced sizing - ENLARGED */
+    #mobile-player-area.cards-5 .card,
+    #mobile-opponent1-area.cards-5 .card,
+    #mobile-opponent2-area.cards-5 .card,
+    #mobile-opponent3-area.cards-5 .card {
+        width: 105px; /* 10.5% larger for better visibility */
+        height: 147px; /* 105 × 1.4 ratio */
+        font-size: 1.4em; /* Proportionally larger font */
+        margin: 1px;
+    }
+    
+    /* 6 cards: Efficient packing - ENLARGED */
+    #mobile-player-area.cards-6 .card,
+    #mobile-opponent1-area.cards-6 .card,
+    #mobile-opponent2-area.cards-6 .card,
+    #mobile-opponent3-area.cards-6 .card {
+        width: 95px; /* 11.8% larger for better visibility */
+        height: 133px; /* 95 × 1.4 ratio */
+        font-size: 1.3em; /* Proportionally larger font */
+        margin: 1px;
+    }
+    
+    /* 7 cards: Flip 7 optimal - ENLARGED */
+    #mobile-player-area.cards-7 .card,
+    #mobile-opponent1-area.cards-7 .card,
+    #mobile-opponent2-area.cards-7 .card,
+    #mobile-opponent3-area.cards-7 .card {
+        width: 85px; /* 13.3% larger for better visibility */
         height: 119px; /* 85 × 1.4 ratio */
-        font-size: 1.1em;
+        font-size: 1.2em; /* Proportionally larger font */
+        margin: 1px;
+    }
+    
+    /* 8 cards: Start scaling down - ENLARGED */
+    #mobile-player-area.cards-8 .card,
+    #mobile-opponent1-area.cards-8 .card,
+    #mobile-opponent2-area.cards-8 .card,
+    #mobile-opponent3-area.cards-8 .card {
+        width: 72px; /* 10.8% larger for better visibility */
+        height: 101px; /* 72 × 1.4 ratio */
+        font-size: 1.0em; /* Proportionally larger font */
         margin: 0px;
     }
     
-    /* 3 cards: Generous sizing */
-    .mobile-game-board .cards-3 .card {
-        width: 75px;
-        height: 105px; /* 75 × 1.4 ratio */
-        font-size: 1.0em;
+    /* 9 cards: Compact but readable - ENLARGED */
+    #mobile-player-area.cards-9 .card,
+    #mobile-opponent1-area.cards-9 .card,
+    #mobile-opponent2-area.cards-9 .card,
+    #mobile-opponent3-area.cards-9 .card {
+        width: 64px; /* 10.3% larger for better visibility */
+        height: 90px; /* 64 × 1.4 ratio */
+        font-size: 0.85em; /* Proportionally larger font */
         margin: 0px;
     }
     
-    /* 4 cards: Comfortable fit */
-    .mobile-game-board .cards-4 .card {
-        width: 68px;
-        height: 95px; /* 68 × 1.4 ratio */
-        font-size: 0.95em;
-        margin: 0px;
-    }
-    
-    /* 5 cards: Balanced sizing */
-    .mobile-game-board .cards-5 .card {
-        width: 62px;
-        height: 87px; /* 62 × 1.4 ratio */
-        font-size: 0.85em;
-        margin: 0px;
-    }
-    
-    /* 6 cards: Efficient packing */
-    .mobile-game-board .cards-6 .card {
-        width: 57px;
+    /* 10 cards: Dense packing - ENLARGED */
+    #mobile-player-area.cards-10 .card,
+    #mobile-opponent1-area.cards-10 .card,
+    #mobile-opponent2-area.cards-10 .card,
+    #mobile-opponent3-area.cards-10 .card {
+        width: 57px; /* 9.6% larger for better visibility */
         height: 80px; /* 57 × 1.4 ratio */
-        font-size: 0.8em;
+        font-size: 0.8em; /* Proportionally larger font */
         margin: 0px;
     }
     
-    /* 7 cards: Flip 7 optimal */
-    .mobile-game-board .cards-7 .card {
-        width: 52px;
+    /* 11 cards: Very compact - ENLARGED */
+    #mobile-player-area.cards-11 .card,
+    #mobile-opponent1-area.cards-11 .card,
+    #mobile-opponent2-area.cards-11 .card,
+    #mobile-opponent3-area.cards-11 .card {
+        width: 52px; /* 10.6% larger for better visibility */
         height: 73px; /* 52 × 1.4 ratio */
-        font-size: 0.75em;
+        font-size: 0.75em; /* Proportionally larger font */
         margin: 0px;
     }
     
-    /* 8 cards: Start scaling down */
-    .mobile-game-board .cards-8 .card {
-        width: 47px;
+    /* 12+ cards: Minimum readable size - ENLARGED */
+    #mobile-player-area.cards-12 .card,
+    #mobile-opponent1-area.cards-12 .card,
+    #mobile-opponent2-area.cards-12 .card,
+    #mobile-opponent3-area.cards-12 .card,
+    #mobile-player-area.cards-13 .card,
+    #mobile-opponent1-area.cards-13 .card,
+    #mobile-opponent2-area.cards-13 .card,
+    #mobile-opponent3-area.cards-13 .card {
+        width: 47px; /* 9.3% larger for better visibility */
         height: 66px; /* 47 × 1.4 ratio */
-        font-size: 0.7em;
-        margin: 0px;
-    }
-    
-    /* 9 cards: Compact but readable */
-    .mobile-game-board .cards-9 .card {
-        width: 43px;
-        height: 60px; /* 43 × 1.4 ratio */
-        font-size: 0.65em;
-        margin: 0px;
-    }
-    
-    /* 10 cards: Dense packing */
-    .mobile-game-board .cards-10 .card {
-        width: 39px;
-        height: 55px; /* 39 × 1.4 ratio */
-        font-size: 0.6em;
-        margin: 0px;
-    }
-    
-    /* 11 cards: Very compact */
-    .mobile-game-board .cards-11 .card {
-        width: 36px;
-        height: 50px; /* 36 × 1.4 ratio */
-        font-size: 0.55em;
-        margin: 0px;
-    }
-    
-    /* 12+ cards: Minimum readable size */
-    .mobile-game-board .cards-12 .card {
-        width: 33px;
-        height: 46px; /* 33 × 1.4 ratio */
-        font-size: 0.5em;
+        font-size: 0.7em; /* Proportionally larger font */
         margin: 0px;
         display: inline-block;
         border-radius: 4px;
@@ -4652,8 +4803,8 @@ body {
     /* Legacy mobile modifier cards styling */
     .mobile-game-board .modifier-cards {
         width: 100% !important;
-        min-height: 34px !important; /* Minimum height for modifier card visibility */
-        flex: 0 0 auto !important; /* Don't grow/shrink */
+        min-height: auto !important; /* Content-driven height */
+        flex: 0 0 auto !important; /* Size to content only */
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
@@ -4675,23 +4826,19 @@ body {
     .mobile-game-board .player-cards {
         width: 100% !important;
         min-height: 0 !important;
-        flex: 1 !important; /* Take available space */
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important; /* No padding - cards need maximum space */
+        flex: 0 0 auto !important; /* Content-driven, no growth */
         display: flex !important;
         justify-content: flex-start !important;
         align-items: center !important;
-        gap: 0px !important; /* Removed gap for tighter card packing */
+        gap: 0px !important;
         flex-wrap: nowrap !important;
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.15) 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 4px !important;
-        padding: 0px !important; /* Removed padding for maximum card space */
-        margin: 1px 0 !important;
+        overflow: visible !important; /* Allow cards to be fully visible */
+        background: none !important; /* Remove background for space */
+        border: none !important; /* Remove border for space */
         box-sizing: border-box !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        backdrop-filter: blur(2px) !important;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 1px 3px rgba(0, 0, 0, 0.08) !important;
         -webkit-overflow-scrolling: touch !important; /* Smooth scrolling on iOS */
     }
     
@@ -4710,8 +4857,8 @@ body {
     /* GOLDEN RATIO NUMBER CARDS - Perfect proportions */
     .mobile-game-board .number-cards {
         width: 100% !important;
-        min-height: 50px !important; /* Minimum height for card visibility */
-        flex: 1 !important; /* Take up remaining space within player container */
+        min-height: auto !important; /* Content-driven height */
+        flex: 0 0 auto !important; /* Size to content only */
         box-sizing: border-box !important;
         display: flex !important;
         justify-content: center !important;
@@ -4731,8 +4878,8 @@ body {
     
     /* GOLDEN RATIO DRAW CARD - Central piece (50% smaller) */
     .mobile-draw-pile-area .draw-card {
-        width: 16px !important; /* 50% reduction: 32px → 16px */
-        height: 22px !important; /* 50% reduction: 45px → 22px */
+        width: 10px !important; /* Reduced size to fit */
+        height: 12px !important; /* Reduced size to fit */
         position: relative !important;
         z-index: 3 !important;
         border-radius: 3px !important; /* Smaller radius */
@@ -4747,14 +4894,14 @@ body {
     .mobile-draw-pile-area .draw-pile::before {
         content: "" !important;
         position: absolute !important;
-        width: 16px !important; /* 50% reduction: 32px → 16px */
-        height: 22px !important; /* 50% reduction: 45px → 22px */
+        width: 10px !important; /* Reduced size to fit */
+        height: 12px !important; /* Reduced size to fit */
         background-image: url('images/Flip7CardBack.png') !important;
         background-size: cover !important;
         background-position: center !important;
         background-repeat: no-repeat !important;
-        border-radius: 3px !important; /* Smaller radius */
-        transform: translate(-0.5px, -0.5px) !important; /* Smaller offset */
+        border-radius: 2px !important; /* Smaller radius */
+        transform: translate(-0.3px, -0.3px) !important; /* Smaller offset */
         z-index: 1 !important;
         box-shadow: 0 1px 4px rgba(250, 112, 154, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
         backdrop-filter: blur(0.5px) !important;
@@ -4763,8 +4910,8 @@ body {
     .mobile-draw-pile-area .draw-pile::after {
         content: "" !important;
         position: absolute !important;
-        width: 16px !important; /* 50% reduction: 32px → 16px */
-        height: 22px !important; /* 50% reduction: 45px → 22px */
+        width: 10px !important; /* Reduced size to fit */
+        height: 12px !important; /* Reduced size to fit */
         background-image: url('images/Flip7CardBack.png') !important;
         background-size: cover !important;
         background-position: center !important;
@@ -4881,11 +5028,11 @@ body {
     /* Position mobile draw pile area */
     /* Remove conflicting draw-pile-area styling - mobile uses .mobile-draw-pile-area instead */
     
-    /* Animated card sizing to match mobile draw pile (50% smaller) */
+    /* Animated card sizing to match mobile draw pile */
     .animated-card {
-        width: 16px !important; /* 50% reduction: 32px → 16px */
-        height: 22px !important; /* 50% reduction: 45px → 22px */
-        font-size: 0.32em !important; /* 50% reduction: 0.65em → 0.32em */
+        width: 10px !important; /* Match reduced pile size */
+        height: 12px !important; /* Match reduced pile size */
+        font-size: 0.25em !important; /* Further reduced font size */
     }
     
     /* Compact controls */
@@ -5022,10 +5169,10 @@ body {
     
     /* Remove conflicting ordering - mobile layout uses natural HTML flow */
 
-/* Extra small screens */
+/* Extra small screens - iPhone SE, small Android */
 @media (max-width: 480px) {
     body {
-        padding: 5px;
+        padding: 3px;
     }
     
     .game-container {
@@ -5057,16 +5204,43 @@ body {
         z-index: 3;
     }
     
+    /* Extra touch target optimization for small screens */
+    @media (max-width: 480px) {
+        .mobile-game-board .card {
+            min-width: 44px !important; /* Ensure minimum touch target */
+            min-height: 44px !important;
+        }
+        
+        .mobile-game-board .card.action {
+            min-width: 50px !important; /* Larger touch target for action cards */
+            min-height: 50px !important;
+        }
+        
+        .mobile-action-btn {
+            height: 60px !important; /* Even larger buttons on small screens */
+            font-size: 18px !important;
+            min-width: 140px !important;
+        }
+        
+        .mobile-bottom-section .mobile-action-btn {
+            height: 85px !important; /* Extra large for Hit/Stay buttons */
+            font-size: 28px !important; /* Increased from 24px */
+            min-width: 190px !important; /* Increased from 170px */
+            max-width: 260px !important; /* Add max-width for this media query */
+            padding: 22px 44px !important; /* Increased from 18px 36px */
+        }
+    }
+
     /* Small Screen Card Stack Effect */
     @media (max-width: 480px) {
         .mobile-draw-pile-area .draw-pile::before {
-            width: 50px;
-            height: 70px;
+            width: 10px !important;
+            height: 12px !important;
         }
         
         .mobile-draw-pile-area .draw-pile::after {
-            width: 50px;
-            height: 70px;
+            width: 10px !important;
+            height: 12px !important;
         }
     }
     
@@ -5093,39 +5267,7 @@ body {
     }
 }
 
-/* DESKTOP LAYOUT - Make elements visible */
-.player-area {
-    background: linear-gradient(135deg, rgba(44, 62, 80, 0.9) 0%, rgba(74, 95, 122, 0.8) 100%) !important;
-    border: 2px solid rgba(255, 255, 255, 0.3) !important;
-    border-radius: 8px !important;
-    padding: 15px !important;
-    margin: 10px !important;
-    min-height: 120px !important;
-    color: white !important;
-}
-
-.player-area h3 {
-    color: white !important;
-    font-size: 1.2em !important;
-    margin-bottom: 8px !important;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
-}
-
-.player-area .player-stats {
-    color: rgba(255, 255, 255, 0.9) !important;
-    font-size: 0.9em !important;
-    margin-bottom: 10px !important;
-}
-
-.player-area .number-cards,
-.player-area .modifier-cards {
-    min-height: 60px !important;
-    background: rgba(0, 0, 0, 0.2) !important;
-    border-radius: 4px !important;
-    padding: 8px !important;
-    margin: 4px 0 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
+/* Desktop styles moved inside media query */
 
     .players-grid {
         display: flex !important;
@@ -5151,6 +5293,40 @@ body {
 
 /* Desktop Dynamic Card Sizing */
 @media (min-width: 1025px) {
+    /* DESKTOP PLAYER AREAS - Only apply to desktop */
+    .player-area {
+        background: linear-gradient(135deg, rgba(44, 62, 80, 0.9) 0%, rgba(74, 95, 122, 0.8) 100%) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 8px !important;
+        padding: 15px !important;
+        margin: 10px !important;
+        min-height: 120px !important;
+        color: white !important;
+    }
+
+    .player-area h3 {
+        color: white !important;
+        font-size: 1.2em !important;
+        margin-bottom: 8px !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+    }
+
+    .player-area .player-stats {
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-size: 0.9em !important;
+        margin-bottom: 10px !important;
+    }
+
+    .player-area .number-cards,
+    .player-area .modifier-cards {
+        min-height: 60px !important;
+        background: rgba(0, 0, 0, 0.2) !important;
+        border-radius: 4px !important;
+        padding: 8px !important;
+        margin: 4px 0 !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
     /* Dynamic sizing for desktop - ensures 7 cards always fit horizontally */
     .number-cards.desktop-cards-1 .card,
     .number-cards.desktop-cards-2 .card {

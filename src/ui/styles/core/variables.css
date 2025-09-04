@@ -1,0 +1,50 @@
+/* Flip 7 - CSS Custom Properties */
+
+:root {
+    /* Colors */
+    --primary-blue: #4a90a4;
+    --secondary-blue: #357a8a;
+    --tertiary-blue: #2c6b7a;
+    --accent-gold: #FFD700;
+    --text-white: #ffffff;
+    --success-green: #22c55e;
+    --warning-amber: #fbbf24;
+    --error-red: #ef4444;
+    --info-blue: #60a5fa;
+    --danger-red: #ef4444;
+    
+    /* Card Colors */
+    --card-background: rgba(255, 255, 255, 0.95);
+    --card-border: rgba(0, 0, 0, 0.2);
+    --card-shadow: rgba(0, 0, 0, 0.3);
+    
+    /* Layout Breakpoints */
+    --mobile-max: 1024px;
+    --desktop-min: 1025px;
+    --small-mobile-max: 480px;
+    --tablet-max: 768px;
+    
+    /* Spacing */
+    --spacing-xs: 2px;
+    --spacing-sm: 4px;
+    --spacing-md: 8px;
+    --spacing-lg: 12px;
+    --spacing-xl: 20px;
+    
+    /* Animation Timings */
+    --animation-fast: 0.2s;
+    --animation-medium: 0.3s;
+    --animation-slow: 0.5s;
+    
+    /* Game Constants */
+    --game-container-max-width: 1400px;
+    --card-border-radius: 8px;
+    --button-border-radius: 6px;
+    
+    /* Z-Index Layers */
+    --z-base: 1;
+    --z-cards: 10;
+    --z-modals: 100;
+    --z-animations: 200;
+    --z-tooltips: 300;
+}

@@ -1,0 +1,98 @@
+/* Flip 7 - Player Header Component (Base Desktop Styles) */
+
+/* Player Header (3-column layout) */
+.player-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: var(--spacing-md);
+}
+
+.player-header h3 {
+    margin: 0;
+    text-align: center;
+    color: var(--accent-gold);
+    font-size: 1.1em;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    grid-column: 2;
+}
+
+.player-header .round-score {
+    text-align: left;
+    font-size: 0.9em;
+    font-weight: bold;
+    color: var(--success-green);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    grid-column: 1;
+}
+
+.player-header .total-score {
+    text-align: right;
+    font-size: 0.9em;
+    font-weight: bold;
+    color: var(--warning-amber);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    grid-column: 3;
+}
+
+.player-stats {
+    display: flex;
+    gap: 6px;
+    margin: 5px 0;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.9em;
+}
+
+.player-status {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--text-white);
+}
+
+/* Player container fallback styles (overridden by layout-specific styles) */
+
+.player-cards {
+    display: flex;
+    gap: 4px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 82px;
+    margin: 4px 0;
+    padding: 6px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    backdrop-filter: blur(3px);
+}
+
+.player-stats {
+    display: flex;
+    gap: 6px;
+    margin: 5px 0;
+    font-size: 0.85em;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.player-stats span {
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+.player-status.active { color: var(--success-green); }
+.player-status.stayed { color: var(--info-blue); }
+.player-status.busted { color: var(--danger-red); }
+.player-status.flip7 { color: var(--warning-amber); }
+.player-status.frozen { color: var(--info-blue); }
