@@ -29,6 +29,9 @@ class Flip3AnimationManager {
         // Listen for player bust during Flip 3
         this.eventBus.on(GameEvents.PLAYER_BUST, this.handlePlayerBust.bind(this));
         
+        // Listen for Second Chance activation during Flip 3
+        this.eventBus.on(GameEvents.SECOND_CHANCE_ACTIVATED, this.handleSecondChanceActivated.bind(this));
+        
         // Listen for Flip 3 specific card dealt events
         this.eventBus.on(GameEvents.FLIP3_CARD_DEALT, this.handleCardDealt.bind(this));
     }
@@ -47,12 +50,15 @@ class Flip3AnimationManager {
         }
         
         console.log(`Flip3AnimationManager: Starting Flip 3 animation - ${sourcePlayer.name} → ${targetPlayer.name}`);
+        console.log(`Flip3AnimationManager: State before start - isActive: ${this.isActive}, targetPlayer: ${this.targetPlayer?.name || 'null'}, queueLength: ${this.animationQueue.length}`);
         
         this.isActive = true;
         this.targetPlayer = targetPlayer;
         this.currentCardIndex = 0;
         this.dealtCards = [];
         this.isCancelled = false;
+        
+        console.log(`Flip3AnimationManager: State after initialization - targetPlayer: ${this.targetPlayer.name}, isActive: ${this.isActive}`);
         
         // Create and show the popup
         this.createFlip3Popup();
@@ -396,6 +402,43 @@ class Flip3AnimationManager {
     }
 
     /**
+     * Handle Second Chance activation during Flip 3
+     */
+    handleSecondChanceActivated(data) {
+        if (!this.isActive || this.isCancelled) return;
+        
+        const { player } = data;
+        
+        // Check if Second Chance activation is for our target player
+        if (player.id !== this.targetPlayer.id) return;
+        
+        console.log(`Flip3AnimationManager: Second Chance activated for ${player.name} - continuing Flip3 sequence`);
+        
+        // Update status to show Second Chance saved the player
+        const statusEl = document.getElementById('flip3-status');
+        if (statusEl) {
+            statusEl.textContent = 'SAVED! Continuing Flip3...';
+            statusEl.style.color = '#10b981';
+        }
+        
+        // Flash the current slot green to show Second Chance activation
+        const currentSlot = document.getElementById(`flip3-slot-${this.currentCardIndex + 1}`);
+        if (currentSlot) {
+            currentSlot.style.borderColor = '#10b981';
+            currentSlot.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.5)';
+            
+            // Reset slot styling after flash
+            setTimeout(() => {
+                currentSlot.style.borderColor = '#60a5fa';
+                currentSlot.style.boxShadow = '';
+            }, 1500);
+        }
+        
+        // Continue with Flip3 sequence - don't cancel or complete
+        // The sequence will naturally continue when the next FLIP3_CARD_DEALT event arrives
+    }
+
+    /**
      * Handle player bust during Flip 3
      */
     handlePlayerBust(data) {
@@ -403,13 +446,12 @@ class Flip3AnimationManager {
         
         const { player, card } = data;
         
-        // Check if bust is for our target player
-        if (player.id !== this.targetPlayer.id) return;
+        // Check if bust is for our target player (with null safety)
+        if (!this.targetPlayer || player.id !== this.targetPlayer.id) return;
         
         console.log(`Flip3AnimationManager: Player busted during Flip 3 on card ${card.value}`);
         
-        this.isCancelled = true;
-        this.isActive = false;
+        // Don't cancel yet - let the bust card complete its animation first
         
         // Update status
         const statusEl = document.getElementById('flip3-status');
@@ -418,7 +460,7 @@ class Flip3AnimationManager {
             statusEl.style.color = '#ef4444';
         }
         
-        // Highlight the bust card
+        // Highlight the bust card slot
         const slotNumber = this.currentCardIndex + 1;
         const slot = document.getElementById(`flip3-slot-${slotNumber}`);
         if (slot) {
@@ -426,26 +468,113 @@ class Flip3AnimationManager {
             slot.style.boxShadow = '0 0 20px rgba(239, 68, 68, 0.5)';
         }
         
-        // Hide popup after delay and emit completion event
+        // Let the current card animation complete, THEN transfer to player's hand
         setTimeout(() => {
-            // Store the current target player before clearing
-            const bustedTargetPlayer = this.targetPlayer;
+            this.transferBustCardToPlayerHand(card, player);
             
-            // Set inactive BEFORE emitting completion event
+            // Now cancel and complete the Flip3 sequence
+            this.isCancelled = true;
             this.isActive = false;
             
-            this.hidePopup();
+            setTimeout(() => {
+                this.hidePopup();
+                
+                // Emit completion event so GameEngine can continue
+                this.eventBus.emit(GameEvents.FLIP3_ANIMATION_COMPLETE, {
+                    targetPlayer: player,
+                    completed: false,
+                    reason: 'bust'
+                });
+                
+                // Process any queued animations
+                this.processAnimationQueue();
+            }, 1000);
+        }, 1300); // Wait for card animation to complete (1200ms + buffer)
+    }
+
+    /**
+     * Transfer the bust card from popup slot to player's hand for visual display
+     */
+    transferBustCardToPlayerHand(card, player) {
+        console.log(`Flip3AnimationManager: Transferring bust card ${card.value} to ${player.name}'s hand for visual display`);
+        
+        const slotNumber = this.currentCardIndex + 1;
+        const slot = document.getElementById(`flip3-slot-${slotNumber}`);
+        const playerCardContainer = this.getPlayerCardContainer(player.id);
+        
+        if (!slot || !playerCardContainer) {
+            console.warn('Flip3AnimationManager: Could not find slot or player container for bust card transfer');
+            return;
+        }
+        
+        // Find the card in the slot
+        let slotCard = slot.querySelector('.card');
+        if (!slotCard) {
+            console.warn('Flip3AnimationManager: No card found in slot, creating visual representation');
+            // Create visual card representation as fallback
+            slotCard = card.toElement();
+            slotCard.style.position = 'absolute';
+            slotCard.style.width = '100%';
+            slotCard.style.height = '100%';
+            slotCard.style.borderRadius = '12px';
+            slotCard.style.transform = 'scale(0.95)';
+            slot.appendChild(slotCard);
+            console.log('Flip3AnimationManager: Created fallback visual card in slot');
+        }
+        
+        // Get positions for transfer animation
+        const slotRect = slotCard.getBoundingClientRect();
+        const containerRect = playerCardContainer.getBoundingClientRect();
+        
+        // Create animated card for transfer
+        const transferCard = card.toElement();
+        transferCard.style.position = 'fixed';
+        transferCard.style.left = `${slotRect.left}px`;
+        transferCard.style.top = `${slotRect.top}px`;
+        transferCard.style.width = `${slotRect.width}px`;
+        transferCard.style.height = `${slotRect.height}px`;
+        transferCard.style.zIndex = '2600';
+        transferCard.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        transferCard.style.pointerEvents = 'none';
+        
+        document.body.appendChild(transferCard);
+        
+        // Hide the slot card during transfer
+        slotCard.style.opacity = '0';
+        
+        // Animate to player's hand area
+        setTimeout(() => {
+            const targetX = containerRect.right - 60; // Position at right side of hand
+            const targetY = containerRect.top + containerRect.height/2 - 40;
             
-            // Emit completion event so GameEngine can continue
-            this.eventBus.emit(GameEvents.FLIP3_ANIMATION_COMPLETE, {
-                targetPlayer: bustedTargetPlayer,
-                completed: false,
-                reason: 'bust'
-            });
+            transferCard.style.left = `${targetX}px`;
+            transferCard.style.top = `${targetY}px`;
+            transferCard.style.transform = 'scale(0.8)';
+        }, 50);
+        
+        // Complete transfer - add card to player's visual hand
+        setTimeout(() => {
+            // Create final card element in player's hand
+            const finalCard = card.toElement();
+            finalCard.classList.add('bust-card'); // Mark as bust card for styling
             
-            // Process any queued animations
-            this.processAnimationQueue();
-        }, 2000);
+            playerCardContainer.appendChild(finalCard);
+            
+            // Remove transfer animation card
+            transferCard.remove();
+            
+            console.log(`Flip3AnimationManager: Bust card ${card.value} added to ${player.name}'s visual hand`);
+        }, 700);
+    }
+
+    /**
+     * Get player card container helper
+     */
+    getPlayerCardContainer(playerId) {
+        if (playerId === 'player') {
+            return document.getElementById('player-cards');
+        }
+        return document.getElementById(`${playerId}-cards`);
     }
 
     /**
@@ -531,6 +660,9 @@ class Flip3AnimationManager {
         if (this.animationQueue.length > 0 && !this.isActive) {
             console.log(`Flip3AnimationManager: Processing queued animation (${this.animationQueue.length} in queue)`);
             const nextAnimation = this.animationQueue.shift();
+            
+            // Don't reset state yet - keep it for the next animation
+            console.log(`Flip3AnimationManager: Starting next queued animation, keeping current state until completion`);
             
             // Small delay to ensure clean transition
             setTimeout(() => {

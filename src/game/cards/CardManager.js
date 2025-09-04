@@ -286,25 +286,20 @@ class CardManager {
             };
         }
         
-        // Player has 1+ Second Chance cards - only redistribute if they have MORE than 1
-        if (secondChanceCards.length === 1) {
-            console.log(`CardManager: Player ${player.name} already has exactly 1 Second Chance - this card was already added, no redistribution needed`);
-            return {
-                success: true,
-                card: card,
-                addedToHand: true,
-                alreadyProcessed: true
-            };
-        }
+        // Player already has 1+ Second Chance cards - must redistribute this new one
+        console.log(`CardManager: Player ${player.name} has ${secondChanceCards.length} Second Chance cards - adding new one then redistributing extra`);
         
-        // Player has 2+ Second Chance cards - must redistribute the extras
-        console.log(`CardManager: Player ${player.name} has ${secondChanceCards.length} Second Chance cards - must redistribute extras`);
+        // Always add the card first, then immediately redistribute the extra
+        player.addCard(card);
+        console.log(`CardManager: Added Second Chance to ${player.name}'s hand, now has ${player.actionCards.filter(c => c.value === 'second chance').length} total`);
         
-        // If the card was already added to hand (from Flip3), remove it first
-        if (secondChanceCards.length > 1) {
-            console.log(`CardManager: Removing duplicate Second Chance from ${player.name}'s hand`);
-            player.removeCard(card);
+        // Now remove the extra one for redistribution (keep the first, redistribute the new one)
+        const removedCard = player.removeCard(card);
+        if (!removedCard) {
+            console.error(`CardManager: Failed to remove duplicate Second Chance from ${player.name}'s hand`);
+            return { success: false };
         }
+        console.log(`CardManager: Removed duplicate Second Chance from ${player.name}'s hand for redistribution`);
         
         const eligibleRecipients = this.getEligibleSecondChanceRecipients(player);
         if (eligibleRecipients.length === 0) {
@@ -340,10 +335,6 @@ class CardManager {
             // Auto-select recipient (prefer player with lowest total score)
             const recipient = eligibleRecipients.sort((a, b) => a.totalScore - b.totalScore)[0];
             
-            // Remove the duplicate Second Chance card from the giver's hand first
-            player.removeCard(card);
-            console.log(`CardManager: Removed duplicate Second Chance from ${player.name}'s hand`);
-            
             // Update giver's hasSecondChance flag - they should keep their original Second Chance
             const remainingSecondChanceCards = player.actionCards.filter(c => c.value === 'second chance');
             if (remainingSecondChanceCards.length === 0) {
@@ -358,7 +349,7 @@ class CardManager {
             // Add card to recipient
             recipient.addCard(card);
             recipient.hasSecondChance = true;
-            console.log(`CardManager: Second Chance given to ${recipient.name}`);
+            console.log(`CardManager: Second Chance redistributed from ${player.name} to ${recipient.name}`);
             
             this.eventBus.emit(GameEvents.SECOND_CHANCE_GIVEN, {
                 giver: player,
@@ -369,7 +360,8 @@ class CardManager {
             return {
                 success: true,
                 card: card,
-                givenTo: recipient.id
+                givenTo: recipient.id,
+                requiresAnimation: true
             };
         }
     }

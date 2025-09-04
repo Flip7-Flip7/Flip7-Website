@@ -562,8 +562,24 @@ class ActionCardHandler {
                             isInitialDeal: true
                         });
                         
+                        // Set up a promise to wait for this specific action to complete
+                        const actionResolutionPromise = new Promise((resolve) => {
+                            const actionCompleteHandler = () => {
+                                console.log(`ActionCardHandler: Flip3 action ${actionCard.value} resolved during initial deal`);
+                                this.eventBus.off(GameEvents.FREEZE_CARD_USED, actionCompleteHandler);
+                                this.eventBus.off(GameEvents.FLIP3_ANIMATION_COMPLETE, actionCompleteHandler);
+                                resolve();
+                            };
+                            
+                            if (actionCard.value === 'freeze') {
+                                this.eventBus.on(GameEvents.FREEZE_CARD_USED, actionCompleteHandler);
+                            } else if (actionCard.value === 'flip3') {
+                                this.eventBus.on(GameEvents.FLIP3_ANIMATION_COMPLETE, actionCompleteHandler);
+                            }
+                        });
+                        
                         // Wait for action to be resolved before continuing
-                        return; // Exit early - action resolution will handle continuation
+                        await actionResolutionPromise;
                     } else {
                         console.log(`🎯 FLIP3 ACTION: Regular turn - adding ${actionCard.value} to human hand for later manual use`);
                     }

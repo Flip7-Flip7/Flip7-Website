@@ -175,11 +175,54 @@ class UIUpdateManager {
      * Handle Second Chance given
      */
     handleSecondChanceGiven(data) {
-        const { giver, recipient } = data;
+        const { giver, recipient, card } = data;
         
-        // Refresh both players' displays
-        this.refreshPlayerCards(giver.id, giver);
-        this.refreshPlayerCards(recipient.id, recipient);
+        console.log(`UIUpdateManager: Second Chance redistributed from ${giver.name} to ${recipient.name}`);
+        
+        // Get animation manager for transfer animation
+        const displayManager = window.Flip7?.display;
+        const animationManager = displayManager?.getManagers()?.animation;
+        
+        if (animationManager?.animateActionCardTransfer) {
+            console.log(`UIUpdateManager: Starting Second Chance transfer animation`);
+            
+            animationManager.animateActionCardTransfer(card, giver.id, recipient.id)
+                .then(() => {
+                    console.log(`UIUpdateManager: Transfer animation complete, refreshing displays`);
+                    // Refresh both players' displays after animation
+                    this.refreshPlayerCards(giver.id, giver);
+                    this.refreshPlayerCards(recipient.id, recipient);
+                    
+                    // Emit animation completion event
+                    this.eventBus.emit(GameEvents.CARD_ANIMATION_END, {
+                        playerId: giver.id,
+                        type: 'secondChanceTransfer'
+                    });
+                })
+                .catch(error => {
+                    console.error('UIUpdateManager: Transfer animation failed:', error);
+                    // Fallback to immediate refresh
+                    this.refreshPlayerCards(giver.id, giver);
+                    this.refreshPlayerCards(recipient.id, recipient);
+                    
+                    // Still emit completion event for turn flow
+                    this.eventBus.emit(GameEvents.CARD_ANIMATION_END, {
+                        playerId: giver.id,
+                        type: 'secondChanceTransfer'
+                    });
+                });
+        } else {
+            console.log(`UIUpdateManager: No transfer animation available, refreshing displays immediately`);
+            // Fallback: just refresh displays immediately
+            this.refreshPlayerCards(giver.id, giver);
+            this.refreshPlayerCards(recipient.id, recipient);
+            
+            // Emit completion event for turn flow
+            this.eventBus.emit(GameEvents.CARD_ANIMATION_END, {
+                playerId: giver.id,
+                type: 'secondChanceTransfer'
+            });
+        }
     }
 
     /**

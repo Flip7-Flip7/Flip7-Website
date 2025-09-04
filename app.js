@@ -209,6 +209,21 @@ async function startApp() {
         // Initialize the game
         initializeGame();
         
+        // Autostart the game (especially important for mobile)
+        const isMobile = window.innerWidth <= 768;
+        console.log(`🎮 Autostart: ${isMobile ? 'Mobile' : 'Desktop'} device detected`);
+        
+        // Start game after a brief delay
+        setTimeout(() => {
+            console.log('🎮 Autostarting game...');
+            if (window.Flip7?.engine?.startNewGame) {
+                window.Flip7.engine.startNewGame();
+                console.log('✓ Game autostart completed');
+            } else {
+                console.error('✗ Game engine not ready for autostart');
+            }
+        }, 500);
+        
     } catch (error) {
         console.error('Failed to start Flip 7:', error);
         

@@ -44,23 +44,72 @@ class SecondChanceAnimationManager {
             return;
         }
         
-        // Start the merge animation sequence
-        this.performMergeAnimation(container, secondChanceCard, card);
+        // Add small delay to ensure DOM is stable, then start animation
+        setTimeout(() => {
+            this.performMergeAnimationWithRetry(container, secondChanceCard, card, 0);
+        }, 100);
+    }
+
+    /**
+     * Perform merge animation with retry mechanism
+     */
+    performMergeAnimationWithRetry(container, secondChanceCard, duplicateCard, retryCount = 0) {
+        const maxRetries = 3;
+        const retryDelay = 150;
+        
+        if (retryCount > 0) {
+            console.log(`SecondChanceAnimationManager: Retry attempt ${retryCount}/${maxRetries}`);
+        }
+        
+        // Try to find card elements
+        const secondChanceEl = this.findCardElement(container, secondChanceCard);
+        const duplicateEl = this.findCardElement(container, duplicateCard);
+        
+        // If cards found, proceed with animation
+        if (secondChanceEl && duplicateEl) {
+            this.performMergeAnimation(container, secondChanceCard, duplicateCard, secondChanceEl, duplicateEl);
+            return;
+        }
+        
+        // If cards not found and retries available, try again
+        if (retryCount < maxRetries) {
+            console.log(`SecondChanceAnimationManager: Cards not found, retrying in ${retryDelay}ms...`);
+            setTimeout(() => {
+                this.performMergeAnimationWithRetry(container, secondChanceCard, duplicateCard, retryCount + 1);
+            }, retryDelay);
+            return;
+        }
+        
+        // All retries exhausted - create visual representations and proceed
+        console.log('SecondChanceAnimationManager: All retries exhausted, creating visual representations');
+        this.createVisualCardsAndAnimate(container, secondChanceCard, duplicateCard);
     }
 
     /**
      * Perform the enhanced card merge animation with collision and particle effects
      */
-    performMergeAnimation(container, secondChanceCard, duplicateCard) {
-        // Find both card elements in the container
-        const secondChanceEl = this.findCardElement(container, secondChanceCard);
-        const duplicateEl = this.findCardElement(container, duplicateCard);
+    performMergeAnimation(container, secondChanceCard, duplicateCard, secondChanceEl = null, duplicateEl = null) {
+        console.log('SecondChanceAnimationManager: Starting performMergeAnimation');
+        console.log('  Container:', container?.id || 'unknown');
+        console.log('  Second Chance Card:', secondChanceCard);
+        console.log('  Duplicate Card:', duplicateCard);
         
+        // Use provided elements or find them (for retry mechanism compatibility)
         if (!secondChanceEl || !duplicateEl) {
-            console.warn('SecondChanceAnimationManager: Could not find card elements for merge');
+            // Debug: Log all cards in container
+            const allCards = container.querySelectorAll('.card');
+            console.log(`  Found ${allCards.length} total cards in container:`);
+            allCards.forEach((cardEl, i) => {
+                console.log(`    ${i}: classes=[${cardEl.className}], text="${cardEl.textContent.trim()}"`);
+            });
+            
+            // This shouldn't happen if called from retry mechanism, but handle gracefully
+            console.warn('SecondChanceAnimationManager: Card elements not provided and not found');
             this.showBasicAnimation(container);
             return;
         }
+        
+        console.log('SecondChanceAnimationManager: Both card elements available, proceeding with full animation');
         
         // Get positions for merge calculation
         const secondChanceRect = secondChanceEl.getBoundingClientRect();
@@ -201,6 +250,13 @@ class SecondChanceAnimationManager {
                 rotateY(180deg)
             `;
             el.style.filter = 'brightness(1.5) contrast(1.3)';
+            
+            // Second Chance card should be on top during collision
+            if (name === 'second-chance') {
+                el.style.zIndex = '2100';
+            } else {
+                el.style.zIndex = '2050';
+            }
             
             // Add motion blur effect during collision
             el.style.filter += ' blur(1px)';
@@ -510,14 +566,120 @@ class SecondChanceAnimationManager {
     }
 
     /**
-     * Find card element in container
+     * Find card element in container with enhanced detection
      */
     findCardElement(container, card) {
+        console.log(`  findCardElement searching for: ${card.type}:${card.value}`);
+        
         const cards = container.querySelectorAll('.card');
-        return Array.from(cards).find(el => 
-            el.classList.contains(card.type) && 
-            el.textContent.includes(String(card.value))
-        );
+        console.log(`  Searching ${cards.length} cards in container`);
+        
+        // Primary search method - try text content first (for text-based cards)
+        let foundCard = Array.from(cards).find(el => {
+            const hasType = el.classList.contains(card.type);
+            const hasValue = el.textContent.includes(String(card.value));
+            console.log(`    Card: classes=[${el.className}], text="${el.textContent.trim()}", hasType=${hasType}, hasValue=${hasValue}`);
+            return hasType && hasValue;
+        });
+        
+        // Fallback for image-based cards - search by background image
+        if (!foundCard && card.type === 'action') {
+            console.log(`  Primary search failed, trying image-based search for action card`);
+            
+            const expectedImage = card.getImageName ? card.getImageName() : this.getExpectedImageName(card);
+            console.log(`  Expected image: ${expectedImage}`);
+            
+            foundCard = Array.from(cards).find(el => {
+                const hasType = el.classList.contains(card.type);
+                const hasCustomImage = el.classList.contains('custom-image');
+                const backgroundImage = el.style.backgroundImage;
+                const imageMatch = expectedImage && backgroundImage && backgroundImage.includes(expectedImage);
+                
+                console.log(`    Image search: hasType=${hasType}, hasCustomImage=${hasCustomImage}, bgImage="${backgroundImage}", imageMatch=${imageMatch}`);
+                return hasType && hasCustomImage && imageMatch;
+            });
+        }
+        
+        // Additional fallback - search by text content only for action cards
+        if (!foundCard && card.type === 'action') {
+            console.log(`  Image search failed, trying text-only fallback`);
+            
+            foundCard = Array.from(cards).find(el => {
+                const textMatch = el.textContent.toLowerCase().includes(card.value.toLowerCase());
+                console.log(`    Text fallback: text="${el.textContent.trim()}", textMatch=${textMatch}`);
+                return textMatch;
+            });
+        }
+        
+        // Last resort: search by data attributes if available
+        if (!foundCard) {
+            console.log(`  All searches failed, checking data attributes`);
+            foundCard = container.querySelector(`[data-card-type="${card.type}"][data-card-value="${card.value}"]`);
+        }
+        
+        console.log(`  findCardElement result for ${card.type}:${card.value}:`, !!foundCard);
+        return foundCard;
+    }
+
+    /**
+     * Get expected image name for card (backup method if card doesn't have getImageName)
+     */
+    getExpectedImageName(card) {
+        if (card.type === 'action') {
+            if (card.value === 'second chance') return 'card-SecondChance.png';
+            if (card.value === 'flip3') return 'card-Flip3.png';
+            if (card.value === 'freeze') return 'card-Freeze.png';
+        }
+        return null;
+    }
+
+    /**
+     * Create visual card representations when actual DOM cards can't be found
+     */
+    createVisualCardsAndAnimate(container, secondChanceCard, duplicateCard) {
+        console.log('SecondChanceAnimationManager: Creating visual card representations for animation');
+        
+        // Get container positioning
+        const containerRect = container.getBoundingClientRect();
+        const centerX = containerRect.left + containerRect.width / 2;
+        const centerY = containerRect.top + containerRect.height / 2;
+        
+        // Create visual Second Chance card
+        const visualSecondChance = this.createVisualCard(secondChanceCard, centerX - 80, centerY - 20);
+        const visualDuplicate = this.createVisualCard(duplicateCard, centerX + 20, centerY + 10);
+        
+        // Add to page temporarily
+        document.body.appendChild(visualSecondChance);
+        document.body.appendChild(visualDuplicate);
+        
+        // Now animate these visual cards
+        this.performMergeAnimation(container, secondChanceCard, duplicateCard, visualSecondChance, visualDuplicate);
+        
+        // Clean up visual cards after animation
+        setTimeout(() => {
+            visualSecondChance.remove();
+            visualDuplicate.remove();
+        }, 3000);
+    }
+
+    /**
+     * Create a visual representation of a card for animation
+     */
+    createVisualCard(card, x, y) {
+        const cardEl = card.toElement();
+        
+        // Set individual properties to preserve background images
+        cardEl.style.position = 'fixed';
+        cardEl.style.left = `${x}px`;
+        cardEl.style.top = `${y}px`;
+        cardEl.style.width = '60px';
+        cardEl.style.height = '80px';
+        cardEl.style.zIndex = '2000';
+        cardEl.style.pointerEvents = 'none';
+        cardEl.style.borderRadius = '8px';
+        cardEl.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
+        
+        return cardEl;
     }
 
     /**
