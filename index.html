@@ -142,77 +142,6 @@
                 <div id="scoreboard-content"></div>
             </div>
         </div>
-
-        <!-- Mobile Status Banner -->
-        <div class="mobile-status-banner" id="mobile-status-banner">
-            <div class="turn-indicator" id="mobile-turn-indicator"></div>
-            <div class="game-info" id="mobile-game-info"></div>
-        </div>
-
-        <!-- Mobile Game Board (hidden on desktop, shown on mobile) -->
-        <div class="mobile-game-board">
-            <!-- Top Controls Section (Logo + Draw Pile + Rules) -->
-            <div class="mobile-controls-section">
-                <!-- Logo -->
-                <img src="images/FLIP7_LOGO_LOCK_UP_transparent.png" alt="Flip 7" class="mobile-logo">
-                
-                <!-- Draw Pile -->
-                <div class="mobile-draw-pile-area">
-                    <div class="draw-pile" id="mobile-draw-pile">
-                        <div class="card back draw-card"></div>
-                        <div class="pile-info">
-                            <span id="mobile-cards-remaining">94</span> cards
-                        </div>
-                    </div>
-                    <!-- Card Animation Area for mobile -->
-                    <div class="card-animation-area" id="mobile-card-animation-area">
-                        <!-- Animated card appears here -->
-                    </div>
-                </div>
-                
-                <!-- Rules Button -->
-                <button class="mobile-rules-btn" id="mobile-rules-btn">Rules</button>
-            </div>
-
-            <!-- Players Container (Flexible Middle Section) -->
-            <div class="mobile-players-container">
-                <!-- Human Player (Top) -->
-                <div id="mobile-player">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-
-                <!-- Bot Players (Middle) -->
-                <div id="mobile-opponent1">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-                <div id="mobile-opponent2">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-                <div id="mobile-opponent3">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </div>
-
-            <!-- Bottom Section (Hit/Stay Buttons) -->
-            <div class="mobile-bottom-section">
-                <button id="mobile-hit-btn" class="btn primary mobile-action-btn" disabled>Hit</button>
-                <button id="mobile-stay-btn" class="btn secondary mobile-action-btn" disabled>Stay</button>
-            </div>
-
-        </div>
-
-        <!-- Mobile Info Panel (hidden on desktop) -->
-        <div class="mobile-info-panel">
-            <div class="game-log">
-                <h4>Game Log</h4>
-                <div id="log-content"></div>
-            </div>
-
-            <div class="scoreboard">
-                <h4>Scoreboard</h4>
-                <div id="scoreboard-content"></div>
-            </div>
-        </div>
     </div>
 
     <!-- Center Card Animation Areas -->
@@ -228,17 +157,6 @@
 
     <!-- Animation backdrop for focus -->
     <div class="animation-backdrop" id="animation-backdrop"></div>
-    
-    <!-- Mobile Name Input Popup -->
-    <div class="mobile-name-popup" id="mobile-name-popup">
-        <div class="name-popup-content">
-            <h2>Enter Player Name:</h2>
-            <form id="name-input-form">
-                <input type="text" id="player-name-input" placeholder="Your nickname" maxlength="20" required>
-                <button type="submit" class="name-submit-btn">Start Game</button>
-            </form>
-        </div>
-    </div>
 
     <!-- Special Action Card Modal -->
     <div class="special-action-modal" id="special-action-modal" style="display: none;">

@@ -5,18 +5,17 @@
     margin: 0;
     padding: 0;
 }
+html {
+    min-height: 100%;
+    background: inherit;
+}
 
 body {
     font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #4a90a4 0%, #357a8a 50%, #2c6b7a 100%);
     color: #ffffff;
-    min-height: 100vh;
+    min-height: 100%;
     padding: 20px;
-    overflow: auto;
-}
-
-html {
-    height: 100%;
 }
 
 /* Prevent mobile zoom on double tap */

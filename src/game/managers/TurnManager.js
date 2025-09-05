@@ -231,6 +231,11 @@ class TurnManager {
         
         console.log(`TurnManager: Player ${player.id} hit`);
         
+        // Immediately disable hit/stay buttons for human players to prevent double-clicking
+        if (player.isHuman) {
+            this.disablePlayerButtons();
+        }
+        
         // Emit hit event for GameEngine to handle (will call CardManager)
         this.eventBus.emit(GameEvents.EXECUTE_HIT, {
             player: player,
@@ -366,6 +371,12 @@ class TurnManager {
         }
         
         console.log(`TurnManager: Player ${player.id} stayed`);
+        
+        // Immediately disable hit/stay buttons for human players to prevent double-clicking
+        if (player.isHuman) {
+            this.disablePlayerButtons();
+        }
+        
         player.status = 'stayed';
         player.calculateScore();
         
@@ -482,6 +493,19 @@ class TurnManager {
             // Emit event for GameEngine to start next turn
             this.eventBus.emit(GameEvents.REQUEST_NEXT_TURN);
         }, 100);
+    }
+
+    /**
+     * Helper method to disable player control buttons
+     */
+    disablePlayerButtons() {
+        const buttonIds = ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'];
+        buttonIds.forEach(id => {
+            const button = document.getElementById(id);
+            if (button) {
+                button.disabled = true;
+            }
+        });
     }
 
     /**

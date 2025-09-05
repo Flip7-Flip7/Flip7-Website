@@ -224,42 +224,6 @@ class TargetingManager {
         
         // Update mobile UI
         this.updateMobileTargetingUI(cardName, sourcePlayer.isHuman);
-        
-        // Show targeting overlay for clarity
-        if (sourcePlayer.isHuman) {
-            this.showTargetingOverlay(card);
-        }
-    }
-
-    /**
-     * Show targeting overlay
-     */
-    showTargetingOverlay(card) {
-        const overlay = document.createElement('div');
-        overlay.className = 'targeting-overlay';
-        overlay.id = 'targeting-overlay';
-        overlay.innerHTML = `
-            <div class="targeting-info">
-                <div class="targeting-card-preview">
-                    ${card.toElement().outerHTML}
-                </div>
-                <div class="targeting-instructions">
-                    Click on a player to target
-                </div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-    }
-
-    /**
-     * Remove targeting overlay
-     */
-    removeTargetingOverlay() {
-        const overlay = document.getElementById('targeting-overlay');
-        if (overlay) {
-            overlay.classList.add('fade-out');
-            setTimeout(() => overlay.remove(), 300);
-        }
     }
 
     /**
