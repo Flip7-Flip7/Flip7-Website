@@ -6,80 +6,7 @@
 // Global namespace for the game
 window.Flip7 = window.Flip7 || {};
 
-// Module initialization order is important
-const moduleLoadOrder = [
-    // Core event system
-    'src/events/EventBus.js',
-    'src/events/GameEvents.js',
-    
-    // Configuration
-    'src/game/config/GameConstants.js',
-    
-    // Core game classes
-    'src/game/cards/Card.js',
-    'src/game/cards/Deck.js',
-    'src/game/core/Player.js',
-    
-    // Game logic
-    'src/game/cards/CardManager.js',
-    'src/game/core/GameEngine.js',
-    // 'game/core/GameState.js',
-    // 'game/core/GameRules.js',
-    // 'game/cards/CardActions.js',
-    
-    // AI (to be created)
-    // 'game/ai/AIPlayer.js',
-    // 'game/ai/AIStrategy.js',
-    
-    // UI modules  
-    'src/ui/display/managers/AnimationManager.js',
-    'src/ui/display/managers/TargetingManager.js',
-    'src/ui/display/managers/UIUpdateManager.js',
-    'src/ui/display/managers/Flip3AnimationManager.js',
-    'src/ui/display/managers/SecondChanceAnimationManager.js',
-    'src/ui/display/DisplayManager.js',
-    // 'ui/display/CardDisplay.js',
-    // 'ui/animations/AnimationManager.js',
-    // 'ui/animations/CardAnimations.js',
-    // 'ui/mobile/MobileSync.js',
-    
-    // Main game engine (to be created)
-    // 'game/core/GameEngine.js'
-];
-
-/**
- * Load a script dynamically
- * @param {string} src - Script source path
- * @returns {Promise}
- */
-function loadScript(src) {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = src + '?v=' + Date.now(); // Cache busting for development
-        script.onload = resolve;
-        script.onerror = () => reject(new Error(`Failed to load ${src}`));
-        document.head.appendChild(script);
-    });
-}
-
-/**
- * Load all modules in sequence
- */
-async function loadModules() {
-    console.log('Loading Flip 7 modules...');
-    
-    for (const module of moduleLoadOrder) {
-        try {
-            await loadScript(module);
-            console.log(`✓ Loaded ${module}`);
-        } catch (error) {
-            console.error(`✗ Failed to load ${module}:`, error);
-            throw error;
-        }
-    }
-    
-    console.log('All modules loaded successfully!');
-}
+// (Note) Script modules are loaded via index.html to preserve order.
 
 /**
  * Initialize the game after modules are loaded
@@ -255,9 +182,6 @@ async function startApp() {
                 document.addEventListener('DOMContentLoaded', resolve);
             });
         }
-        
-        // Skip module loading - scripts are already loaded by index.html to prevent duplicates
-        // await loadModules();
         
         // Initialize the game
         initializeGame();

@@ -361,13 +361,6 @@ class AnimationManager {
         }, 6000); // Extended duration for more particles
     }
 
-    createShieldEffect() {
-        const shield = document.createElement('div');
-        shield.className = 'shield-effect';
-        setTimeout(() => shield.remove(), 2000);
-        return shield;
-    }
-
     createSparkles(element) {
         const sparkleContainer = document.createElement('div');
         sparkleContainer.className = 'sparkle-container';
@@ -432,18 +425,6 @@ class AnimationManager {
             firework.classList.add('explode');
             setTimeout(() => firework.remove(), 1000);
         }, 500);
-    }
-
-    createNotification(container, message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `game-notification ${type}`;
-        notification.textContent = message;
-        container.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.classList.add('fade-out');
-            setTimeout(() => notification.remove(), 300);
-        }, 2000);
     }
 
     /**
@@ -604,7 +585,6 @@ class AnimationManager {
         return container;
     }
 
-
     animateCardFromDeck(cardElement, isInitialDeal = false) {
         const isMobile = window.innerWidth <= 768;
         const playerId = cardElement.closest('.player-area')?.id;
@@ -722,13 +702,6 @@ class AnimationManager {
         });
     }
 
-    animateCardRemoval(cardElement) {
-        cardElement.classList.add('removing');
-        cardElement.style.transform = 'scale(0) rotate(360deg)';
-        cardElement.style.opacity = '0';
-        setTimeout(() => cardElement.remove(), 500);
-    }
-
     animateTextChange(element, newText) {
         element.style.transition = 'opacity 0.2s';
         element.style.opacity = '0';
@@ -798,18 +771,6 @@ class AnimationManager {
             return document.getElementById('player-cards');
         }
         return document.getElementById(`${playerId}-cards`);
-    }
-
-    /**
-     * Get deck area element for positioning
-     */
-    getDeckArea() {
-        // Try multiple deck area selectors from HTML
-        return document.querySelector('#draw-pile') || 
-               document.querySelector('.draw-pile') ||
-               document.querySelector('.draw-pile-area') || 
-               document.querySelector('#mobile-draw-pile') ||
-               document.querySelector('.mobile-draw-pile-area');
     }
 
     /**

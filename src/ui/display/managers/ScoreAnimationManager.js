@@ -25,7 +25,6 @@ class ScoreAnimationManager {
         const scores = data?.scores || [];
         
         // Trigger animations for players with round points > 0 who didn't bust
-        let hasAnimations = false;
         scores.forEach((entry, index) => {
             const playerId = entry?.player?.id;
             const roundPoints = entry?.roundScore || 0;
@@ -157,10 +156,6 @@ class ScoreAnimationManager {
             // Rainbow color progression
             const colors = ['#4ade80', '#22d3ee', '#a78bfa', '#f472b6', '#fb7185', '#fbbf24'];
             const colorIndex = Math.floor(progress * (colors.length - 1));
-            const nextColorIndex = Math.min(colorIndex + 1, colors.length - 1);
-            const colorProgress = (progress * (colors.length - 1)) - colorIndex;
-            
-            // Simple color transition
             element.style.color = colors[colorIndex];
             
             if (progress < 1) {

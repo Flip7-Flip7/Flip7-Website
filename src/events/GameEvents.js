@@ -24,7 +24,6 @@ const GameEvents = {
     // Card Events
     CARD_DRAWN: 'card:drawn',
     CARD_DEALT: 'card:dealt',
-    CARD_ANIMATION_START: 'card:animationStart',
     CARD_ANIMATION_END: 'card:animationEnd',
     
     // Initial Deal Flow Events
@@ -35,7 +34,6 @@ const GameEvents = {
     INITIAL_DEAL_COMPLETE: 'initialDeal:complete',
     
     // Special Card Events
-    ACTION_CARD_USED: 'actionCard:used',
     FREEZE_CARD_USED: 'freezeCard:used',
     FLIP3_CARD_USED: 'flip3Card:used',
     FLIP3_CARD_DEALT: 'flip3:cardDealt',
@@ -49,17 +47,12 @@ const GameEvents = {
     
     
     // AI Events
-    AI_THINKING: 'ai:thinking',
     AI_DECISION_MADE: 'ai:decisionMade',
     
     // UI Events
     UI_UPDATE_NEEDED: 'ui:updateNeeded',
     MOBILE_SYNC_NEEDED: 'mobile:syncNeeded',
-    ANIMATION_COMPLETE: 'animation:complete',
     
-    // Score Events
-    SCORE_CALCULATED: 'score:calculated',
-    WINNING_SCORE_REACHED: 'score:winningReached',
     
     // Cross-module coordination events
     REQUEST_INITIAL_DEAL: 'coordination:requestInitialDeal',
