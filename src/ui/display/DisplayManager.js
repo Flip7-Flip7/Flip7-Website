@@ -82,9 +82,6 @@ class DisplayManager {
         // Show celebration overlay
         this.showWinnerCelebration(winner, isHumanWin);
         
-        // Update mobile banner
-        this.updateMobileEndGame(winnerName, isHumanWin);
-        
         // Disable action buttons
         this.disableAllActionButtons();
     }
@@ -215,23 +212,6 @@ class DisplayManager {
         }
     }
 
-    /**
-     * Update mobile UI for game end
-     */
-    updateMobileEndGame(winnerName, isHumanWin) {
-        const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
-        const mobileGameInfo = document.getElementById('mobile-game-info');
-        
-        if (mobileTurnIndicator) {
-            mobileTurnIndicator.textContent = isHumanWin ? 
-                '🎉 You Won!' : 
-                `🎯 ${winnerName} Wins!`;
-        }
-        
-        if (mobileGameInfo) {
-            mobileGameInfo.textContent = 'Click "Start Game" to play again';
-        }
-    }
 
     /**
      * Disable all action buttons

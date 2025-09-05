@@ -203,10 +203,6 @@ function initializeGame() {
         const modal = document.getElementById('rules-modal');
         if (modal) modal.style.display = 'block';
     });
-    bind('mobile-rules-btn', () => {
-        const modal = document.getElementById('rules-modal');
-        if (modal) modal.style.display = 'block';
-    });
     const closeRules = document.getElementById('close-rules');
     if (closeRules) closeRules.addEventListener('click', () => {
         const modal = document.getElementById('rules-modal');

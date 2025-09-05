@@ -95,10 +95,8 @@
 /* Desktop-specific styles */
 @media (min-width: 1025px) {
     /* Hide mobile elements on desktop */
-    .mobile-game-board,
-    .mobile-status-banner,
-    .mobile-info-panel,
-    .action-buttons-mobile {
+    .action-buttons-mobile,
+    .mobile-center-card-animation-area {
         display: none !important;
         visibility: hidden !important;
         position: absolute !important;

@@ -397,11 +397,3 @@
     }
 }
 
-/* Hide mobile-specific elements that don't exist in current HTML */
-.mobile-game-board,
-.mobile-status-banner,
-.mobile-info-panel,
-.mobile-controls-section,
-.mobile-players-container {
-    display: none !important;
-}

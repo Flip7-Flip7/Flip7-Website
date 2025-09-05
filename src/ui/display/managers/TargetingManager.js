@@ -221,9 +221,6 @@ class TargetingManager {
         
         // Update game status
         this.updateGameStatus(message);
-        
-        // Update mobile UI
-        this.updateMobileTargetingUI(cardName, sourcePlayer.isHuman);
     }
 
     /**
@@ -258,24 +255,8 @@ class TargetingManager {
         statusElements.forEach(el => {
             el.textContent = message;
         });
-        
-        const mobileStatus = document.getElementById('mobile-game-info');
-        if (mobileStatus) {
-            mobileStatus.textContent = message;
-        }
     }
 
-    /**
-     * Update mobile targeting UI
-     */
-    updateMobileTargetingUI(cardName, isHuman) {
-        const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
-        if (mobileTurnIndicator && isHuman) {
-            mobileTurnIndicator.textContent = cardName ? 
-                `Tap a player to use ${cardName}` :
-                'Tap a player to target';
-        }
-    }
 
     /**
      * Disable action buttons during targeting

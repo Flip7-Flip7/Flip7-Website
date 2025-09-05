@@ -453,12 +453,6 @@ class UIUpdateManager {
         statusElements.forEach(el => {
             el.textContent = message;
         });
-        
-        // Mobile status
-        const mobileStatus = document.getElementById('mobile-game-info');
-        if (mobileStatus) {
-            mobileStatus.textContent = message;
-        }
     }
 
     /**
@@ -568,7 +562,7 @@ class UIUpdateManager {
     /**
      * Show action card prompt
      */
-    showActionCardPrompt(playerId, player, actionCards) {
+    showActionCardPrompt(playerId) {
         // Highlight action cards
         const container = this.getPlayerCardContainer(playerId);
         if (container) {
@@ -585,12 +579,6 @@ class UIUpdateManager {
         ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
             this.setButtonState(id, true);
         });
-        
-        // Update mobile status
-        const mobileTurnIndicator = document.getElementById('mobile-turn-indicator');
-        if (mobileTurnIndicator) {
-            mobileTurnIndicator.textContent = 'Tap action cards to use them!';
-        }
     }
 
     /**
