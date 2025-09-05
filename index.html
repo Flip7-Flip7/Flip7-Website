@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="src/ui/styles/components/controls.css?v=1.0">
     <link rel="stylesheet" href="src/ui/styles/components/info-panels.css?v=1.0">
     <link rel="stylesheet" href="src/ui/styles/components/animations.css?v=1.0">
+    <link rel="stylesheet" href="src/ui/styles/components/modals.css?v=1.0">
     
     <!-- Layout -->
     <link rel="stylesheet" href="src/ui/styles/layout/desktop.css?v=1.1">
@@ -118,11 +119,12 @@
             </div>
 
             <div class="control-section">
-                <button id="rules-btn" class="btn secondary" style="width: 100%;">Rules</button>
+                <button id="rules-btn" class="btn secondary">Rules</button>
+                <button id="scoreboard-btn" class="btn secondary">Scoreboard</button>
             </div>
             
             <div class="control-section" id="pre-game-controls">
-                <button id="new-game-btn" class="btn primary" style="width: 100%; margin-bottom: 10px;">Start Game</button>
+                <button id="new-game-btn" class="btn primary">Start Game</button>
                 <div class="game-settings">
                     <label>
                         Points to win: 
@@ -157,6 +159,12 @@
 
     <!-- Animation backdrop for focus -->
     <div class="animation-backdrop" id="animation-backdrop"></div>
+
+    <!-- Mobile Action Buttons (fixed at bottom) -->
+    <div class="action-buttons-mobile" id="action-buttons-mobile">
+        <button id="mobile-hit-btn" class="btn primary">Hit</button>
+        <button id="mobile-stay-btn" class="btn secondary">Stay</button>
+    </div>
 
     <!-- Special Action Card Modal -->
     <div class="special-action-modal" id="special-action-modal" style="display: none;">
@@ -239,6 +247,28 @@
                 2. Apply x2 multiplier (if you have it)<br>
                 3. Add modifier bonuses (+2, +4, +6, +8, +10)<br>
                 4. Add 15 bonus if you got exactly 7 unique numbers</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scoreboard Modal -->
+    <div id="scoreboard-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" id="close-scoreboard">&times;</span>
+            <h2>Scoreboard</h2>
+            <div class="scoreboard-content">
+                <table id="modal-scoreboard-table">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Round</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-scoreboard-body">
+                        <!-- Scores will be dynamically added here -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

@@ -1,6 +1,6 @@
 /* Flip 7 - Controls Panel Component */
 
-/* Controls Panel */
+/* Controls Panel - Desktop default styles */
 .controls-panel {
     background: rgba(255, 255, 255, 0.1);
     border-radius: var(--card-border-radius);
@@ -8,6 +8,19 @@
     backdrop-filter: blur(4px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     height: fit-content;
+}
+
+/* Initially hide scoreboard button (will be shown on mobile) */
+#scoreboard-btn {
+    display: none;
+}
+
+/* Ensure desktop keeps vertical layout */
+@media (min-width: 1025px) {
+    .controls-panel {
+        display: block !important;
+        flex-direction: column !important;
+    }
 }
 
 .controls-panel h3 {

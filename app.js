@@ -146,6 +146,29 @@ function initializeGame() {
     window.Flip7.engine = engine;
     window.Flip7.gameEngine = engine; // Also expose as gameEngine for managers
     
+    // Helper function to update scoreboard modal content
+    const updateScoreboardModal = () => {
+        const tbody = document.getElementById('modal-scoreboard-body');
+        if (!tbody) return;
+        
+        // Clear existing content
+        tbody.innerHTML = '';
+        
+        // Get player data from the game engine
+        if (!engine || !engine.players) return;
+        
+        // Add each player's score
+        engine.players.forEach(player => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${player.name}</td>
+                <td>${player.roundScore || 0}</td>
+                <td>${player.totalScore || 0}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    };
+    
     // Wire UI buttons to EventBus
     const bus = window.gameEventBus;
     const bind = (id, handler) => {
@@ -175,7 +198,7 @@ function initializeGame() {
         bus.emit(window.GameEvents.PLAYER_STAY);
     });
     
-    // Basic rules modal wiring
+    // Rules modal wiring
     bind('rules-btn', () => {
         const modal = document.getElementById('rules-modal');
         if (modal) modal.style.display = 'block';
@@ -188,6 +211,30 @@ function initializeGame() {
     if (closeRules) closeRules.addEventListener('click', () => {
         const modal = document.getElementById('rules-modal');
         if (modal) modal.style.display = 'none';
+    });
+    
+    // Scoreboard modal wiring
+    bind('scoreboard-btn', () => {
+        updateScoreboardModal();
+        const modal = document.getElementById('scoreboard-modal');
+        if (modal) modal.style.display = 'block';
+    });
+    const closeScoreboard = document.getElementById('close-scoreboard');
+    if (closeScoreboard) closeScoreboard.addEventListener('click', () => {
+        const modal = document.getElementById('scoreboard-modal');
+        if (modal) modal.style.display = 'none';
+    });
+    
+    // Close modals when clicking outside
+    window.addEventListener('click', (event) => {
+        const rulesModal = document.getElementById('rules-modal');
+        const scoreboardModal = document.getElementById('scoreboard-modal');
+        if (event.target === rulesModal) {
+            rulesModal.style.display = 'none';
+        }
+        if (event.target === scoreboardModal) {
+            scoreboardModal.style.display = 'none';
+        }
     });
 }
 
