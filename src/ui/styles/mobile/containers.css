@@ -128,14 +128,15 @@
     .player-area {
         width: 100% !important;
         padding: 8px !important;
-        height: 90px !important;
+        height: 120px !important;
         display: flex !important;
         flex-direction: column !important;
         background: rgba(255, 255, 255, 0.15) !important;
         border-radius: 8px !important;
         margin-bottom: 5px !important;
         position: relative !important;
-        overflow: hidden !important;
+        overflow-x: hidden !important;
+        overflow-y: visible !important;
     }
 
     /* Remove action buttons from inside player area */
@@ -182,17 +183,17 @@
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: wrap !important;
-        gap: 3px !important;
+        gap: 2px !important;
         flex: 1 !important;
-        padding: 5px !important;
-        align-items: center !important;
+        padding: 3px !important;
+        align-items: flex-start !important;
     }
 
-    /* Make cards smaller on mobile */
+    /* Make cards fill available container height on mobile */
     .card {
-        width: 35px !important;
-        height: 49px !important;
-        font-size: 0.8em !important;
+        width: 65px !important;
+        height: 82px !important;
+        font-size: 0.9em !important;
     }
 
     /* Hit/Stay buttons - fixed at bottom of screen */
@@ -307,7 +308,7 @@
 
     .player-area {
         margin-bottom: 0 !important;
-        height: 100px !important;
+        height: 130px !important;
     }
 
     /* Control buttons for tablet */
@@ -318,10 +319,10 @@
         padding: 6px 10px !important;
     }
 
-    /* Larger cards on tablets */
+    /* Larger cards on tablets - fill container height */
     .card {
-        width: 42px !important;
-        height: 59px !important;
+        width: 70px !important;
+        height: 85px !important;
     }
 
     /* Slightly larger buttons on tablets */
@@ -359,11 +360,11 @@
         overflow: visible !important;
     }
 
-    /* Even smaller cards for small phones */
+    /* Cards for small phones - fill available space */
     .card {
-        width: 30px !important;
-        height: 42px !important;
-        font-size: 0.7em !important;
+        width: 55px !important;
+        height: 70px !important;
+        font-size: 0.85em !important;
     }
 
     /* Smaller text */

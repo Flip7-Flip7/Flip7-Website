@@ -96,6 +96,9 @@ class DisplayManager {
         if (this.targetingManager.isTargeting()) {
             this.targetingManager.exitTargetingMode();
         }
+        
+        // Clear frozen visual state from all players to prevent mobile persistence bug
+        this.clearFrozenVisualState();
     }
 
     /**
@@ -219,6 +222,41 @@ class DisplayManager {
             const el = document.getElementById(id);
             if (el) el.disabled = true;
         });
+    }
+
+    /**
+     * Clear frozen visual state from all players
+     * Fixes mobile bug where frozen banners persist across rounds
+     */
+    clearFrozenVisualState() {
+        const playerIds = ['player', 'opponent1', 'opponent2', 'opponent3'];
+        
+        playerIds.forEach(playerId => {
+            const container = document.getElementById(playerId);
+            if (!container) return;
+            
+            // Remove frozen CSS class
+            container.classList.remove('frozen');
+            
+            // Remove any frozen-related overlays or indicators
+            const frozenOverlays = container.querySelectorAll('.frozen-overlay, .freeze-banner, [class*="frozen"]');
+            frozenOverlays.forEach(overlay => {
+                // Only remove if it's not the main container itself
+                if (overlay !== container) {
+                    overlay.remove();
+                }
+            });
+            
+            // Clear any frozen status text elements
+            const statusElements = container.querySelectorAll('.status-text, .player-status');
+            statusElements.forEach(element => {
+                if (element.textContent && element.textContent.includes('FROZEN')) {
+                    element.textContent = '';
+                }
+            });
+        });
+        
+        console.log('DisplayManager: Cleared frozen visual state for all players');
     }
 
     /**

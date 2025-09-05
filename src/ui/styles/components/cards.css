@@ -84,7 +84,7 @@
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-items: center;
-    min-height: 82px;
+    flex: 1;
     margin: 4px 0;
     padding: 6px;
     background: rgba(0, 0, 0, 0.15);
@@ -107,12 +107,4 @@
     align-items: center;
 }
 
-/* Mobile card sizing overrides */
-@media (max-width: 1024px) {
-    .card {
-        width: 45px;
-        height: 60px;
-        font-size: 0.8em;
-        margin: 2px;
-    }
-}
+/* Mobile card sizing handled by mobile/containers.css for better responsiveness */

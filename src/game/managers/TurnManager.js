@@ -10,6 +10,7 @@ class TurnManager {
         this.currentTurnTimeout = null;
         this.aiTurnInProgress = false;
         this.turnEnding = false;
+        this.firstTurnStarted = false;
         
         // Action blocking state
         this.actionInProgress = false;
@@ -138,6 +139,12 @@ class TurnManager {
         
         // Log current turn player
         console.log(`TurnManager: Starting turn for ${currentPlayer.name} (${currentPlayer.isHuman ? 'Human' : 'AI'})`);
+        
+        // Mark that first regular turn has started
+        if (!this.firstTurnStarted) {
+            this.firstTurnStarted = true;
+            console.log('TurnManager: First regular turn started');
+        }
         
         // Emit turn start event
         this.eventBus.emit(GameEvents.TURN_START, {
@@ -560,6 +567,16 @@ class TurnManager {
         const players = gameEngine?.players || [];
         const currentPlayer = players[this.currentPlayerIndex];
         
+        // Check if we're in the transition period after initial deal
+        // If the first regular turn hasn't started yet, don't end any turns
+        const isInitialDealTransition = gameEngine?.isInitialDealPhase || 
+                                      (this.firstTurnStarted === false);
+        
+        if (isInitialDealTransition) {
+            console.log('TurnManager: Flip3 complete during initial deal transition - not ending turn');
+            return;
+        }
+        
         if (!this.actionInProgress && currentPlayer && !this.turnEnding) {
             console.log(`TurnManager: Flip3 sequence complete for ${currentPlayer.name}`);
             
@@ -615,6 +632,7 @@ class TurnManager {
         this.currentTurnTimeout = null;
         this.aiTurnInProgress = false;
         this.turnEnding = false;
+        this.firstTurnStarted = false;
         this.actionInProgress = false;
         this.actionDisplayPhase = false;
     }

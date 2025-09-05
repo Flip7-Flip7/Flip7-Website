@@ -160,29 +160,48 @@ class AnimationManager {
             return;
         }
         
+        // Skip if UIUpdateManager is handling flip animation - avoid double animation
+        // UIUpdateManager calls animateCardFlip() which handles the full animation sequence
+        console.log('AnimationManager: Skipping animateCardDeal - UIUpdateManager handles flip animations');
+        return;
+        
+        /* DISABLED - UIUpdateManager now handles all card animations via animateCardFlip()
         const { card, playerId, isInitialDeal } = data;
         const container = this.getPlayerCardContainer(playerId);
         if (!container) return;
 
-        // Get the new card element (should be the last one added)
-        const cardElements = container.querySelectorAll('.card');
-        const newCard = cardElements[cardElements.length - 1];
-        if (!newCard) return;
+        // Wait for DOM to update, then find and animate the card
+        requestAnimationFrame(() => {
+            // Get the new card element (should be the last one added)
+            const cardElements = container.querySelectorAll('.card');
+            const newCard = cardElements[cardElements.length - 1];
+            if (!newCard) {
+                console.warn('AnimationManager: No card found to animate for', playerId);
+                return;
+            }
 
-        // Animate from deck position
-        this.animateCardFromDeck(newCard, isInitialDeal);
+            // Animate from deck position
+            this.animateCardFromDeck(newCard, isInitialDeal);
+        });
+        */
     }
 
     /**
      * Animate card being drawn
      */
     animateCardDraw(data) {
+        // Skip - UIUpdateManager handles all card animations via animateCardFlip()
+        console.log('AnimationManager: Skipping animateCardDraw - UIUpdateManager handles flip animations');
+        return;
+        
+        /* DISABLED - UIUpdateManager now handles all card animations
         const { card, playerId } = data;
         this.animateCardDeal({ 
             card, 
             playerId: playerId, 
             isInitialDeal: false 
         });
+        */
     }
 
     /**
@@ -217,7 +236,7 @@ class AnimationManager {
             container.classList.remove('busted', 'frozen', 'stayed', 'flip7-achieved');
             
             // Remove overlays from container
-            const overlays = container.querySelectorAll('.bust-overlay, .stayed-indicator, .flip7-banner');
+            const overlays = container.querySelectorAll('.bust-overlay, .stayed-indicator, .flip7-banner, .custom-freeze-overlay');
             overlays.forEach(el => el.remove());
             
             // Reset card animations
@@ -264,7 +283,7 @@ class AnimationManager {
         `;
         indicator.style.cssText = `
             position: absolute;
-            top: -20px;
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
@@ -480,11 +499,35 @@ class AnimationManager {
                 console.log(`AnimationManager: Starting slide phase`);
                 flipContainer.classList.add('card-sliding');
                 
-                // Calculate movement from center to target
-                const deltaX = targetRect.left + (targetRect.width / 2) - screenCenterX;
-                const deltaY = targetRect.top + (targetRect.height / 2) - screenCenterY;
+                let deltaX, deltaY;
+                const isMobile = window.innerWidth <= 768;
                 
-                flipContainer.style.transform = `rotateY(180deg) translate(${deltaX}px, ${deltaY}px) scale(0.7)`;
+                if (isMobile) {
+                    // Mobile: Use actual DOM measurements instead of guessing
+                    const cardContainer = this.getPlayerCardContainer(playerId);
+                    if (cardContainer) {
+                        const containerRect = cardContainer.getBoundingClientRect();
+                        // Calculate center of the actual container
+                        const targetX = containerRect.left + (containerRect.width / 2);
+                        const targetY = containerRect.top + (containerRect.height / 2);
+                        
+                        deltaX = targetX - screenCenterX;
+                        deltaY = targetY - screenCenterY;
+                    } else {
+                        // Fallback to container center if card container not found
+                        deltaX = targetRect.left + (targetRect.width / 2) - screenCenterX;
+                        deltaY = targetRect.top + (targetRect.height / 2) - screenCenterY;
+                    }
+                } else {
+                    // Desktop: Use container center (existing logic)
+                    deltaX = targetRect.left + (targetRect.width / 2) - screenCenterX;
+                    deltaY = targetRect.top + (targetRect.height / 2) - screenCenterY;
+                }
+                
+                // Use less aggressive scaling on mobile devices
+                const slideScale = isMobile ? 0.95 : 0.7;
+                
+                flipContainer.style.transform = `rotateY(180deg) translate(${deltaX}px, ${deltaY}px) scale(${slideScale})`;
             }, 450); // Start slide immediately after permanent rotation
             
             // Clean up and resolve
@@ -563,24 +606,119 @@ class AnimationManager {
 
 
     animateCardFromDeck(cardElement, isInitialDeal = false) {
-        const deckPosition = document.querySelector('.deck-area')?.getBoundingClientRect();
-        const cardPosition = cardElement.getBoundingClientRect();
+        const isMobile = window.innerWidth <= 768;
+        const playerId = cardElement.closest('.player-area')?.id;
         
-        if (!deckPosition) return;
+        let sourcePosition;
+        let targetPosition;
         
-        // Calculate animation path
-        const deltaX = deckPosition.left - cardPosition.left;
-        const deltaY = deckPosition.top - cardPosition.top;
+        if (isMobile) {
+            // Mobile: Use fixed positions for reliable animation
+            
+            // Source: Mobile center animation area or screen center
+            const mobileAnimationArea = document.querySelector('#mobile-center-card-animation-area');
+            if (mobileAnimationArea) {
+                sourcePosition = mobileAnimationArea.getBoundingClientRect();
+            } else {
+                sourcePosition = {
+                    left: window.innerWidth / 2 - 32.5, // Half card width (65px / 2)
+                    top: window.innerHeight / 3,
+                    width: 65,
+                    height: 82
+                };
+            }
+            
+            // Target: Fixed positions based on mobile layout
+            // Controls panel: ~50px, Game area padding: 10px, Player height: 120px + 5px margin + 10px gap
+            const controlsHeight = 50;
+            const gameAreaTop = controlsHeight + 10; // Controls + game area padding
+            const playerHeight = 120 + 5; // height + margin-bottom
+            const gap = 10;
+            
+            const mobileTargets = {
+                'player': {
+                    left: window.innerWidth / 2 - 32.5, // Center horizontally minus half card width
+                    top: gameAreaTop + (playerHeight + gap) * 0 + 60 // First player, center of card area
+                },
+                'opponent1': {
+                    left: window.innerWidth / 2 - 32.5,
+                    top: gameAreaTop + (playerHeight + gap) * 1 + 60 // Second player
+                },
+                'opponent2': {
+                    left: window.innerWidth / 2 - 32.5,
+                    top: gameAreaTop + (playerHeight + gap) * 2 + 60 // Third player
+                },
+                'opponent3': {
+                    left: window.innerWidth / 2 - 32.5,
+                    top: gameAreaTop + (playerHeight + gap) * 3 + 60 // Fourth player
+                }
+            };
+            
+            targetPosition = mobileTargets[playerId] || mobileTargets['player'];
+            
+        } else {
+            // Desktop: Use existing logic (works fine)
+            const cardNaturalPosition = cardElement.getBoundingClientRect();
+            targetPosition = {
+                left: cardNaturalPosition.left,
+                top: cardNaturalPosition.top
+            };
+            
+            // Desktop source position
+            const deckElement = document.querySelector('.deck-area') || document.querySelector('.draw-pile-area') || document.querySelector('#draw-pile');
+            if (deckElement) {
+                sourcePosition = deckElement.getBoundingClientRect();
+            } else {
+                sourcePosition = {
+                    left: window.innerWidth / 2 - 32.5,
+                    top: window.innerHeight / 3,
+                    width: 65,
+                    height: 82
+                };
+            }
+        }
         
-        // Apply initial position
+        // Calculate animation path from source to target
+        const deltaX = sourcePosition.left - targetPosition.left;
+        const deltaY = sourcePosition.top - targetPosition.top;
+        
+        // Apply initial position (start from source)
         cardElement.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
         cardElement.style.opacity = '0';
         
-        // Animate to final position
+        // Animate to target position
         requestAnimationFrame(() => {
             cardElement.style.transition = `transform ${isInitialDeal ? 0.4 : 0.6}s ease-out, opacity 0.3s ease-in`;
-            cardElement.style.transform = 'translate(0, 0)';
+            
+            if (isMobile) {
+                // Mobile: Animate to calculated fixed position
+                cardElement.style.transform = `translate(0, 0)`;
+                cardElement.style.left = targetPosition.left + 'px';
+                cardElement.style.top = targetPosition.top + 'px';
+                cardElement.style.position = 'absolute';
+            } else {
+                // Desktop: Animate to natural flexbox position
+                cardElement.style.transform = 'translate(0, 0)';
+            }
+            
             cardElement.style.opacity = '1';
+            
+            // Clean up positioning after animation completes
+            setTimeout(() => {
+                if (isMobile) {
+                    // Reset mobile cards to normal flexbox positioning
+                    cardElement.style.position = '';
+                    cardElement.style.left = '';
+                    cardElement.style.top = '';
+                    cardElement.style.transform = '';
+                    cardElement.style.transition = '';
+                }
+                
+                // Emit animation end event for turn management
+                if (playerId) {
+                    this.eventBus.emit(GameEvents.CARD_ANIMATION_END, { playerId });
+                }
+            }, isInitialDeal ? 400 : 600);
         });
     }
 
@@ -694,14 +832,23 @@ class AnimationManager {
             
             // Find the action card in source container
             const actionCardEl = this.findCardElement(sourceContainer, card);
+            let sourceRect;
+            
             if (!actionCardEl) {
-                console.warn('AnimationManager: Action card not found in source container');
-                resolve();
-                return;
+                console.warn('AnimationManager: Action card not found in source container, using placeholder animation');
+                // Create placeholder animation from source container center
+                const sourceContainerRect = sourceContainer.getBoundingClientRect();
+                sourceRect = {
+                    left: sourceContainerRect.left + sourceContainerRect.width / 2,
+                    top: sourceContainerRect.top + sourceContainerRect.height / 2,
+                    width: 55, // Default card width
+                    height: 77 // Default card height
+                };
+            } else {
+                sourceRect = actionCardEl.getBoundingClientRect();
             }
             
-            // Get positions
-            const sourceRect = actionCardEl.getBoundingClientRect();
+            // Get target position
             const targetRect = targetContainer.getBoundingClientRect();
             
             // Create animated card copy
@@ -718,8 +865,10 @@ class AnimationManager {
                 box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
             `;
             
-            // Hide original card
-            actionCardEl.style.opacity = '0';
+            // Hide original card if it exists
+            if (actionCardEl) {
+                actionCardEl.style.opacity = '0';
+            }
             
             document.body.appendChild(animatedCard);
             
@@ -736,7 +885,10 @@ class AnimationManager {
             // Clean up and resolve
             setTimeout(() => {
                 animatedCard.remove();
-                actionCardEl.remove(); // Remove from source
+                // Only remove original card if it exists
+                if (actionCardEl) {
+                    actionCardEl.remove();
+                }
                 resolve();
             }, 700);
         });
