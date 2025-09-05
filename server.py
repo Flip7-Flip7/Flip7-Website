@@ -18,22 +18,6 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Expires', '0')
         super().end_headers()
 
-    def do_GET(self):
-        parsed = urlparse(self.path)
-        if parsed.path in ('/new', '/new/'):
-            self.path = '/index.html'
-            return http.server.SimpleHTTPRequestHandler.do_GET(self)
-        if parsed.path in ('/old', '/old/'):
-            self.path = '/index-old.html'
-            return http.server.SimpleHTTPRequestHandler.do_GET(self)
-        if parsed.path == '/':
-            # Default to /new for convenience
-            self.send_response(302)
-            self.send_header('Location', '/new')
-            self.end_headers()
-            return
-        return super().do_GET()
-
 def run_server():
     PORT = 8080
     # Use current directory instead of hardcoded path
@@ -41,8 +25,7 @@ def run_server():
     
     with socketserver.TCPServer(("", PORT), NoCacheHTTPRequestHandler) as httpd:
         print(f"🚀 NUCLEAR SERVER RUNNING!")
-        print(f"📱 New (modular): http://localhost:{PORT}/new")
-        print(f"🕹️ Old (legacy): http://localhost:{PORT}/old")
+        print(f"📱 Play game: http://localhost:{PORT}")
         print(f"🔄 No-cache headers active - fresh files every time!")
         print(f"📱 Test on mobile device or resize browser < 1024px")
         print(f"⚡ Press Ctrl+C to stop")

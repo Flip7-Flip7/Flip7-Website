@@ -8,7 +8,28 @@
     <meta http-equiv="Expires" content="0">
     <title>Flip 7 - Online Card Game</title>
     
-    <link rel="stylesheet" href="styles.css?v=70.0&t=20250819-fix-card-animation-flip-and-targeting">
+    <!-- Modular CSS Architecture -->
+    <!-- Core styles first -->
+    <link rel="stylesheet" href="src/ui/styles/core/reset.css?v=1.0">
+    <link rel="stylesheet" href="src/ui/styles/core/variables.css?v=1.1">
+    
+    <!-- Components -->
+    <link rel="stylesheet" href="src/ui/styles/components/cards.css?v=1.1">
+    <link rel="stylesheet" href="src/ui/styles/components/buttons.css?v=1.1">
+    <link rel="stylesheet" href="src/ui/styles/components/player-headers.css?v=1.1">
+    <link rel="stylesheet" href="src/ui/styles/components/draw-pile.css?v=2.0">
+    <link rel="stylesheet" href="src/ui/styles/components/controls.css?v=1.0">
+    <link rel="stylesheet" href="src/ui/styles/components/info-panels.css?v=1.0">
+    <link rel="stylesheet" href="src/ui/styles/components/animations.css?v=1.0">
+    <link rel="stylesheet" href="src/ui/styles/components/modals.css?v=1.0">
+    
+    <!-- Layout -->
+    <link rel="stylesheet" href="src/ui/styles/layout/desktop.css?v=1.1">
+    
+    <!-- Mobile-specific modules -->
+    <link rel="stylesheet" href="src/ui/styles/mobile/containers.css?v=3.0">
+    <link rel="stylesheet" href="src/ui/styles/mobile/headers.css?v=1.0">
+    <link rel="stylesheet" href="src/ui/styles/mobile/cards.css?v=3.0">
     
 </head>
 <body>
@@ -36,9 +57,9 @@
                 <!-- Human Player (Top) -->
                 <div class="player-area main-player" id="player">
                     <div class="player-header">
-                        <span class="round-score"><span class="round-value">0</span></span>
+                        <span class="round-score">Round: <span class="round-value">0</span></span>
                         <h3>You</h3>
-                        <span class="total-score"><span class="score-value">0</span></span>
+                        <span class="total-score">Total: <span class="score-value">0</span></span>
                     </div>
                     <div class="player-stats">
                         <span class="player-status">Waiting</span>
@@ -53,9 +74,9 @@
                 <!-- Opponent 1 -->
                 <div class="player-area opponent-player" id="opponent1">
                     <div class="player-header">
-                        <span class="round-score"><span class="round-value">0</span></span>
+                        <span class="round-score">Round: <span class="round-value">0</span></span>
                         <h3>AI Bot 1</h3>
-                        <span class="total-score"><span class="score-value">0</span></span>
+                        <span class="total-score">Total: <span class="score-value">0</span></span>
                     </div>
                     <div class="player-stats">
                         <span class="player-status">Waiting</span>
@@ -66,9 +87,9 @@
                 <!-- Opponent 2 -->
                 <div class="player-area opponent-player" id="opponent2">
                     <div class="player-header">
-                        <span class="round-score"><span class="round-value">0</span></span>
+                        <span class="round-score">Round: <span class="round-value">0</span></span>
                         <h3>AI Bot 2</h3>
-                        <span class="total-score"><span class="score-value">0</span></span>
+                        <span class="total-score">Total: <span class="score-value">0</span></span>
                     </div>
                     <div class="player-stats">
                         <span class="player-status">Waiting</span>
@@ -79,9 +100,9 @@
                 <!-- Opponent 3 -->
                 <div class="player-area opponent-player" id="opponent3">
                     <div class="player-header">
-                        <span class="round-score"><span class="round-value">0</span></span>
+                        <span class="round-score">Round: <span class="round-value">0</span></span>
                         <h3>AI Bot 3</h3>
-                        <span class="total-score"><span class="score-value">0</span></span>
+                        <span class="total-score">Total: <span class="score-value">0</span></span>
                     </div>
                     <div class="player-stats">
                         <span class="player-status">Waiting</span>
@@ -98,11 +119,12 @@
             </div>
 
             <div class="control-section">
-                <button id="rules-btn" class="btn secondary" style="width: 100%;">Rules</button>
+                <button id="rules-btn" class="btn secondary">Rules</button>
+                <button id="scoreboard-btn" class="btn secondary">Scoreboard</button>
             </div>
             
             <div class="control-section" id="pre-game-controls">
-                <button id="new-game-btn" class="btn primary" style="width: 100%; margin-bottom: 10px;">Start Game</button>
+                <button id="new-game-btn" class="btn primary">Start Game</button>
                 <div class="game-settings">
                     <label>
                         Points to win: 
@@ -122,77 +144,6 @@
                 <div id="scoreboard-content"></div>
             </div>
         </div>
-
-        <!-- Mobile Status Banner -->
-        <div class="mobile-status-banner" id="mobile-status-banner">
-            <div class="turn-indicator" id="mobile-turn-indicator"></div>
-            <div class="game-info" id="mobile-game-info"></div>
-        </div>
-
-        <!-- Mobile Game Board (hidden on desktop, shown on mobile) -->
-        <div class="mobile-game-board">
-            <!-- Top Controls Section (Logo + Draw Pile + Rules) -->
-            <div class="mobile-controls-section">
-                <!-- Logo -->
-                <img src="images/FLIP7_LOGO_LOCK_UP_transparent.png" alt="Flip 7" class="mobile-logo">
-                
-                <!-- Draw Pile -->
-                <div class="mobile-draw-pile-area">
-                    <div class="draw-pile" id="mobile-draw-pile">
-                        <div class="card back draw-card"></div>
-                        <div class="pile-info">
-                            <span id="mobile-cards-remaining">94</span> cards
-                        </div>
-                    </div>
-                    <!-- Card Animation Area for mobile -->
-                    <div class="card-animation-area" id="mobile-card-animation-area">
-                        <!-- Animated card appears here -->
-                    </div>
-                </div>
-                
-                <!-- Rules Button -->
-                <button class="mobile-rules-btn" id="mobile-rules-btn">Rules</button>
-            </div>
-
-            <!-- Players Container (Flexible Middle Section) -->
-            <div class="mobile-players-container">
-                <!-- Human Player (Top) -->
-                <div id="mobile-player">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-
-                <!-- Bot Players (Middle) -->
-                <div id="mobile-opponent1">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-                <div id="mobile-opponent2">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-                <div id="mobile-opponent3">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </div>
-
-            <!-- Bottom Section (Hit/Stay Buttons) -->
-            <div class="mobile-bottom-section">
-                <button id="mobile-hit-btn" class="btn primary mobile-action-btn" disabled>Hit</button>
-                <button id="mobile-stay-btn" class="btn secondary mobile-action-btn" disabled>Stay</button>
-            </div>
-
-        </div>
-
-        <!-- Mobile Info Panel (hidden on desktop) -->
-        <div class="mobile-info-panel">
-            <div class="game-log">
-                <h4>Game Log</h4>
-                <div id="log-content"></div>
-            </div>
-
-            <div class="scoreboard">
-                <h4>Scoreboard</h4>
-                <div id="scoreboard-content"></div>
-            </div>
-        </div>
     </div>
 
     <!-- Center Card Animation Areas -->
@@ -208,16 +159,11 @@
 
     <!-- Animation backdrop for focus -->
     <div class="animation-backdrop" id="animation-backdrop"></div>
-    
-    <!-- Mobile Name Input Popup -->
-    <div class="mobile-name-popup" id="mobile-name-popup">
-        <div class="name-popup-content">
-            <h2>Enter Player Name:</h2>
-            <form id="name-input-form">
-                <input type="text" id="player-name-input" placeholder="Your nickname" maxlength="20" required>
-                <button type="submit" class="name-submit-btn">Start Game</button>
-            </form>
-        </div>
+
+    <!-- Mobile Action Buttons (fixed at bottom) -->
+    <div class="action-buttons-mobile" id="action-buttons-mobile">
+        <button id="mobile-hit-btn" class="btn primary">Hit</button>
+        <button id="mobile-stay-btn" class="btn secondary">Stay</button>
     </div>
 
     <!-- Special Action Card Modal -->
@@ -250,40 +196,7 @@
         <div id="action-buttons"></div>
     </div>
 
-    <!-- Flip 3 Progress Indicator -->
-    <div class="flip3-backdrop" id="flip3-backdrop" style="display: none;"></div>
-    <div class="flip3-progress-indicator" id="flip3-progress-indicator" style="display: none;">
-        <div class="flip3-header">
-            <span class="flip3-icon">🔄</span>
-            <span class="flip3-title">FLIP 3 IN PROGRESS</span>
-        </div>
-        <div class="flip3-target">Target: <span id="flip3-target-name"></span></div>
-        
-        <!-- Card Preview Area -->
-        <div class="flip3-card-preview">
-            <div class="flip3-card-slot" id="flip3-card-1">
-                <div class="card back"></div>
-            </div>
-            <div class="flip3-card-slot" id="flip3-card-2">
-                <div class="card back"></div>
-            </div>
-            <div class="flip3-card-slot" id="flip3-card-3">
-                <div class="card back"></div>
-            </div>
-        </div>
-        
-        <div class="flip3-counter">
-            <div class="flip3-dots">
-                <span class="flip3-dot" data-card="1"></span>
-                <span class="flip3-dot" data-card="2"></span>
-                <span class="flip3-dot" data-card="3"></span>
-            </div>
-            <div class="flip3-text">Card <span id="flip3-current">1</span> of 3</div>
-        </div>
-        
-        <!-- Status Message -->
-        <div class="flip3-status" id="flip3-status"></div>
-    </div>
+    <!-- Flip 3 handled by Flip3AnimationManager -->
 
     <!-- Flip 7 Celebration -->
     <div class="flip7-celebration" id="flip7-celebration" style="display: none;">
@@ -337,17 +250,37 @@
             </div>
         </div>
     </div>
-
-
-    <!-- Modular system test - temporarily disabled to prevent conflicts -->
-    <!-- <script type="module" src="js/game-config.js?v=1.0"></script> -->
-    <!-- <script type="module" src="js/game-animations.js?v=5.0&t=20250818-fix-visible-slide-animations"></script> -->
+    
+    <!-- Scoreboard Modal -->
+    <div id="scoreboard-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" id="close-scoreboard">&times;</span>
+            <h2>Scoreboard</h2>
+            <div class="scoreboard-content">
+                <table id="modal-scoreboard-table">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Round</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-scoreboard-body">
+                        <!-- Scores will be dynamically added here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
     
     <!-- Modular system - load in dependency order -->
     <!-- Core constants and events -->
     <script src="src/game/config/GameConstants.js?v=1.0"></script>
     <script src="src/events/GameEvents.js?v=1.0"></script>
     <script src="src/events/EventBus.js?v=1.0"></script>
+    
+    <!-- Debug utilities -->
+    <script src="src/utils/DebugUtilities.js?v=1.0"></script>
     
     <!-- Card system -->
     <script src="src/game/cards/Card.js?v=1.0"></script>
@@ -356,6 +289,22 @@
     <!-- Game logic -->
     <script src="src/game/core/Player.js?v=1.0"></script>
     <script src="src/game/cards/CardManager.js?v=1.0"></script>
+    
+    <!-- Game managers -->
+    <script src="src/game/managers/AIManager.js?v=1.0"></script>
+    <script src="src/game/managers/ActionCardHandler.js?v=1.0"></script>
+    <script src="src/game/managers/TurnManager.js?v=1.0"></script>
+    <script src="src/game/managers/GameStateManager.js?v=1.0"></script>
+    
+    <!-- Display sub-modules -->
+    <script src="src/ui/display/managers/AnimationManager.js?v=1.0"></script>
+    <script src="src/ui/display/managers/TargetingManager.js?v=1.0"></script>
+    <script src="src/ui/display/managers/UIUpdateManager.js?v=1.0"></script>
+    <script src="src/ui/display/managers/Flip3AnimationManager.js?v=1.0"></script>
+    <script src="src/ui/display/managers/SecondChanceAnimationManager.js?v=1.0"></script>
+    <script src="src/ui/display/managers/ScoreAnimationManager.js?v=1.0"></script>
+    
+    <!-- Main display and game engine -->
     <script src="src/ui/display/DisplayManager.js?v=1.0"></script>
     <script src="src/game/core/GameEngine.js?v=1.0"></script>
     

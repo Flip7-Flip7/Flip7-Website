@@ -1,0 +1,190 @@
+/* Flip 7 - Game Animations (Bust and Stay) */
+
+/* Bust animation for cards */
+.bust-animation .card {
+    animation: bustShake 0.3s ease-out, bustExplode 0.9s ease-out 0.3s;
+}
+
+@keyframes bustShake {
+    0%, 100% { transform: translateX(0); }
+    10% { transform: translateX(-5px) rotate(-2deg); }
+    20% { transform: translateX(5px) rotate(2deg); }
+    30% { transform: translateX(-7px) rotate(-3deg); }
+    40% { transform: translateX(7px) rotate(3deg); }
+    50% { transform: translateX(-5px) rotate(-2deg); }
+    60% { transform: translateX(5px) rotate(2deg); }
+    70% { transform: translateX(-3px) rotate(-1deg); }
+    80% { transform: translateX(3px) rotate(1deg); }
+    90% { transform: translateX(-1px); }
+}
+
+@keyframes bustExplode {
+    0% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+    30% {
+        transform: scale(1.2) translateY(-10px);
+        opacity: 1;
+    }
+    60% {
+        transform: scale(0.8) translateY(20px) rotate(var(--rotate-angle, 15deg));
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(0.5) translateY(40px) rotate(var(--rotate-angle, 15deg));
+        opacity: 0.2;
+    }
+}
+
+/* Screen shake on bust */
+.game-container.bust-shake {
+    animation: screenShake 0.5s ease-out;
+}
+
+@keyframes screenShake {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-2px, -2px); }
+    20% { transform: translate(2px, -2px); }
+    30% { transform: translate(-2px, 2px); }
+    40% { transform: translate(2px, 2px); }
+    50% { transform: translate(-1px, -1px); }
+    60% { transform: translate(1px, -1px); }
+    70% { transform: translate(-1px, 1px); }
+    80% { transform: translate(1px, 1px); }
+    90% { transform: translate(0, 0); }
+}
+
+/* Red flash effect */
+.bust-flash {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at center, rgba(239, 68, 68, 0.8) 0%, transparent 70%);
+    animation: bustFlash 0.6s ease-out;
+    pointer-events: none;
+    z-index: 100;
+}
+
+@keyframes bustFlash {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Stay Animation and Styling */
+.player-area.stay-animation {
+    position: relative;
+    overflow: visible;
+}
+
+.player-area.stayed,
+#mobile-player-area.stayed,
+#mobile-opponent1-area.stayed,
+#mobile-opponent2-area.stayed,
+#mobile-opponent3-area.stayed {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(16, 185, 129, 0.20) 100%) !important;
+    border: 2px solid rgba(34, 197, 94, 0.8) !important;
+    box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.3) !important;
+    position: relative;
+}
+
+/* Keep stayed indicator visible and properly positioned */
+.player-area.stayed .stayed-indicator,
+#mobile-player-area.stayed .stayed-indicator,
+#mobile-opponent1-area.stayed .stayed-indicator,
+#mobile-opponent2-area.stayed .stayed-indicator,
+#mobile-opponent3-area.stayed .stayed-indicator {
+    animation: none;
+    opacity: 1;
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+/* Stayed indicator badge */
+.stayed-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 1em;
+    box-shadow: 
+        0 4px 15px rgba(34, 197, 94, 0.4),
+        0 0 30px rgba(34, 197, 94, 0.3);
+    animation: stayedBadgeIn 0.5s ease-out;
+    white-space: nowrap;
+    z-index: 1002;
+}
+
+.stayed-icon {
+    font-size: 1.2em;
+    animation: checkmarkPop 0.6s ease-out;
+}
+
+.stayed-text {
+    font-size: 1.1em;
+    letter-spacing: 1px;
+}
+
+.stayed-points {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+@keyframes stayedBadgeIn {
+    0% {
+        transform: translateX(-50%) scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: translateX(-50%) scale(1.1);
+    }
+    100% {
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes checkmarkPop {
+    0% {
+        transform: scale(0) rotate(-180deg);
+    }
+    50% {
+        transform: scale(1.3) rotate(10deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+/* Card glow effect when staying */
+.card.stay-glow {
+    animation: stayGlow 0.8s ease-out;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
+}
+
+@keyframes stayGlow {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 
+            0 0 30px rgba(34, 197, 94, 0.8),
+            0 0 50px rgba(34, 197, 94, 0.4);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+}

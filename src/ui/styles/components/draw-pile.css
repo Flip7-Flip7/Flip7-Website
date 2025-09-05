@@ -1,0 +1,163 @@
+/* Flip 7 - Draw Pile Component */
+
+/* Unified Draw Pile Area - Ocean Theme */
+.draw-pile-area {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #4a90a4 0%, #357a8a 50%, #2c6b7a 100%);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(74, 144, 164, 0.3), inset 0 1px 4px rgba(255, 255, 255, 0.15);
+    position: relative;
+    overflow: visible;
+    width: 160px !important;
+    height: 200px !important;
+    min-width: 160px;
+    min-height: 200px;
+}
+
+.draw-pile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: var(--z-cards);
+    position: relative;
+}
+
+/* Draw Pile Subtle Enhancement */
+.draw-pile-area::after {
+    content: "";
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.6em;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.7);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    letter-spacing: 1px;
+    z-index: 15;
+}
+
+.draw-card,
+.card.back.draw-card {
+    width: 65px;
+    height: 91px;
+    font-size: 0.9em;
+    cursor: default;
+    box-shadow: 0 4px 15px rgba(250, 112, 154, 0.6);
+    /* Fallback gradient background */
+    background: linear-gradient(145deg, #fa709a 0%, #fee140 100%);
+    /* Card back image - path relative to HTML file */
+    background-image: url('../../../../images/Flip7CardBack.png') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    position: relative;
+    z-index: 3;
+    /* Add border for visibility if image fails to load */
+    border: 2px solid rgba(250, 112, 154, 0.6);
+    border-radius: 8px;
+}
+
+/* Ensure card back styling is applied */
+.card.back {
+    background: linear-gradient(145deg, #fa709a 0%, #fee140 100%);
+    color: #333;
+    box-shadow: 0 4px 15px rgba(250, 112, 154, 0.4);
+}
+
+/* Card Stack Effect */
+.draw-pile::before {
+    content: "";
+    position: absolute;
+    width: 65px;
+    height: 91px;
+    background-image: url('../../../../images/Flip7CardBack.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: var(--card-border-radius);
+    transform: translate(-2px, -2px);
+    z-index: 1;
+    box-shadow: 0 2px 8px rgba(250, 112, 154, 0.4);
+}
+
+.draw-pile::after {
+    content: "";
+    position: absolute;
+    width: 65px;
+    height: 91px;
+    background-image: url('../../../../images/Flip7CardBack.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: var(--card-border-radius);
+    transform: translate(-4px, -4px);
+    z-index: 0;
+    box-shadow: 0 1px 4px rgba(250, 112, 154, 0.3);
+}
+
+.pile-info {
+    color: var(--accent-gold);
+    font-size: 0.9em;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Card Animation Areas */
+.card-animation-area {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 65px;
+    height: 91px;
+    z-index: var(--z-animations);
+    pointer-events: none;
+}
+
+.center-card-animation-area {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 150px;
+    height: 200px;
+    z-index: 200;
+    pointer-events: none;
+    display: none; /* Hidden on mobile */
+}
+
+.mobile-center-card-animation-area {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    z-index: 9999;
+    pointer-events: none;
+    display: none; /* Hidden on desktop */
+}
+
+/* Show appropriate center animation area per device */
+@media (min-width: 1025px) {
+    .center-card-animation-area {
+        display: block;
+    }
+}
+
+@media (max-width: 1024px) {
+    .mobile-center-card-animation-area {
+        top: 35vh;
+        left: 50vw;
+        transform: translate(-50%, -50%);
+        width: 250px;
+        height: 250px;
+        display: block !important;
+    }
+}

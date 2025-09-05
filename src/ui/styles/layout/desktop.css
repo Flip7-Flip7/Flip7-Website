@@ -1,0 +1,148 @@
+/* Flip 7 - Complete Desktop Layout Styles */
+
+/* Default Desktop Grid Layout */
+.game-container {
+    width: 100%;
+    max-width: var(--game-container-max-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 200px 1fr 300px;
+    gap: var(--spacing-xl);
+    min-height: calc(100vh - 40px);
+    position: relative;
+}
+
+/* Draw Pile Column */
+.draw-pile-column {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    min-height: 200px;
+}
+
+/* Players Grid - Clean 2x2 Centered Layout */
+.players-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: var(--spacing-xl);
+}
+
+/* Controls Panel */
+.controls-panel {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--card-border-radius);
+    padding: var(--spacing-lg);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Desktop Player Areas */
+.player-area {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(15px);
+    position: relative;
+    width: 100%;
+}
+
+.player-area.current-turn {
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    animation: currentTurnGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes currentTurnGlow {
+    0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+    100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
+}
+
+.player-area.frozen {
+    border: 3px solid #60a5fa;
+    box-shadow: 0 0 30px rgba(96, 165, 250, 0.8);
+    background: linear-gradient(145deg, rgba(96, 165, 250, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+}
+
+.player-area.dealer::before {
+    content: "DEALER";
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: var(--text-white);
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.7em;
+    font-weight: bold;
+    z-index: var(--z-cards);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.player-area h3 {
+    text-align: center;
+    margin-bottom: var(--spacing-md);
+    color: var(--accent-gold);
+    font-size: 1.1em;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Desktop-specific styles */
+@media (min-width: 1025px) {
+    /* Hide mobile elements on desktop */
+    .mobile-game-board,
+    .mobile-status-banner,
+    .mobile-info-panel,
+    .action-buttons-mobile {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
+    }
+    
+    /* Hide scoreboard button on desktop - desktop has the scoreboard panel */
+    #scoreboard-btn {
+        display: none !important;
+    }
+    
+    /* Restore original control panel layout for desktop */
+    .controls-panel .control-section {
+        display: block !important;
+        flex-direction: column !important;
+        flex: none !important;
+        justify-content: initial !important;
+        gap: 0 !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .controls-panel #pre-game-controls {
+        display: block !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+    }
+    
+    .controls-panel #rules-btn,
+    .controls-panel #new-game-btn {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 10px 15px !important;
+        font-size: 1em !important;
+        margin-bottom: 10px !important;
+        flex: none !important;
+    }
+    
+    /* Show game settings on desktop */
+    .controls-panel .game-settings {
+        display: block !important;
+    }
+    
+    /* Show desktop scoreboard panel */
+    .controls-panel .desktop-info {
+        display: block !important;
+    }
+}

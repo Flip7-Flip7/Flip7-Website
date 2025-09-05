@@ -1,0 +1,407 @@
+/* Flip 7 - Mobile Container Layout */
+/* Complete rewrite with controls panel and proper button placement */
+
+@media (max-width: 1024px) {
+    /* Reset body for mobile */
+    body {
+        overflow-x: hidden;
+        overflow-y: auto;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Main game container - vertical stack for mobile */
+    .game-container {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 100vh !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        gap: 0 !important;
+        grid-template-columns: none !important;
+        grid-template-rows: none !important;
+    }
+
+    /* Controls panel - compact horizontal strip at top */
+    .controls-panel {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        padding: 8px 10px !important;
+        background: rgba(0, 0, 0, 0.4) !important;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.2) !important;
+        min-height: auto !important;
+        order: 1 !important;
+        gap: 10px !important;
+    }
+
+    /* Logo - smaller on mobile */
+    .controls-panel .logo-header {
+        flex: 0 0 auto !important;
+    }
+
+    .controls-panel .flip7-logo {
+        height: 30px !important;
+        width: auto !important;
+    }
+
+    /* Control buttons container - use all available space */
+    .controls-panel .control-section {
+        display: flex !important;
+        flex-direction: row !important;
+        flex: 1 !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        margin: 0 !important;
+    }
+
+    /* Control buttons styling */
+    .controls-panel #rules-btn,
+    .controls-panel #scoreboard-btn,
+    .controls-panel #new-game-btn {
+        flex: 1 !important;
+        max-width: none !important;
+        padding: 5px 8px !important;
+        font-size: 0.85em !important;
+        margin: 0 !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+    }
+    
+    /* Show scoreboard button only on mobile */
+    #scoreboard-btn {
+        display: inline-block !important;
+    }
+
+    /* Hide the second control section on mobile */
+    .controls-panel #pre-game-controls {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
+
+    .controls-panel #pre-game-controls #new-game-btn {
+        flex: 1 !important;
+    }
+
+    /* Hide desktop-only elements in controls */
+    .controls-panel .game-settings,
+    .controls-panel .desktop-info {
+        display: none !important;
+    }
+
+    /* Draw pile - hide on mobile (less important than controls) */
+    .draw-pile-column {
+        display: none !important;
+    }
+
+    /* Game area - main content area */
+    .game-area {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 !important;
+        width: 100% !important;
+        padding: 10px !important;
+        padding-bottom: 70px !important; /* Space for fixed buttons */
+        overflow-y: auto !important;
+        order: 2 !important;
+    }
+
+    /* Players grid - stack vertically on mobile */
+    .players-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Individual player areas */
+    .player-area {
+        width: 100% !important;
+        padding: 8px !important;
+        min-height: 100px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        background: rgba(255, 255, 255, 0.15) !important;
+        border-radius: 8px !important;
+        margin-bottom: 5px !important;
+        position: relative !important;
+    }
+
+    /* Remove action buttons from inside player area */
+    .player-area .action-buttons {
+        display: none !important;
+    }
+
+    /* Player header section */
+    .player-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 5px !important;
+        padding: 0 5px !important;
+    }
+
+    .player-header h3 {
+        font-size: 0.9em !important;
+        margin: 0 !important;
+        color: var(--accent-gold) !important;
+    }
+
+    .player-stats {
+        font-size: 0.75em !important;
+        display: flex !important;
+        gap: 10px !important;
+        padding: 0 5px !important;
+        margin-bottom: 5px !important;
+    }
+
+    .player-status {
+        font-size: 0.8em !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    /* Score displays */
+    .round-score, .total-score {
+        font-size: 0.75em !important;
+    }
+
+    .round-score {
+        color: var(--success-green) !important;
+    }
+
+    .total-score {
+        color: var(--info-blue) !important;
+    }
+
+    /* Cards container */
+    .player-cards {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 3px !important;
+        min-height: 45px !important;
+        padding: 5px !important;
+    }
+
+    /* Make cards smaller on mobile */
+    .card {
+        width: 35px !important;
+        height: 49px !important;
+        font-size: 0.8em !important;
+    }
+
+    /* Hit/Stay buttons - fixed at bottom of screen */
+    .action-buttons-mobile {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        gap: 20px !important;
+        padding: 10px 20px !important;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.8)) !important;
+        border-top: 2px solid rgba(255, 215, 0, 0.3) !important;
+        z-index: 1000 !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    /* Control buttons styling */
+    .action-buttons-mobile #mobile-hit-btn,
+    .action-buttons-mobile #mobile-stay-btn {
+        padding: 10px 30px !important;
+        font-size: 1.1em !important;
+        min-width: 100px !important;
+        height: 45px !important;
+        border-radius: 25px !important;
+        font-weight: bold !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+    }
+
+    /* Winner celebration overlay */
+    #winning-celebration {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 2000 !important;
+    }
+
+    /* Special card modal adjustments */
+    .special-action-modal {
+        padding: 10px !important;
+    }
+
+    .special-action-content {
+        width: 90% !important;
+        max-width: 350px !important;
+    }
+
+    /* Current turn indicator */
+    .player-area.current-turn {
+        border: 2px solid var(--accent-gold) !important;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.6) !important;
+        animation: pulse 2s infinite !important;
+    }
+
+    @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+        50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.9); }
+    }
+
+    /* Frozen player indicator */
+    .player-area.frozen {
+        background: linear-gradient(145deg, rgba(96, 165, 250, 0.3) 0%, rgba(255, 255, 255, 0.15) 100%) !important;
+        border: 2px solid #60a5fa !important;
+    }
+
+    /* Ensure dealer badge is visible */
+    .player-area.dealer::before {
+        font-size: 0.6em !important;
+        padding: 3px 6px !important;
+        top: -5px !important;
+        right: -5px !important;
+    }
+
+    /* Hide desktop-only info panels */
+    .desktop-info {
+        display: none !important;
+    }
+}
+
+/* Tablet adjustments (landscape mode) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+    /* Larger controls panel on tablets */
+    .controls-panel {
+        padding: 10px 15px !important;
+    }
+
+    .controls-panel .flip7-logo {
+        height: 35px !important;
+    }
+
+    /* Keep scoreboard button visible on tablet - use modal like mobile */
+    #scoreboard-btn {
+        display: inline-block !important;
+    }
+
+    /* Hide scoreboard panel on tablets - use modal instead */
+    .controls-panel .scoreboard,
+    .controls-panel .desktop-info {
+        display: none !important;
+    }
+
+    /* Arrange players in 2x2 grid on tablets */
+    .players-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        grid-template-rows: auto auto !important;
+        gap: 10px !important;
+        padding: 10px !important;
+        padding-bottom: 70px !important;
+    }
+
+    .player-area {
+        margin-bottom: 0 !important;
+    }
+
+    /* Control buttons for tablet */
+    .controls-panel #rules-btn,
+    .controls-panel #scoreboard-btn,
+    .controls-panel #new-game-btn {
+        font-size: 0.9em !important;
+        padding: 6px 10px !important;
+    }
+
+    /* Larger cards on tablets */
+    .card {
+        width: 42px !important;
+        height: 59px !important;
+    }
+
+    /* Slightly larger buttons on tablets */
+    .action-buttons-mobile #mobile-hit-btn,
+    .action-buttons-mobile #mobile-stay-btn {
+        min-width: 120px !important;
+        height: 50px !important;
+        font-size: 1.2em !important;
+    }
+}
+
+/* Small mobile devices (phones in portrait) */
+@media (max-width: 480px) {
+    /* Smaller controls panel */
+    .controls-panel {
+        padding: 5px 8px !important;
+        gap: 5px !important;
+    }
+    
+    .controls-panel .control-section {
+        gap: 4px !important;
+    }
+
+    .controls-panel .flip7-logo {
+        height: 25px !important;
+    }
+
+    .controls-panel #rules-btn,
+    .controls-panel #scoreboard-btn,
+    .controls-panel #new-game-btn {
+        font-size: 0.7em !important;
+        padding: 4px 6px !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+    }
+
+    /* Even smaller cards for small phones */
+    .card {
+        width: 30px !important;
+        height: 42px !important;
+        font-size: 0.7em !important;
+    }
+
+    /* Smaller text */
+    .player-header h3 {
+        font-size: 0.8em !important;
+    }
+
+    .player-stats,
+    .round-score,
+    .total-score {
+        font-size: 0.7em !important;
+    }
+
+    /* Smaller control buttons */
+    .action-buttons-mobile #mobile-hit-btn,
+    .action-buttons-mobile #mobile-stay-btn {
+        min-width: 80px !important;
+        height: 40px !important;
+        font-size: 1em !important;
+        padding: 8px 20px !important;
+    }
+
+    /* Less padding on game area */
+    .game-area {
+        padding: 5px !important;
+        padding-bottom: 60px !important;
+    }
+}
+
+/* Hide mobile-specific elements that don't exist in current HTML */
+.mobile-game-board,
+.mobile-status-banner,
+.mobile-info-panel,
+.mobile-controls-section,
+.mobile-players-container {
+    display: none !important;
+}

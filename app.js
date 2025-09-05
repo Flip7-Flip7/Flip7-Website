@@ -31,7 +31,12 @@ const moduleLoadOrder = [
     // 'game/ai/AIPlayer.js',
     // 'game/ai/AIStrategy.js',
     
-    // UI modules
+    // UI modules  
+    'src/ui/display/managers/AnimationManager.js',
+    'src/ui/display/managers/TargetingManager.js',
+    'src/ui/display/managers/UIUpdateManager.js',
+    'src/ui/display/managers/Flip3AnimationManager.js',
+    'src/ui/display/managers/SecondChanceAnimationManager.js',
     'src/ui/display/DisplayManager.js',
     // 'ui/display/CardDisplay.js',
     // 'ui/animations/AnimationManager.js',
@@ -139,6 +144,30 @@ function initializeGame() {
     // Expose instances
     window.Flip7.display = displayManager;
     window.Flip7.engine = engine;
+    window.Flip7.gameEngine = engine; // Also expose as gameEngine for managers
+    
+    // Helper function to update scoreboard modal content
+    const updateScoreboardModal = () => {
+        const tbody = document.getElementById('modal-scoreboard-body');
+        if (!tbody) return;
+        
+        // Clear existing content
+        tbody.innerHTML = '';
+        
+        // Get player data from the game engine
+        if (!engine || !engine.players) return;
+        
+        // Add each player's score
+        engine.players.forEach(player => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${player.name}</td>
+                <td>${player.roundScore || 0}</td>
+                <td>${player.totalScore || 0}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    };
     
     // Wire UI buttons to EventBus
     const bus = window.gameEventBus;
@@ -169,7 +198,7 @@ function initializeGame() {
         bus.emit(window.GameEvents.PLAYER_STAY);
     });
     
-    // Basic rules modal wiring
+    // Rules modal wiring
     bind('rules-btn', () => {
         const modal = document.getElementById('rules-modal');
         if (modal) modal.style.display = 'block';
@@ -182,6 +211,30 @@ function initializeGame() {
     if (closeRules) closeRules.addEventListener('click', () => {
         const modal = document.getElementById('rules-modal');
         if (modal) modal.style.display = 'none';
+    });
+    
+    // Scoreboard modal wiring
+    bind('scoreboard-btn', () => {
+        updateScoreboardModal();
+        const modal = document.getElementById('scoreboard-modal');
+        if (modal) modal.style.display = 'block';
+    });
+    const closeScoreboard = document.getElementById('close-scoreboard');
+    if (closeScoreboard) closeScoreboard.addEventListener('click', () => {
+        const modal = document.getElementById('scoreboard-modal');
+        if (modal) modal.style.display = 'none';
+    });
+    
+    // Close modals when clicking outside
+    window.addEventListener('click', (event) => {
+        const rulesModal = document.getElementById('rules-modal');
+        const scoreboardModal = document.getElementById('scoreboard-modal');
+        if (event.target === rulesModal) {
+            rulesModal.style.display = 'none';
+        }
+        if (event.target === scoreboardModal) {
+            scoreboardModal.style.display = 'none';
+        }
     });
 }
 
@@ -202,6 +255,27 @@ async function startApp() {
         
         // Initialize the game
         initializeGame();
+        
+        // Autostart the game (especially important for mobile)
+        const isMobile = window.innerWidth <= 768;
+        console.log(`🎮 Autostart: ${isMobile ? 'Mobile' : 'Desktop'} device detected`);
+        
+        // Start game after a brief delay
+        setTimeout(() => {
+            // Check if game is already in progress
+            if (window.Flip7?.engine?.isGameInProgress && window.Flip7.engine.isGameInProgress()) {
+                console.log('🎮 Game already in progress, skipping autostart');
+                return;
+            }
+            
+            console.log('🎮 Autostarting game...');
+            if (window.Flip7?.engine?.startNewGame) {
+                window.Flip7.engine.startNewGame();
+                console.log('✓ Game autostart completed');
+            } else {
+                console.error('✗ Game engine not ready for autostart');
+            }
+        }, 500);
         
     } catch (error) {
         console.error('Failed to start Flip 7:', error);

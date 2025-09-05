@@ -38,11 +38,15 @@ const GameEvents = {
     ACTION_CARD_USED: 'actionCard:used',
     FREEZE_CARD_USED: 'freezeCard:used',
     FLIP3_CARD_USED: 'flip3Card:used',
+    FLIP3_CARD_DEALT: 'flip3:cardDealt',
+    FLIP3_ANIMATION_COMPLETE: 'flip3:animationComplete',
     SECOND_CHANCE_ACTIVATED: 'secondChance:activated',
+    SECOND_CHANCE_ANIMATION_COMPLETE: 'secondChance:animationComplete',
     SECOND_CHANCE_ACQUIRED: 'secondChance:acquired',
     SECOND_CHANCE_GIVEN: 'secondChance:given',
     ACTION_CARD_TARGET_NEEDED: 'actionCard:targetNeeded',
     ACTION_CARD_TARGET_SELECTED: 'actionCard:targetSelected',
+    
     
     // AI Events
     AI_THINKING: 'ai:thinking',
@@ -55,7 +59,16 @@ const GameEvents = {
     
     // Score Events
     SCORE_CALCULATED: 'score:calculated',
-    WINNING_SCORE_REACHED: 'score:winningReached'
+    WINNING_SCORE_REACHED: 'score:winningReached',
+    
+    // Cross-module coordination events
+    REQUEST_INITIAL_DEAL: 'coordination:requestInitialDeal',
+    REQUEST_NEXT_TURN: 'coordination:requestNextTurn',
+    EXECUTE_HIT: 'coordination:executeHit',
+    ACTION_CARD_DRAWN: 'coordination:actionCardDrawn',
+    ACTION_CARD_EXECUTION_COMPLETE: 'coordination:actionCardExecutionComplete',
+    FLIP3_PROCESSING_COMPLETE: 'coordination:flip3ProcessingComplete',
+    ROUND_SHOULD_END: 'coordination:roundShouldEnd'
 };
 
 // Freeze to prevent modifications
