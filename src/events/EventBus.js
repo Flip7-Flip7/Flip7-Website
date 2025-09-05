@@ -27,19 +27,6 @@ class EventBus {
         return () => this.off(eventName, callback);
     }
 
-    /**
-     * Subscribe to an event only once
-     * @param {string} eventName - Name of the event
-     * @param {function} callback - Function to call when event is emitted
-     * @param {object} context - Optional context for callback
-     */
-    once(eventName, callback, context = null) {
-        const onceWrapper = (...args) => {
-            callback.apply(context, args);
-            this.off(eventName, onceWrapper);
-        };
-        this.on(eventName, onceWrapper, context);
-    }
 
     /**
      * Unsubscribe from an event
@@ -83,17 +70,6 @@ class EventBus {
         });
     }
 
-    /**
-     * Remove all listeners for an event or all events
-     * @param {string} eventName - Optional event name to clear
-     */
-    clear(eventName = null) {
-        if (eventName) {
-            delete this.events[eventName];
-        } else {
-            this.events = {};
-        }
-    }
 }
 
 // Create singleton instance

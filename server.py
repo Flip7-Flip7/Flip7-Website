@@ -7,8 +7,6 @@ Access at: http://localhost:8080
 
 import http.server
 import socketserver
-import os
-from urllib.parse import urlparse
 
 class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):

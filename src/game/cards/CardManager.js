@@ -522,22 +522,6 @@ class CardManager {
         console.log(`[Discard Debug] +${cards.length} discarded → pile size ${after}`);
     }
 
-    /**
-     * Get deck statistics
-     * @returns {Object}
-     */
-    getDeckStats() {
-        return this.deck.getStats();
-    }
-
-    /**
-     * Utility delay function
-     * @param {number} ms - Milliseconds to delay
-     * @returns {Promise}
-     */
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
 }
 
 // Make available globally
