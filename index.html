@@ -34,6 +34,11 @@
     <div class="game-container">
         <!-- Draw Pile Column -->
         <div class="draw-pile-column">
+            <!-- Desktop Action Buttons -->
+            <div class="desktop-action-buttons">
+                <button id="desktop-hit-btn" class="btn primary" disabled>Hit</button>
+                <button id="desktop-stay-btn" class="btn secondary" disabled>Stay</button>
+            </div>
             <div class="draw-pile-area">
                 <div class="draw-pile" id="draw-pile">
                     <div class="card back draw-card"></div>
@@ -59,9 +64,6 @@
                         <h3>You</h3>
                         <span class="total-score">Total: <span class="score-value">0</span></span>
                     </div>
-                    <div class="player-stats">
-                        <span class="player-status">Waiting</span>
-                    </div>
                     <div class="player-cards" id="player-cards"></div>
                     <div class="action-buttons">
                         <button id="hit-btn" class="btn primary" disabled>Hit</button>
@@ -76,9 +78,6 @@
                         <h3>AI Bot 1</h3>
                         <span class="total-score">Total: <span class="score-value">0</span></span>
                     </div>
-                    <div class="player-stats">
-                        <span class="player-status">Waiting</span>
-                    </div>
                     <div class="player-cards" id="opponent1-cards"></div>
                 </div>
 
@@ -89,9 +88,6 @@
                         <h3>AI Bot 2</h3>
                         <span class="total-score">Total: <span class="score-value">0</span></span>
                     </div>
-                    <div class="player-stats">
-                        <span class="player-status">Waiting</span>
-                    </div>
                     <div class="player-cards" id="opponent2-cards"></div>
                 </div>
 
@@ -101,9 +97,6 @@
                         <span class="round-score">Round: <span class="round-value">0</span></span>
                         <h3>AI Bot 3</h3>
                         <span class="total-score">Total: <span class="score-value">0</span></span>
-                    </div>
-                    <div class="player-stats">
-                        <span class="player-status">Waiting</span>
                     </div>
                     <div class="player-cards" id="opponent3-cards"></div>
                 </div>

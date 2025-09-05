@@ -462,10 +462,13 @@ class UIUpdateManager {
         const humanTurn = !!currentPlayer?.isHuman && currentPlayer?.status === 'active';
         const hasCards = (currentPlayer?.numberCards?.length || 0) > 0;
         
+        // Update all button sets (original, mobile, and desktop)
         this.setButtonState('hit-btn', !humanTurn);
         this.setButtonState('stay-btn', !humanTurn || !hasCards);
         this.setButtonState('mobile-hit-btn', !humanTurn);
         this.setButtonState('mobile-stay-btn', !humanTurn || !hasCards);
+        this.setButtonState('desktop-hit-btn', !humanTurn);
+        this.setButtonState('desktop-stay-btn', !humanTurn || !hasCards);
     }
 
     /**
@@ -493,9 +496,7 @@ class UIUpdateManager {
             const cardsEl = this.getPlayerCardContainer(id);
             if (cardsEl) cardsEl.innerHTML = '';
 
-            // Reset status text
-            const statusEl = container.querySelector('.player-status');
-            if (statusEl) statusEl.textContent = 'Active';
+            // Status text removed from UI
 
             // Reset round score
             const headerRound = container.querySelector('.player-header .round-value');
@@ -503,7 +504,7 @@ class UIUpdateManager {
         });
 
         // Disable action buttons initially
-        ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
+        ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn', 'desktop-hit-btn', 'desktop-stay-btn'].forEach(id => {
             this.setButtonState(id, true);
         });
     }
@@ -576,7 +577,7 @@ class UIUpdateManager {
         }
         
         // Disable buttons during action resolution
-        ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
+        ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn', 'desktop-hit-btn', 'desktop-stay-btn'].forEach(id => {
             this.setButtonState(id, true);
         });
     }

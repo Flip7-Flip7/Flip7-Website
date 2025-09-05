@@ -151,9 +151,7 @@ class DisplayManager {
 
         container.classList.add('frozen');
         
-        // Update status text
-        const statusEl = container.querySelector('.player-status');
-        if (statusEl) statusEl.textContent = 'Frozen ❄️';
+        // Status text removed - frozen state shown via CSS class only
 
         // Disable action buttons if human player
         if (playerId === 'player') {

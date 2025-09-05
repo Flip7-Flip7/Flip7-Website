@@ -128,13 +128,14 @@
     .player-area {
         width: 100% !important;
         padding: 8px !important;
-        min-height: 100px !important;
+        height: 90px !important;
         display: flex !important;
         flex-direction: column !important;
         background: rgba(255, 255, 255, 0.15) !important;
         border-radius: 8px !important;
         margin-bottom: 5px !important;
         position: relative !important;
+        overflow: hidden !important;
     }
 
     /* Remove action buttons from inside player area */
@@ -147,7 +148,7 @@
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        margin-bottom: 5px !important;
+        margin-bottom: 3px !important;
         padding: 0 5px !important;
     }
 
@@ -157,17 +158,10 @@
         color: var(--accent-gold) !important;
     }
 
-    .player-stats {
-        font-size: 0.75em !important;
-        display: flex !important;
-        gap: 10px !important;
-        padding: 0 5px !important;
-        margin-bottom: 5px !important;
-    }
-
+    /* Hide player status - removed from HTML but keep for backwards compatibility */
+    .player-stats,
     .player-status {
-        font-size: 0.8em !important;
-        color: rgba(255, 255, 255, 0.8) !important;
+        display: none !important;
     }
 
     /* Score displays */
@@ -189,8 +183,9 @@
         flex-direction: row !important;
         flex-wrap: wrap !important;
         gap: 3px !important;
-        min-height: 45px !important;
+        flex: 1 !important;
         padding: 5px !important;
+        align-items: center !important;
     }
 
     /* Make cards smaller on mobile */
@@ -312,6 +307,7 @@
 
     .player-area {
         margin-bottom: 0 !important;
+        height: 100px !important;
     }
 
     /* Control buttons for tablet */

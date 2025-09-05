@@ -197,6 +197,16 @@ function initializeGame() {
         event.stopPropagation();
         bus.emit(window.GameEvents.PLAYER_STAY);
     });
+    bind('desktop-hit-btn', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        bus.emit(window.GameEvents.PLAYER_HIT);
+    });
+    bind('desktop-stay-btn', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        bus.emit(window.GameEvents.PLAYER_STAY);
+    });
     
     // Rules modal wiring
     bind('rules-btn', () => {

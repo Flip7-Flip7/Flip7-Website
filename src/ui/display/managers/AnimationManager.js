@@ -51,11 +51,7 @@ class AnimationManager {
         // Show bust overlay
         this.createBustOverlay(container);
         
-        // Update status with animation
-        const statusEl = container.querySelector('.player-status');
-        if (statusEl) {
-            this.animateTextChange(statusEl, 'BUSTED! 💥');
-        }
+        // Status text removed - bust state shown via overlay only
     }
 
     /**
@@ -134,11 +130,9 @@ class AnimationManager {
         // Add frozen class and overlay
         container.classList.add('frozen');
         
-        // Get container bounds for fixed positioning
-        const containerRect = container.getBoundingClientRect();
-        const overlay = this.createFreezeOverlay(containerRect);
-        
-        document.body.appendChild(overlay);
+        // Create and append overlay directly to container
+        const overlay = this.createFreezeOverlay();
+        container.appendChild(overlay);
 
         // Create ice particle effects
         this.createIceParticles(container);
@@ -233,9 +227,7 @@ class AnimationManager {
             });
         });
         
-        // Remove freeze overlays from body (they use fixed positioning)
-        const bodyFreezeOverlays = document.querySelectorAll('.custom-freeze-overlay, .freeze-overlay');
-        bodyFreezeOverlays.forEach(el => el.remove());
+        // Freeze overlays are now inside containers and will be cleaned up with their parent containers
     }
 
     // Helper methods for specific animations
@@ -280,60 +272,15 @@ class AnimationManager {
         return indicator;
     }
 
-    createFreezeOverlay(containerRect) {
+    createFreezeOverlay() {
         const overlay = document.createElement('div');
-        // Don't use freeze-overlay class to avoid CSS animation conflicts
+        // Use CSS class for consistent styling with other overlays
         overlay.className = 'custom-freeze-overlay';
         
-        // Use fixed positioning to ensure correct placement
-        const overlayStyles = `
-            position: fixed !important;
-            top: ${containerRect.top}px !important;
-            left: ${containerRect.left}px !important;
-            width: ${containerRect.width}px !important;
-            height: ${containerRect.height}px !important;
-            background: linear-gradient(135deg, 
-                rgba(96, 165, 250, 0.85) 0%, 
-                rgba(59, 130, 246, 0.9) 25%,
-                rgba(147, 197, 253, 0.85) 50%,
-                rgba(59, 130, 246, 0.9) 75%,
-                rgba(96, 165, 250, 0.85) 100%) !important;
-            backdrop-filter: blur(2px) !important;
-            border-radius: 12px !important;
-            pointer-events: none;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            z-index: 1500 !important;
-            animation: none !important;
-            transform: none !important;
-        `;
-        overlay.style.cssText = overlayStyles;
-        
-        // Create text element without using the CSS class to avoid conflicts
-        const textElement = document.createElement('div');
+        // Create freeze text content
+        const textElement = document.createElement('span');
+        textElement.className = 'freeze-text';
         textElement.textContent = '❄ FROZEN ❄';
-        const textStyles = `
-            font-size: 2.5em !important;
-            font-weight: bold !important;
-            color: white !important;
-            text-shadow: 
-                0 0 20px rgba(255,255,255,0.8),
-                0 0 40px rgba(96, 165, 250, 1),
-                0 0 60px rgba(147, 197, 253, 1),
-                0 4px 8px rgba(0,0,0,0.5) !important;
-            text-align: center !important;
-            z-index: 2001 !important;
-            position: relative !important;
-            width: auto !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            left: auto !important;
-            top: auto !important;
-            transform: none !important;
-        `;
-        textElement.style.cssText = textStyles;
-        
         overlay.appendChild(textElement);
         
         return overlay;
@@ -556,16 +503,21 @@ class AnimationManager {
         const container = document.createElement('div');
         container.className = 'flip-animation-container'; // Neutral class to avoid CSS conflicts
         
-        // Position in center of screen, large size
+        // Detect mobile vs desktop for responsive sizing
+        const isMobile = window.innerWidth <= 768;
+        const cardWidth = isMobile ? 180 : 120;
+        const cardHeight = isMobile ? 240 : 160;
+        
+        // Position in center of screen, responsive size
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2;
         
         container.style.cssText = `
             position: fixed;
-            left: ${centerX - 60}px;
-            top: ${centerY - 80}px;
-            width: 120px;
-            height: 160px;
+            left: ${centerX - (cardWidth / 2)}px;
+            top: ${centerY - (cardHeight / 2)}px;
+            width: ${cardWidth}px;
+            height: ${cardHeight}px;
             z-index: 2500;
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
