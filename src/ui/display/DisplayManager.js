@@ -107,9 +107,23 @@ class DisplayManager {
     onPlayerBust(data) {
         const { player } = data;
         const container = document.getElementById(player.id);
-        if (container) {
-            container.classList.add('busted');
+        if (!container) return;
+
+        // If Flip3 popup is active, delay bust styling until it completes
+        if (this.isFlip3Active && this.isFlip3Active()) {
+            const handler = (evt) => {
+                // If event specifies a target, ensure it matches; otherwise apply anyway after Flip3 ends
+                const targetId = evt?.targetPlayer?.id;
+                if (!targetId || targetId === player.id) {
+                    this.eventBus.off(GameEvents.FLIP3_ANIMATION_COMPLETE, handler);
+                    container.classList.add('busted');
+                }
+            };
+            this.eventBus.on(GameEvents.FLIP3_ANIMATION_COMPLETE, handler);
+            return;
         }
+
+        container.classList.add('busted');
     }
 
     /**
@@ -218,7 +232,7 @@ class DisplayManager {
      * Disable all action buttons
      */
     disableAllActionButtons() {
-        ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
+        ['desktop-hit-btn', 'desktop-stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = true;
         });

@@ -149,12 +149,7 @@
         overflow-x: hidden !important;
         overflow-y: visible !important;
     }
-
-    /* Remove action buttons from inside player area */
-    .player-area .action-buttons {
-        display: none !important;
-    }
-
+    
     /* Player header section */
     .player-header {
         display: flex !important;

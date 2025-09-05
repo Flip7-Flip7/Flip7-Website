@@ -37,21 +37,37 @@ class AnimationManager {
         const container = document.getElementById(player.id);
         if (!container) return;
 
-        // Add bust class for styling
-        container.classList.add('busted');
-        
-        // Animate the duplicate card
-        const cardElements = container.querySelectorAll('.card');
-        const lastCard = cardElements[cardElements.length - 1];
-        if (lastCard) {
-            lastCard.classList.add('bust-card');
-            this.shakeElement(lastCard, 500);
+        const applyBustVisuals = () => {
+            // Add bust class for styling
+            container.classList.add('busted');
+            
+            // Animate the duplicate card
+            const cardElements = container.querySelectorAll('.card');
+            const lastCard = cardElements[cardElements.length - 1];
+            if (lastCard) {
+                lastCard.classList.add('bust-card');
+                this.shakeElement(lastCard, 500);
+            }
+            
+            // Show bust overlay
+            this.createBustOverlay(container);
+        };
+
+        // If Flip3 popup is active, delay overlay until it completes to avoid layering issues
+        const displayManager = window.Flip7?.display;
+        if (displayManager?.isFlip3Active?.()) {
+            const onFlip3Complete = (evt) => {
+                const targetId = evt?.targetPlayer?.id;
+                if (!targetId || targetId === player.id) {
+                    this.eventBus.off(GameEvents.FLIP3_ANIMATION_COMPLETE, onFlip3Complete);
+                    applyBustVisuals();
+                }
+            };
+            this.eventBus.on(GameEvents.FLIP3_ANIMATION_COMPLETE, onFlip3Complete);
+            return;
         }
 
-        // Show bust overlay
-        this.createBustOverlay(container);
-        
-        // Status text removed - bust state shown via overlay only
+        applyBustVisuals();
     }
 
     /**

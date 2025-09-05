@@ -104,16 +104,6 @@ function initializeGame() {
     };
     
     bind('new-game-btn', () => engine.startNewGame());
-    bind('hit-btn', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        bus.emit(window.GameEvents.PLAYER_HIT);
-    });
-    bind('stay-btn', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        bus.emit(window.GameEvents.PLAYER_STAY);
-    });
     bind('mobile-hit-btn', (event) => {
         event.preventDefault();
         event.stopPropagation();

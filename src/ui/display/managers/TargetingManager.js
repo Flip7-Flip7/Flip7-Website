@@ -264,7 +264,7 @@ class TargetingManager {
     disableActionButtons(isHuman) {
         if (!isHuman) return;
         
-        ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
+        ['desktop-hit-btn', 'desktop-stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = true;
         });
@@ -274,7 +274,7 @@ class TargetingManager {
      * Enable action buttons after targeting
      */
     enableActionButtons() {
-        ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
+        ['desktop-hit-btn', 'desktop-stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = false;
         });

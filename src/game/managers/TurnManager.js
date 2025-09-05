@@ -267,12 +267,22 @@ class TurnManager {
             // Player busts
             player.status = 'busted';
             player.roundScore = 0;
-            this.eventBus.emit(GameEvents.PLAYER_BUST, {
-                player: player,
-                card: result.card
-            });
-            // Don't end turn immediately - wait for animation to complete
-            this.setupAnimationEndTurnListener(player);
+
+            // Defer bust overlay until the card draw animation completes
+            const onAnimEnd = (data) => {
+                if (data?.playerId === player.id) {
+                    // Clean up listener first to avoid duplicate firing
+                    this.eventBus.off(GameEvents.CARD_ANIMATION_END, onAnimEnd);
+                    // Now show bust overlay
+                    this.eventBus.emit(GameEvents.PLAYER_BUST, {
+                        player: player,
+                        card: result.card
+                    });
+                    // End turn after overlay is displayed
+                    this.endTurn(player);
+                }
+            };
+            this.eventBus.on(GameEvents.CARD_ANIMATION_END, onAnimEnd);
         } else if (result.requiresAction) {
             // Handle special action cards - block game and show card for 1 second
             this.actionDisplayPhase = true;
@@ -506,7 +516,7 @@ class TurnManager {
      * Helper method to disable player control buttons
      */
     disablePlayerButtons() {
-        const buttonIds = ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'];
+        const buttonIds = ['desktop-hit-btn', 'desktop-stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'];
         buttonIds.forEach(id => {
             const button = document.getElementById(id);
             if (button) {

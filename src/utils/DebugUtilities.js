@@ -13,6 +13,75 @@ window.DebugUtilities = {
     },
 
     /**
+     * Stack specific cards to be drawn next (in the exact order provided).
+     * The first item in the array will be the next card drawn.
+     * Example: dbg.stackNextDraws([{ type: 'action', value: 'flip3' }, { type: 'number', value: 7 }])
+     */
+    stackNextDraws(draws = []) {
+        const deck = window.Flip7?.gameEngine?.deck;
+        if (!deck) {
+            console.error('❌ Deck not initialized');
+            return;
+        }
+
+        // draw() uses pop(), so push in reverse so the first input is drawn first
+        const toPush = draws.slice().reverse().map(d => new window.Card(d.type, d.value));
+        toPush.forEach(card => deck.cards.push(card));
+
+        console.log(`📦 Stacked ${draws.length} card(s) on top of the deck (next up: ${draws.map(d => `${d.type}:${d.value}`).join(', ')})`);
+        this.logDeckState();
+    },
+
+    /**
+     * Replace the deck with a fixed draw sequence (first item will be drawn first).
+     * If keepRest is true, appends the existing deck below your fixed sequence.
+     */
+    setFixedDeck(draws = [], keepRest = false) {
+        const deck = window.Flip7?.gameEngine?.deck;
+        if (!deck) {
+            console.error('❌ Deck not initialized');
+            return;
+        }
+
+        const fixed = draws.map(d => new window.Card(d.type, d.value));
+        const rest = keepRest ? deck.cards.slice() : [];
+
+        // Ensure first provided draw is drawn first → it must be at the end of the array
+        const ordered = rest.concat(fixed.slice().reverse());
+        deck.cards = ordered;
+        console.log(`🧱 Fixed deck set (${draws.length} upfront${keepRest ? ' + rest' : ''}). Next up: ${draws.map(d => `${d.type}:${d.value}`).join(', ')}`);
+        this.logDeckState();
+    },
+
+    /**
+     * Peek at the next N draws without modifying the deck
+     */
+    peekNext(n = 5) {
+        const deck = window.Flip7?.gameEngine?.deck;
+        if (!deck) {
+            console.error('❌ Deck not initialized');
+            return;
+        }
+        const next = deck.cards.slice(Math.max(0, deck.cards.length - n)).map(c => `${c.type}:${c.value}`);
+        console.log(`👀 Next ${n} (top → bottom): ${next.join(', ')}`);
+        return next;
+    },
+
+    /**
+     * Clear any stacked debug draws at the top of the deck by removing X cards
+     */
+    clearTop(count = 10) {
+        const deck = window.Flip7?.gameEngine?.deck;
+        if (!deck) {
+            console.error('❌ Deck not initialized');
+            return;
+        }
+        for (let i = 0; i < count && deck.cards.length > 0; i++) deck.cards.pop();
+        console.log(`🧹 Cleared ${count} card(s) from top of deck`);
+        this.logDeckState();
+    },
+
+    /**
      * Log game state with detailed player information
      */
     logGameState() {
@@ -259,6 +328,10 @@ window.DebugUtilities = {
         console.log('• DebugUtilities.logEventListeners(eventName?) - Log event listeners');
         console.log('• DebugUtilities.simulatePlayerAction("hit"/"stay") - Simulate actions');
         console.log('• DebugUtilities.forceDrawCard(type, value) - Force specific card draw');
+        console.log('• DebugUtilities.stackNextDraws([{type, value}, ...]) - Make next draws deterministic');
+        console.log('• DebugUtilities.setFixedDeck([{type, value}, ...], keepRest?) - Replace deck order');
+        console.log('• DebugUtilities.peekNext(n) - Preview next n draws');
+        console.log('• DebugUtilities.clearTop(count) - Remove cards from the top');
         console.log('• DebugUtilities.skipToPlayer(index) - Skip to player turn');
         console.groupEnd();
     }

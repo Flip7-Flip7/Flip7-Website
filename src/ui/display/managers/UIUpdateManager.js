@@ -498,8 +498,6 @@ class UIUpdateManager {
         const hasCards = (currentPlayer?.numberCards?.length || 0) > 0;
         
         // Update all button sets (original, mobile, and desktop)
-        this.setButtonState('hit-btn', !humanTurn);
-        this.setButtonState('stay-btn', !humanTurn || !hasCards);
         this.setButtonState('mobile-hit-btn', !humanTurn);
         this.setButtonState('mobile-stay-btn', !humanTurn || !hasCards);
         this.setButtonState('desktop-hit-btn', !humanTurn);
@@ -539,7 +537,7 @@ class UIUpdateManager {
         });
 
         // Disable action buttons initially
-        ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn', 'desktop-hit-btn', 'desktop-stay-btn'].forEach(id => {
+        ['mobile-hit-btn', 'mobile-stay-btn', 'desktop-hit-btn', 'desktop-stay-btn'].forEach(id => {
             this.setButtonState(id, true);
         });
     }
@@ -612,7 +610,7 @@ class UIUpdateManager {
         }
         
         // Disable buttons during action resolution
-        ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn', 'desktop-hit-btn', 'desktop-stay-btn'].forEach(id => {
+        ['mobile-hit-btn', 'mobile-stay-btn', 'desktop-hit-btn', 'desktop-stay-btn'].forEach(id => {
             this.setButtonState(id, true);
         });
     }
