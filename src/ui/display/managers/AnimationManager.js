@@ -18,12 +18,7 @@ class AnimationManager {
         this.eventBus.on(GameEvents.PLAYER_FLIP7, this.animateFlip7.bind(this));
         this.eventBus.on(GameEvents.PLAYER_STAY_COMPLETED, this.animatePlayerStay.bind(this));
         this.eventBus.on(GameEvents.FREEZE_CARD_USED, this.animateFreezeEffect.bind(this));
-        // Second Chance animations handled by SecondChanceAnimationManager
-        
-        // Card animations
-        this.eventBus.on(GameEvents.CARD_DEALT, this.animateCardDeal.bind(this));
-        this.eventBus.on(GameEvents.CARD_DRAWN, this.animateCardDraw.bind(this));
-        
+
         // Game state animations
         this.eventBus.on(GameEvents.GAME_END, this.animateGameEnd.bind(this));
         this.eventBus.on(GameEvents.ROUND_START, this.clearRoundAnimations.bind(this));
@@ -161,63 +156,6 @@ class AnimationManager {
                 this.createFrostEffect(card);
             }, index * 30);
         });
-    }
-
-    // Note: Second Chance animations now handled by SecondChanceAnimationManager
-
-    /**
-     * Animate card being dealt
-     */
-    animateCardDeal(data) {
-        // Skip if Flip3 animation is active - let Flip3AnimationManager handle it
-        const displayManager = window.Flip7?.display;
-        if (displayManager?.isFlip3Active()) {
-            console.log('AnimationManager: Skipping card dealt animation - Flip3 active');
-            return;
-        }
-        
-        // Skip if UIUpdateManager is handling flip animation - avoid double animation
-        // UIUpdateManager calls animateCardFlip() which handles the full animation sequence
-        console.log('AnimationManager: Skipping animateCardDeal - UIUpdateManager handles flip animations');
-        return;
-        
-        /* DISABLED - UIUpdateManager now handles all card animations via animateCardFlip()
-        const { card, playerId, isInitialDeal } = data;
-        const container = this.getPlayerCardContainer(playerId);
-        if (!container) return;
-
-        // Wait for DOM to update, then find and animate the card
-        requestAnimationFrame(() => {
-            // Get the new card element (should be the last one added)
-            const cardElements = container.querySelectorAll('.card');
-            const newCard = cardElements[cardElements.length - 1];
-            if (!newCard) {
-                console.warn('AnimationManager: No card found to animate for', playerId);
-                return;
-            }
-
-            // Animate from deck position
-            this.animateCardFromDeck(newCard, isInitialDeal);
-        });
-        */
-    }
-
-    /**
-     * Animate card being drawn
-     */
-    animateCardDraw(data) {
-        // Skip - UIUpdateManager handles all card animations via animateCardFlip()
-        console.log('AnimationManager: Skipping animateCardDraw - UIUpdateManager handles flip animations');
-        return;
-        
-        /* DISABLED - UIUpdateManager now handles all card animations
-        const { card, playerId } = data;
-        this.animateCardDeal({ 
-            card, 
-            playerId: playerId, 
-            isInitialDeal: false 
-        });
-        */
     }
 
     /**
@@ -599,133 +537,6 @@ class AnimationManager {
         container.appendChild(frontFace);
         
         return container;
-    }
-
-    animateCardFromDeck(cardElement, isInitialDeal = false) {
-        const isMobile = window.innerWidth <= 768;
-        const playerId = cardElement.closest('.player-area')?.id;
-        
-        let sourcePosition;
-        let targetPosition;
-        
-        if (isMobile) {
-            // Mobile: Use fixed positions for reliable animation
-            
-            // Source: Mobile center animation area or screen center
-            const mobileAnimationArea = document.querySelector('#mobile-center-card-animation-area');
-            if (mobileAnimationArea) {
-                sourcePosition = mobileAnimationArea.getBoundingClientRect();
-            } else {
-                sourcePosition = {
-                    left: window.innerWidth / 2 - 32.5, // Half card width (65px / 2)
-                    top: window.innerHeight / 3,
-                    width: 65,
-                    height: 82
-                };
-            }
-            
-            // Target: Fixed positions based on mobile layout
-            // Controls panel: ~50px, Game area padding: 10px, Player height: 120px + 5px margin + 10px gap
-            const controlsHeight = 50;
-            const gameAreaTop = controlsHeight + 10; // Controls + game area padding
-            const playerHeight = 120 + 5; // height + margin-bottom
-            const gap = 10;
-            
-            const mobileTargets = {
-                'player': {
-                    left: window.innerWidth / 2 - 32.5, // Center horizontally minus half card width
-                    top: gameAreaTop + (playerHeight + gap) * 0 + 60 // First player, center of card area
-                },
-                'opponent1': {
-                    left: window.innerWidth / 2 - 32.5,
-                    top: gameAreaTop + (playerHeight + gap) * 1 + 60 // Second player
-                },
-                'opponent2': {
-                    left: window.innerWidth / 2 - 32.5,
-                    top: gameAreaTop + (playerHeight + gap) * 2 + 60 // Third player
-                },
-                'opponent3': {
-                    left: window.innerWidth / 2 - 32.5,
-                    top: gameAreaTop + (playerHeight + gap) * 3 + 60 // Fourth player
-                }
-            };
-            
-            targetPosition = mobileTargets[playerId] || mobileTargets['player'];
-            
-        } else {
-            // Desktop: Use existing logic (works fine)
-            const cardNaturalPosition = cardElement.getBoundingClientRect();
-            targetPosition = {
-                left: cardNaturalPosition.left,
-                top: cardNaturalPosition.top
-            };
-            
-            // Desktop source position
-            const deckElement = document.querySelector('.deck-area') || document.querySelector('.draw-pile-area') || document.querySelector('#draw-pile');
-            if (deckElement) {
-                sourcePosition = deckElement.getBoundingClientRect();
-            } else {
-                sourcePosition = {
-                    left: window.innerWidth / 2 - 32.5,
-                    top: window.innerHeight / 3,
-                    width: 65,
-                    height: 82
-                };
-            }
-        }
-        
-        // Calculate animation path from source to target
-        const deltaX = sourcePosition.left - targetPosition.left;
-        const deltaY = sourcePosition.top - targetPosition.top;
-        
-        // Apply initial position (start from source)
-        cardElement.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-        cardElement.style.opacity = '0';
-        
-        // Animate to target position
-        requestAnimationFrame(() => {
-            cardElement.style.transition = `transform ${isInitialDeal ? 0.4 : 0.6}s ease-out, opacity 0.3s ease-in`;
-            
-            if (isMobile) {
-                // Mobile: Animate to calculated fixed position
-                cardElement.style.transform = `translate(0, 0)`;
-                cardElement.style.left = targetPosition.left + 'px';
-                cardElement.style.top = targetPosition.top + 'px';
-                cardElement.style.position = 'absolute';
-            } else {
-                // Desktop: Animate to natural flexbox position
-                cardElement.style.transform = 'translate(0, 0)';
-            }
-            
-            cardElement.style.opacity = '1';
-            
-            // Clean up positioning after animation completes
-            setTimeout(() => {
-                if (isMobile) {
-                    // Reset mobile cards to normal flexbox positioning
-                    cardElement.style.position = '';
-                    cardElement.style.left = '';
-                    cardElement.style.top = '';
-                    cardElement.style.transform = '';
-                    cardElement.style.transition = '';
-                }
-                
-                // Emit animation end event for turn management
-                if (playerId) {
-                    this.eventBus.emit(GameEvents.CARD_ANIMATION_END, { playerId });
-                }
-            }, isInitialDeal ? 400 : 600);
-        });
-    }
-
-    animateTextChange(element, newText) {
-        element.style.transition = 'opacity 0.2s';
-        element.style.opacity = '0';
-        
-        setTimeout(() => {
-            element.textContent = newText;
-            element.style.opacity = '1';
-        }, 200);
     }
 
     animateWinnerHighlight(playerId) {
