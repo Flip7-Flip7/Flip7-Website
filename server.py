@@ -7,8 +7,6 @@ Access at: http://localhost:8080
 
 import http.server
 import socketserver
-import os
-from urllib.parse import urlparse
 
 class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -23,7 +21,7 @@ def run_server():
     # Use current directory instead of hardcoded path
     # Server will run from wherever the script is located
     
-    with socketserver.TCPServer(("", PORT), NoCacheHTTPRequestHandler) as httpd:
+    with socketserver.TCPServer(("0.0.0.0", PORT), NoCacheHTTPRequestHandler) as httpd:
         print(f"🚀 NUCLEAR SERVER RUNNING!")
         print(f"📱 Play game: http://localhost:{PORT}")
         print(f"🔄 No-cache headers active - fresh files every time!")

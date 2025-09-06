@@ -2,7 +2,7 @@
  * Card - Represents a card in the Flip 7 game
  */
 class Card {
-    constructor(type, value, display = null) {
+    constructor(type, value) {
         this.type = type; // 'number', 'modifier', 'action'
         this.value = value;
         this.id = `${type}_${value}_${Date.now()}_${Math.random()}`;

@@ -10,6 +10,7 @@ class TurnManager {
         this.currentTurnTimeout = null;
         this.aiTurnInProgress = false;
         this.turnEnding = false;
+        this.firstTurnStarted = false;
         
         // Action blocking state
         this.actionInProgress = false;
@@ -139,6 +140,12 @@ class TurnManager {
         // Log current turn player
         console.log(`TurnManager: Starting turn for ${currentPlayer.name} (${currentPlayer.isHuman ? 'Human' : 'AI'})`);
         
+        // Mark that first regular turn has started
+        if (!this.firstTurnStarted) {
+            this.firstTurnStarted = true;
+            console.log('TurnManager: First regular turn started');
+        }
+        
         // Emit turn start event
         this.eventBus.emit(GameEvents.TURN_START, {
             player: currentPlayer,
@@ -260,12 +267,22 @@ class TurnManager {
             // Player busts
             player.status = 'busted';
             player.roundScore = 0;
-            this.eventBus.emit(GameEvents.PLAYER_BUST, {
-                player: player,
-                card: result.card
-            });
-            // Don't end turn immediately - wait for animation to complete
-            this.setupAnimationEndTurnListener(player);
+
+            // Defer bust overlay until the card draw animation completes
+            const onAnimEnd = (data) => {
+                if (data?.playerId === player.id) {
+                    // Clean up listener first to avoid duplicate firing
+                    this.eventBus.off(GameEvents.CARD_ANIMATION_END, onAnimEnd);
+                    // Now show bust overlay
+                    this.eventBus.emit(GameEvents.PLAYER_BUST, {
+                        player: player,
+                        card: result.card
+                    });
+                    // End turn after overlay is displayed
+                    this.endTurn(player);
+                }
+            };
+            this.eventBus.on(GameEvents.CARD_ANIMATION_END, onAnimEnd);
         } else if (result.requiresAction) {
             // Handle special action cards - block game and show card for 1 second
             this.actionDisplayPhase = true;
@@ -499,7 +516,7 @@ class TurnManager {
      * Helper method to disable player control buttons
      */
     disablePlayerButtons() {
-        const buttonIds = ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'];
+        const buttonIds = ['desktop-hit-btn', 'desktop-stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'];
         buttonIds.forEach(id => {
             const button = document.getElementById(id);
             if (button) {
@@ -560,6 +577,16 @@ class TurnManager {
         const players = gameEngine?.players || [];
         const currentPlayer = players[this.currentPlayerIndex];
         
+        // Check if we're in the transition period after initial deal
+        // If the first regular turn hasn't started yet, don't end any turns
+        const isInitialDealTransition = gameEngine?.isInitialDealPhase || 
+                                      (this.firstTurnStarted === false);
+        
+        if (isInitialDealTransition) {
+            console.log('TurnManager: Flip3 complete during initial deal transition - not ending turn');
+            return;
+        }
+        
         if (!this.actionInProgress && currentPlayer && !this.turnEnding) {
             console.log(`TurnManager: Flip3 sequence complete for ${currentPlayer.name}`);
             
@@ -615,6 +642,7 @@ class TurnManager {
         this.currentTurnTimeout = null;
         this.aiTurnInProgress = false;
         this.turnEnding = false;
+        this.firstTurnStarted = false;
         this.actionInProgress = false;
         this.actionDisplayPhase = false;
     }

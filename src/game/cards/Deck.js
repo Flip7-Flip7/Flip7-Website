@@ -129,15 +129,6 @@ class Deck {
     }
 
     /**
-     * Peek at the top card without removing it
-     * @returns {Card|null}
-     */
-    peek() {
-        if (this.cards.length === 0) return null;
-        return this.cards[this.cards.length - 1];
-    }
-
-    /**
      * Get deck statistics
      * @returns {object}
      */

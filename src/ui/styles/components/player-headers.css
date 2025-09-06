@@ -36,22 +36,13 @@
     grid-column: 3;
 }
 
+/* Player status - removed from HTML but keep hidden for backwards compatibility */
 .player-stats {
-    display: flex;
-    gap: 6px;
-    margin: 5px 0;
-    justify-content: center;
-    align-items: center;
-    font-size: 0.9em;
+    display: none;
 }
 
 .player-status {
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.8em;
-    font-weight: bold;
-    background: rgba(0, 0, 0, 0.3);
-    color: var(--text-white);
+    display: none;
 }
 
 /* Player container fallback styles (overridden by layout-specific styles) */
@@ -62,7 +53,7 @@
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-items: center;
-    min-height: 82px;
+    flex: 1;
     margin: 4px 0;
     padding: 6px;
     background: rgba(0, 0, 0, 0.15);
@@ -74,25 +65,4 @@
     backdrop-filter: blur(3px);
 }
 
-.player-stats {
-    display: flex;
-    gap: 6px;
-    margin: 5px 0;
-    font-size: 0.85em;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.player-stats span {
-    padding: 4px 8px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(5px);
-}
-
-.player-status.active { color: var(--success-green); }
-.player-status.stayed { color: var(--info-blue); }
-.player-status.busted { color: var(--danger-red); }
-.player-status.flip7 { color: var(--warning-amber); }
-.player-status.frozen { color: var(--info-blue); }
+/* Removed duplicate player-stats styles */

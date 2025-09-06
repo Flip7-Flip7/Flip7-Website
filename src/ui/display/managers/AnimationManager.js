@@ -18,12 +18,7 @@ class AnimationManager {
         this.eventBus.on(GameEvents.PLAYER_FLIP7, this.animateFlip7.bind(this));
         this.eventBus.on(GameEvents.PLAYER_STAY_COMPLETED, this.animatePlayerStay.bind(this));
         this.eventBus.on(GameEvents.FREEZE_CARD_USED, this.animateFreezeEffect.bind(this));
-        // Second Chance animations handled by SecondChanceAnimationManager
-        
-        // Card animations
-        this.eventBus.on(GameEvents.CARD_DEALT, this.animateCardDeal.bind(this));
-        this.eventBus.on(GameEvents.CARD_DRAWN, this.animateCardDraw.bind(this));
-        
+
         // Game state animations
         this.eventBus.on(GameEvents.GAME_END, this.animateGameEnd.bind(this));
         this.eventBus.on(GameEvents.ROUND_START, this.clearRoundAnimations.bind(this));
@@ -37,25 +32,37 @@ class AnimationManager {
         const container = document.getElementById(player.id);
         if (!container) return;
 
-        // Add bust class for styling
-        container.classList.add('busted');
-        
-        // Animate the duplicate card
-        const cardElements = container.querySelectorAll('.card');
-        const lastCard = cardElements[cardElements.length - 1];
-        if (lastCard) {
-            lastCard.classList.add('bust-card');
-            this.shakeElement(lastCard, 500);
+        const applyBustVisuals = () => {
+            // Add bust class for styling
+            container.classList.add('busted');
+            
+            // Animate the duplicate card
+            const cardElements = container.querySelectorAll('.card');
+            const lastCard = cardElements[cardElements.length - 1];
+            if (lastCard) {
+                lastCard.classList.add('bust-card');
+                this.shakeElement(lastCard, 500);
+            }
+            
+            // Show bust overlay
+            this.createBustOverlay(container);
+        };
+
+        // If Flip3 popup is active, delay overlay until it completes to avoid layering issues
+        const displayManager = window.Flip7?.display;
+        if (displayManager?.isFlip3Active?.()) {
+            const onFlip3Complete = (evt) => {
+                const targetId = evt?.targetPlayer?.id;
+                if (!targetId || targetId === player.id) {
+                    this.eventBus.off(GameEvents.FLIP3_ANIMATION_COMPLETE, onFlip3Complete);
+                    applyBustVisuals();
+                }
+            };
+            this.eventBus.on(GameEvents.FLIP3_ANIMATION_COMPLETE, onFlip3Complete);
+            return;
         }
 
-        // Show bust overlay
-        this.createBustOverlay(container);
-        
-        // Update status with animation
-        const statusEl = container.querySelector('.player-status');
-        if (statusEl) {
-            this.animateTextChange(statusEl, 'BUSTED! 💥');
-        }
+        applyBustVisuals();
     }
 
     /**
@@ -134,11 +141,9 @@ class AnimationManager {
         // Add frozen class and overlay
         container.classList.add('frozen');
         
-        // Get container bounds for fixed positioning
-        const containerRect = container.getBoundingClientRect();
-        const overlay = this.createFreezeOverlay(containerRect);
-        
-        document.body.appendChild(overlay);
+        // Create and append overlay directly to container
+        const overlay = this.createFreezeOverlay();
+        container.appendChild(overlay);
 
         // Create ice particle effects
         this.createIceParticles(container);
@@ -150,44 +155,6 @@ class AnimationManager {
                 card.classList.add('freezing');
                 this.createFrostEffect(card);
             }, index * 30);
-        });
-    }
-
-    // Note: Second Chance animations now handled by SecondChanceAnimationManager
-
-    /**
-     * Animate card being dealt
-     */
-    animateCardDeal(data) {
-        // Skip if Flip3 animation is active - let Flip3AnimationManager handle it
-        const displayManager = window.Flip7?.display;
-        if (displayManager?.isFlip3Active()) {
-            console.log('AnimationManager: Skipping card dealt animation - Flip3 active');
-            return;
-        }
-        
-        const { card, playerId, isInitialDeal } = data;
-        const container = this.getPlayerCardContainer(playerId);
-        if (!container) return;
-
-        // Get the new card element (should be the last one added)
-        const cardElements = container.querySelectorAll('.card');
-        const newCard = cardElements[cardElements.length - 1];
-        if (!newCard) return;
-
-        // Animate from deck position
-        this.animateCardFromDeck(newCard, isInitialDeal);
-    }
-
-    /**
-     * Animate card being drawn
-     */
-    animateCardDraw(data) {
-        const { card, playerId } = data;
-        this.animateCardDeal({ 
-            card, 
-            playerId: playerId, 
-            isInitialDeal: false 
         });
     }
 
@@ -223,7 +190,7 @@ class AnimationManager {
             container.classList.remove('busted', 'frozen', 'stayed', 'flip7-achieved');
             
             // Remove overlays from container
-            const overlays = container.querySelectorAll('.bust-overlay, .stayed-indicator, .flip7-banner');
+            const overlays = container.querySelectorAll('.bust-overlay, .stayed-indicator, .flip7-banner, .custom-freeze-overlay');
             overlays.forEach(el => el.remove());
             
             // Reset card animations
@@ -233,9 +200,7 @@ class AnimationManager {
             });
         });
         
-        // Remove freeze overlays from body (they use fixed positioning)
-        const bodyFreezeOverlays = document.querySelectorAll('.custom-freeze-overlay, .freeze-overlay');
-        bodyFreezeOverlays.forEach(el => el.remove());
+        // Freeze overlays are now inside containers and will be cleaned up with their parent containers
     }
 
     // Helper methods for specific animations
@@ -272,7 +237,7 @@ class AnimationManager {
         `;
         indicator.style.cssText = `
             position: absolute;
-            top: -20px;
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
@@ -280,60 +245,15 @@ class AnimationManager {
         return indicator;
     }
 
-    createFreezeOverlay(containerRect) {
+    createFreezeOverlay() {
         const overlay = document.createElement('div');
-        // Don't use freeze-overlay class to avoid CSS animation conflicts
+        // Use CSS class for consistent styling with other overlays
         overlay.className = 'custom-freeze-overlay';
         
-        // Use fixed positioning to ensure correct placement
-        const overlayStyles = `
-            position: fixed !important;
-            top: ${containerRect.top}px !important;
-            left: ${containerRect.left}px !important;
-            width: ${containerRect.width}px !important;
-            height: ${containerRect.height}px !important;
-            background: linear-gradient(135deg, 
-                rgba(96, 165, 250, 0.85) 0%, 
-                rgba(59, 130, 246, 0.9) 25%,
-                rgba(147, 197, 253, 0.85) 50%,
-                rgba(59, 130, 246, 0.9) 75%,
-                rgba(96, 165, 250, 0.85) 100%) !important;
-            backdrop-filter: blur(2px) !important;
-            border-radius: 12px !important;
-            pointer-events: none;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            z-index: 1500 !important;
-            animation: none !important;
-            transform: none !important;
-        `;
-        overlay.style.cssText = overlayStyles;
-        
-        // Create text element without using the CSS class to avoid conflicts
-        const textElement = document.createElement('div');
+        // Create freeze text content
+        const textElement = document.createElement('span');
+        textElement.className = 'freeze-text';
         textElement.textContent = '❄ FROZEN ❄';
-        const textStyles = `
-            font-size: 2.5em !important;
-            font-weight: bold !important;
-            color: white !important;
-            text-shadow: 
-                0 0 20px rgba(255,255,255,0.8),
-                0 0 40px rgba(96, 165, 250, 1),
-                0 0 60px rgba(147, 197, 253, 1),
-                0 4px 8px rgba(0,0,0,0.5) !important;
-            text-align: center !important;
-            z-index: 2001 !important;
-            position: relative !important;
-            width: auto !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            left: auto !important;
-            top: auto !important;
-            transform: none !important;
-        `;
-        textElement.style.cssText = textStyles;
-        
         overlay.appendChild(textElement);
         
         return overlay;
@@ -393,13 +313,6 @@ class AnimationManager {
             particleContainer.remove();
             style.remove();
         }, 6000); // Extended duration for more particles
-    }
-
-    createShieldEffect() {
-        const shield = document.createElement('div');
-        shield.className = 'shield-effect';
-        setTimeout(() => shield.remove(), 2000);
-        return shield;
     }
 
     createSparkles(element) {
@@ -468,18 +381,6 @@ class AnimationManager {
         }, 500);
     }
 
-    createNotification(container, message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `game-notification ${type}`;
-        notification.textContent = message;
-        container.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.classList.add('fade-out');
-            setTimeout(() => notification.remove(), 300);
-        }, 2000);
-    }
-
     /**
      * Animate card flip and slide from deck to player
      * @param {Card} card - Card object to animate
@@ -533,11 +434,35 @@ class AnimationManager {
                 console.log(`AnimationManager: Starting slide phase`);
                 flipContainer.classList.add('card-sliding');
                 
-                // Calculate movement from center to target
-                const deltaX = targetRect.left + (targetRect.width / 2) - screenCenterX;
-                const deltaY = targetRect.top + (targetRect.height / 2) - screenCenterY;
+                let deltaX, deltaY;
+                const isMobile = window.innerWidth <= 768;
                 
-                flipContainer.style.transform = `rotateY(180deg) translate(${deltaX}px, ${deltaY}px) scale(0.7)`;
+                if (isMobile) {
+                    // Mobile: Use actual DOM measurements instead of guessing
+                    const cardContainer = this.getPlayerCardContainer(playerId);
+                    if (cardContainer) {
+                        const containerRect = cardContainer.getBoundingClientRect();
+                        // Calculate center of the actual container
+                        const targetX = containerRect.left + (containerRect.width / 2);
+                        const targetY = containerRect.top + (containerRect.height / 2);
+                        
+                        deltaX = targetX - screenCenterX;
+                        deltaY = targetY - screenCenterY;
+                    } else {
+                        // Fallback to container center if card container not found
+                        deltaX = targetRect.left + (targetRect.width / 2) - screenCenterX;
+                        deltaY = targetRect.top + (targetRect.height / 2) - screenCenterY;
+                    }
+                } else {
+                    // Desktop: Use container center (existing logic)
+                    deltaX = targetRect.left + (targetRect.width / 2) - screenCenterX;
+                    deltaY = targetRect.top + (targetRect.height / 2) - screenCenterY;
+                }
+                
+                // Use less aggressive scaling on mobile devices
+                const slideScale = isMobile ? 0.95 : 0.7;
+                
+                flipContainer.style.transform = `rotateY(180deg) translate(${deltaX}px, ${deltaY}px) scale(${slideScale})`;
             }, 450); // Start slide immediately after permanent rotation
             
             // Clean up and resolve
@@ -556,16 +481,21 @@ class AnimationManager {
         const container = document.createElement('div');
         container.className = 'flip-animation-container'; // Neutral class to avoid CSS conflicts
         
-        // Position in center of screen, large size
+        // Detect mobile vs desktop for responsive sizing
+        const isMobile = window.innerWidth <= 768;
+        const cardWidth = isMobile ? 180 : 120;
+        const cardHeight = isMobile ? 240 : 160;
+        
+        // Position in center of screen, responsive size
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2;
         
         container.style.cssText = `
             position: fixed;
-            left: ${centerX - 60}px;
-            top: ${centerY - 80}px;
-            width: 120px;
-            height: 160px;
+            left: ${centerX - (cardWidth / 2)}px;
+            top: ${centerY - (cardHeight / 2)}px;
+            width: ${cardWidth}px;
+            height: ${cardHeight}px;
             z-index: 2500;
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -607,46 +537,6 @@ class AnimationManager {
         container.appendChild(frontFace);
         
         return container;
-    }
-
-
-    animateCardFromDeck(cardElement, isInitialDeal = false) {
-        const deckPosition = document.querySelector('.deck-area')?.getBoundingClientRect();
-        const cardPosition = cardElement.getBoundingClientRect();
-        
-        if (!deckPosition) return;
-        
-        // Calculate animation path
-        const deltaX = deckPosition.left - cardPosition.left;
-        const deltaY = deckPosition.top - cardPosition.top;
-        
-        // Apply initial position
-        cardElement.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-        cardElement.style.opacity = '0';
-        
-        // Animate to final position
-        requestAnimationFrame(() => {
-            cardElement.style.transition = `transform ${isInitialDeal ? 0.4 : 0.6}s ease-out, opacity 0.3s ease-in`;
-            cardElement.style.transform = 'translate(0, 0)';
-            cardElement.style.opacity = '1';
-        });
-    }
-
-    animateCardRemoval(cardElement) {
-        cardElement.classList.add('removing');
-        cardElement.style.transform = 'scale(0) rotate(360deg)';
-        cardElement.style.opacity = '0';
-        setTimeout(() => cardElement.remove(), 500);
-    }
-
-    animateTextChange(element, newText) {
-        element.style.transition = 'opacity 0.2s';
-        element.style.opacity = '0';
-        
-        setTimeout(() => {
-            element.textContent = newText;
-            element.style.opacity = '1';
-        }, 200);
     }
 
     animateWinnerHighlight(playerId) {
@@ -711,18 +601,6 @@ class AnimationManager {
     }
 
     /**
-     * Get deck area element for positioning
-     */
-    getDeckArea() {
-        // Try multiple deck area selectors from HTML
-        return document.querySelector('#draw-pile') || 
-               document.querySelector('.draw-pile') ||
-               document.querySelector('.draw-pile-area') || 
-               document.querySelector('#mobile-draw-pile') ||
-               document.querySelector('.mobile-draw-pile-area');
-    }
-
-    /**
      * Animate action card transfer from source to target player
      * @param {Card} card - The action card
      * @param {string} sourcePlayerId - Source player ID
@@ -742,14 +620,23 @@ class AnimationManager {
             
             // Find the action card in source container
             const actionCardEl = this.findCardElement(sourceContainer, card);
+            let sourceRect;
+            
             if (!actionCardEl) {
-                console.warn('AnimationManager: Action card not found in source container');
-                resolve();
-                return;
+                console.warn('AnimationManager: Action card not found in source container, using placeholder animation');
+                // Create placeholder animation from source container center
+                const sourceContainerRect = sourceContainer.getBoundingClientRect();
+                sourceRect = {
+                    left: sourceContainerRect.left + sourceContainerRect.width / 2,
+                    top: sourceContainerRect.top + sourceContainerRect.height / 2,
+                    width: 55, // Default card width
+                    height: 77 // Default card height
+                };
+            } else {
+                sourceRect = actionCardEl.getBoundingClientRect();
             }
             
-            // Get positions
-            const sourceRect = actionCardEl.getBoundingClientRect();
+            // Get target position
             const targetRect = targetContainer.getBoundingClientRect();
             
             // Create animated card copy
@@ -766,8 +653,10 @@ class AnimationManager {
                 box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
             `;
             
-            // Hide original card
-            actionCardEl.style.opacity = '0';
+            // Hide original card if it exists
+            if (actionCardEl) {
+                actionCardEl.style.opacity = '0';
+            }
             
             document.body.appendChild(animatedCard);
             
@@ -784,7 +673,10 @@ class AnimationManager {
             // Clean up and resolve
             setTimeout(() => {
                 animatedCard.remove();
-                actionCardEl.remove(); // Remove from source
+                // Only remove original card if it exists
+                if (actionCardEl) {
+                    actionCardEl.remove();
+                }
                 resolve();
             }, 700);
         });

@@ -454,21 +454,27 @@ class ActionCardHandler {
             busted = true;
         }
         
-        // Remove from source player's hand and discard the original Flip3 card
-        sourcePlayer.removeCard(card);
-        this.cardManager.discardCards([card]);
-        
-        // Force immediate UI refresh to remove the used Flip3 card
-        this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
-            type: 'refreshPlayerCards',
-            playerId: sourcePlayer.id,
-            player: sourcePlayer
-        });
-        
         // Store action cards for processing after animation completes
         if (!busted && actionCards.length > 0) {
-            this.pendingFlip3ActionCards = { actionCards, targetPlayer };
+            this.pendingFlip3ActionCards = { 
+                actionCards, 
+                targetPlayer, 
+                originalCard: card,      // Store original card for later removal
+                sourcePlayer: sourcePlayer  // Store source player for later removal
+            };
             console.log(`ActionCardHandler: Stored ${actionCards.length} action cards for processing after Flip3 animation`);
+        } else {
+            // No nested actions - remove card immediately
+            console.log('ActionCardHandler: No nested actions, removing Flip3 card immediately');
+            sourcePlayer.removeCard(card);
+            this.cardManager.discardCards([card]);
+            
+            // Force immediate UI refresh to remove the used Flip3 card
+            this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
+                type: 'refreshPlayerCards',
+                playerId: sourcePlayer.id,
+                player: sourcePlayer
+            });
         }
         
         if (!busted) {
@@ -628,10 +634,14 @@ class ActionCardHandler {
         // Check if we're in a nested Flip3 situation
         const isNestedFlip3 = this.processingNestedFlip3;
         
-        // Process any pending action cards from Flip3 AFTER animation completes
+        // Process any pending action cards from Flip3 AFTER animation completes  
+        let originalCardData = null; // Store for cleanup after nested processing
         if (this.pendingFlip3ActionCards && data.completed) {
-            const { actionCards, targetPlayer } = this.pendingFlip3ActionCards;
+            const { actionCards, targetPlayer, originalCard, sourcePlayer } = this.pendingFlip3ActionCards;
             console.log(`ActionCardHandler: Processing ${actionCards.length} action cards after Flip3 animation completed`);
+            
+            // Store original card data for cleanup after nested processing
+            originalCardData = { originalCard, sourcePlayer };
             
             // Clear pending cards before processing to avoid re-processing
             this.pendingFlip3ActionCards = null;
@@ -657,6 +667,21 @@ class ActionCardHandler {
         if (isNestedFlip3 && !this.pendingFlip3ActionCards) {
             console.log('ActionCardHandler: Nested Flip3 completed, clearing flag');
             this.processingNestedFlip3 = false;
+        }
+        
+        // Remove original Flip3 card after all nested processing is complete
+        if (originalCardData && !this.processingNestedFlip3) {
+            const { originalCard, sourcePlayer } = originalCardData;
+            console.log('ActionCardHandler: Removing original Flip3 card after nested processing complete');
+            sourcePlayer.removeCard(originalCard);
+            this.cardManager.discardCards([originalCard]);
+            
+            // Force UI refresh to remove the used Flip3 card
+            this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
+                type: 'refreshPlayerCards',
+                playerId: sourcePlayer.id,
+                player: sourcePlayer
+            });
         }
         
         // Resolve the flip3 animation promise to continue game flow

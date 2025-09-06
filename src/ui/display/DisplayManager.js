@@ -96,6 +96,9 @@ class DisplayManager {
         if (this.targetingManager.isTargeting()) {
             this.targetingManager.exitTargetingMode();
         }
+        
+        // Clear frozen visual state from all players to prevent mobile persistence bug
+        this.clearFrozenVisualState();
     }
 
     /**
@@ -104,9 +107,23 @@ class DisplayManager {
     onPlayerBust(data) {
         const { player } = data;
         const container = document.getElementById(player.id);
-        if (container) {
-            container.classList.add('busted');
+        if (!container) return;
+
+        // If Flip3 popup is active, delay bust styling until it completes
+        if (this.isFlip3Active && this.isFlip3Active()) {
+            const handler = (evt) => {
+                // If event specifies a target, ensure it matches; otherwise apply anyway after Flip3 ends
+                const targetId = evt?.targetPlayer?.id;
+                if (!targetId || targetId === player.id) {
+                    this.eventBus.off(GameEvents.FLIP3_ANIMATION_COMPLETE, handler);
+                    container.classList.add('busted');
+                }
+            };
+            this.eventBus.on(GameEvents.FLIP3_ANIMATION_COMPLETE, handler);
+            return;
         }
+
+        container.classList.add('busted');
     }
 
     /**
@@ -151,9 +168,7 @@ class DisplayManager {
 
         container.classList.add('frozen');
         
-        // Update status text
-        const statusEl = container.querySelector('.player-status');
-        if (statusEl) statusEl.textContent = 'Frozen ❄️';
+        // Status text removed - frozen state shown via CSS class only
 
         // Disable action buttons if human player
         if (playerId === 'player') {
@@ -217,10 +232,45 @@ class DisplayManager {
      * Disable all action buttons
      */
     disableAllActionButtons() {
-        ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
+        ['desktop-hit-btn', 'desktop-stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = true;
         });
+    }
+
+    /**
+     * Clear frozen visual state from all players
+     * Fixes mobile bug where frozen banners persist across rounds
+     */
+    clearFrozenVisualState() {
+        const playerIds = ['player', 'opponent1', 'opponent2', 'opponent3'];
+        
+        playerIds.forEach(playerId => {
+            const container = document.getElementById(playerId);
+            if (!container) return;
+            
+            // Remove frozen CSS class
+            container.classList.remove('frozen');
+            
+            // Remove any frozen-related overlays or indicators
+            const frozenOverlays = container.querySelectorAll('.frozen-overlay, .freeze-banner, [class*="frozen"]');
+            frozenOverlays.forEach(overlay => {
+                // Only remove if it's not the main container itself
+                if (overlay !== container) {
+                    overlay.remove();
+                }
+            });
+            
+            // Clear any frozen status text elements
+            const statusElements = container.querySelectorAll('.status-text, .player-status');
+            statusElements.forEach(element => {
+                if (element.textContent && element.textContent.includes('FROZEN')) {
+                    element.textContent = '';
+                }
+            });
+        });
+        
+        console.log('DisplayManager: Cleared frozen visual state for all players');
     }
 
     /**

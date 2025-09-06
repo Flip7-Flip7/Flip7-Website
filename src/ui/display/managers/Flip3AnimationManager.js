@@ -51,6 +51,12 @@ class Flip3AnimationManager {
         
         console.log(`Flip3AnimationManager: Starting Flip 3 animation - ${sourcePlayer.name} → ${targetPlayer.name}`);
         
+        // Clear any existing safety timeout
+        if (this.safetyTimeout) {
+            clearTimeout(this.safetyTimeout);
+            this.safetyTimeout = null;
+        }
+        
         this.isActive = true;
         this.targetPlayer = targetPlayer;
         this.currentCardIndex = 0;
@@ -175,6 +181,17 @@ class Flip3AnimationManager {
     resetPopupState() {
         const popup = document.getElementById('flip3-popup');
         if (!popup) return;
+        
+        // Clear any existing safety timeout
+        if (this.safetyTimeout) {
+            clearTimeout(this.safetyTimeout);
+            this.safetyTimeout = null;
+        }
+        
+        // Reset state variables
+        this.currentCardIndex = 0;
+        this.dealtCards = [];
+        this.isCancelled = false;
         
         // Clear all slots
         for (let i = 1; i <= 3; i++) {
@@ -395,12 +412,17 @@ class Flip3AnimationManager {
         
         // Create card front (starts hidden)
         const cardFront = card.toElement();
+        
+        // Scale mobile cards up to fill desktop slot size
+        const isMobile = window.innerWidth <= 768;
+        const scaleTransform = isMobile ? 'rotateY(180deg) scale(1.85)' : 'rotateY(180deg)';
+        
         const frontStyles = `
             position: absolute;
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            transform: rotateY(180deg);
+            transform: ${scaleTransform};
             border-radius: 12px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         `;

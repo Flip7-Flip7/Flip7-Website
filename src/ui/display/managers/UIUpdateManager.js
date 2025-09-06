@@ -285,12 +285,12 @@ class UIUpdateManager {
     }
 
     /**
-     * Render card with flip animation
+     * Render card with flip animation - RESTORED VERSION
      */
-    async renderCardWithAnimation(card, playerId, isInitialDeal = false) {
+    renderCardWithAnimation(card, playerId, isInitialDeal = false) {
         console.log(`UIUpdateManager: Starting flip animation for ${card.type}:${card.value} → ${playerId}`);
         
-        // Get animation manager reference (correct path)
+        // Get animation manager reference
         const displayManager = window.Flip7?.display;
         const animationManager = displayManager?.getManagers()?.animation;
         
@@ -325,73 +325,108 @@ class UIUpdateManager {
         const container = this.getPlayerCardContainer(playerId);
         if (!container || !card) return;
         
-        // Get player reference for proper sorting
-        const playerIds = ['player', 'opponent1', 'opponent2', 'opponent3'];
-        const playerIndex = playerIds.indexOf(playerId);
+        // Create the new card element
+        const newCardEl = card.toElement();
         
-        if (playerIndex !== -1 && window.Flip7?.engine?.players?.[playerIndex]) {
-            const player = window.Flip7.engine.players[playerIndex];
-            this.refreshPlayerCards(playerId, player);
+        // Get existing cards from container to find correct insertion point
+        const existingCards = Array.from(container.children).map(el => ({
+            type: el.classList.contains('number') ? 'number' : 
+                  el.classList.contains('modifier') ? 'modifier' : 'action',
+            value: el.dataset.value || el.textContent || (el.classList.contains('number') ? parseInt(el.textContent) || 0 : el.textContent),
+            element: el
+        }));
+        
+        // Add the new card to the list for sorting
+        const newCardData = { type: card.type, value: card.value, element: newCardEl };
+        existingCards.push(newCardData);
+        
+        // Sort all cards to determine correct order
+        const sortedCards = this.sortCardsForDisplay(existingCards);
+        
+        // Find where the new card should be inserted
+        const newCardIndex = sortedCards.findIndex(cardData => cardData.element === newCardEl);
+        
+        // Insert the new card at the correct position WITHOUT clearing existing cards
+        if (newCardIndex === 0) {
+            // Insert at beginning
+            container.insertBefore(newCardEl, container.firstChild);
+        } else if (newCardIndex >= sortedCards.length - 1) {
+            // Insert at end
+            container.appendChild(newCardEl);
         } else {
-            // Fallback: just append the card
-            const cardEl = card.toElement();
-            container.appendChild(cardEl);
+            // Insert before the card that should come after it
+            const nextCard = sortedCards[newCardIndex + 1];
+            if (nextCard && nextCard.element && nextCard.element.parentNode === container) {
+                container.insertBefore(newCardEl, nextCard.element);
+            } else {
+                // Fallback: append to end
+                container.appendChild(newCardEl);
+            }
         }
     }
 
     /**
-     * Refresh player's entire card display
+     * Refresh player's entire card display - SIMPLE VERSION
      */
     refreshPlayerCards(playerId, player) {
         const container = this.getPlayerCardContainer(playerId);
         if (!container || !player) return;
 
-        // Clear existing cards
+        // Clear and rebuild - simple and reliable
         container.innerHTML = '';
 
-        // Get and sort all cards
+        // Get all player's cards and add them one by one using the working renderCardToPlayer logic
         const allCards = player.getAllCards ? player.getAllCards() : [];
-        const sortedCards = this.sortCardsForDisplay(allCards);
-        
-        // Add cards in sorted order
-        sortedCards.forEach(card => {
+        allCards.forEach(card => {
+            // Use the same logic as renderCardToPlayer but without the sorting (since we're rebuilding)
             const cardEl = card.toElement();
             container.appendChild(cardEl);
         });
     }
 
     /**
-     * Sort cards for organized display
+     * Sort cards for organized display: Numbers LEFT, Modifiers MIDDLE, Actions RIGHT
      */
     sortCardsForDisplay(cards) {
-        return cards.slice().sort((a, b) => {
-            // Type priority: number (0), modifier (1), action (2)
+        const sorted = cards.slice().sort((a, b) => {
+            // Type priority: number (0), modifier (1), action (2) 
+            // Lower number = appears on the LEFT
             const typeOrder = { number: 0, modifier: 1, action: 2 };
             const aType = typeOrder[a.type] || 3;
             const bType = typeOrder[b.type] || 3;
             
+            // Primary sort: by card type (numbers first, then modifiers, then actions)
             if (aType !== bType) return aType - bType;
             
-            // Within same type, sort by value
+            // Secondary sort: within same type, sort by value
             if (a.type === 'number') {
+                // Numbers: 0, 1, 2, ... 12
                 return a.value - b.value;
             }
             
             if (a.type === 'modifier') {
-                // Sort modifiers: +2, +4, +6, +8, +10, x2
+                // Modifiers: +2, +4, +6, +8, +10, then x2 at the end
                 if (a.value === 'x2') return b.value === 'x2' ? 0 : 1;
                 if (b.value === 'x2') return -1;
                 return a.value - b.value;
             }
             
             if (a.type === 'action') {
-                // Consistent action order
+                // Actions: freeze, flip3, second chance (order doesn't matter much)
                 const actionOrder = { 'freeze': 0, 'flip3': 1, 'second chance': 2 };
                 return (actionOrder[a.value] || 3) - (actionOrder[b.value] || 3);
             }
             
             return 0;
         });
+        
+        // Debug output to verify sorting (only in development)
+        if (window.DEBUG_MODE || window.location.hostname === 'localhost') {
+            console.log('UIUpdateManager: Card sort result:', 
+                sorted.map(c => `${c.type}:${c.value}`).join(', '));
+        }
+        
+        return sorted;
     }
 
     /**
@@ -462,10 +497,11 @@ class UIUpdateManager {
         const humanTurn = !!currentPlayer?.isHuman && currentPlayer?.status === 'active';
         const hasCards = (currentPlayer?.numberCards?.length || 0) > 0;
         
-        this.setButtonState('hit-btn', !humanTurn);
-        this.setButtonState('stay-btn', !humanTurn || !hasCards);
+        // Update all button sets (original, mobile, and desktop)
         this.setButtonState('mobile-hit-btn', !humanTurn);
         this.setButtonState('mobile-stay-btn', !humanTurn || !hasCards);
+        this.setButtonState('desktop-hit-btn', !humanTurn);
+        this.setButtonState('desktop-stay-btn', !humanTurn || !hasCards);
     }
 
     /**
@@ -493,9 +529,7 @@ class UIUpdateManager {
             const cardsEl = this.getPlayerCardContainer(id);
             if (cardsEl) cardsEl.innerHTML = '';
 
-            // Reset status text
-            const statusEl = container.querySelector('.player-status');
-            if (statusEl) statusEl.textContent = 'Active';
+            // Status text removed from UI
 
             // Reset round score
             const headerRound = container.querySelector('.player-header .round-value');
@@ -503,7 +537,7 @@ class UIUpdateManager {
         });
 
         // Disable action buttons initially
-        ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
+        ['mobile-hit-btn', 'mobile-stay-btn', 'desktop-hit-btn', 'desktop-stay-btn'].forEach(id => {
             this.setButtonState(id, true);
         });
     }
@@ -576,7 +610,7 @@ class UIUpdateManager {
         }
         
         // Disable buttons during action resolution
-        ['hit-btn', 'stay-btn', 'mobile-hit-btn', 'mobile-stay-btn'].forEach(id => {
+        ['mobile-hit-btn', 'mobile-stay-btn', 'desktop-hit-btn', 'desktop-stay-btn'].forEach(id => {
             this.setButtonState(id, true);
         });
     }

@@ -2,8 +2,10 @@
 
 .card {
     /* Desktop card sizing */
+    min-width: 55px;
     width: 55px;
     height: 77px;
+    flex-shrink: 0;
     position: relative;
     border-radius: var(--card-border-radius);
     background: var(--card-background);
@@ -84,35 +86,48 @@
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-items: center;
-    min-height: 82px;
+    flex: 1;
     margin: 4px 0;
     padding: 6px;
+    padding-bottom: 10px; /* Extra padding for scrollbar */
     background: rgba(0, 0, 0, 0.15);
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     width: 100%;
+    max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     backdrop-filter: blur(3px);
+    scrollbar-width: thin; /* Firefox */
 }
 
-/* Action Buttons Container */
-.action-buttons {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin-top: 6px;
-    z-index: var(--z-cards);
-    position: relative;
-    align-items: center;
+/* Custom Scrollbar Styling - Ocean/Gold Theme */
+.player-cards::-webkit-scrollbar {
+    height: 8px;
+    background: rgba(74, 144, 164, 0.2);
+    border-radius: 4px;
 }
 
-/* Mobile card sizing overrides */
-@media (max-width: 1024px) {
-    .card {
-        width: 45px;
-        height: 60px;
-        font-size: 0.8em;
-        margin: 2px;
-    }
+.player-cards::-webkit-scrollbar-track {
+    background: rgba(74, 144, 164, 0.2);
+    border-radius: 4px;
+    margin: 0 4px;
 }
+
+.player-cards::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #4a90a4 0%, #ffd700 50%, #4a90a4 100%);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.player-cards::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(90deg, #357a8a 0%, #fbbf24 50%, #357a8a 100%);
+    box-shadow: 0 0 6px rgba(255, 215, 0, 0.4);
+}
+
+/* Firefox scrollbar styling */
+.player-cards {
+    scrollbar-color: #4a90a4 rgba(74, 144, 164, 0.2);
+}
+
+/* Mobile card sizing handled by mobile/containers.css for better responsiveness */

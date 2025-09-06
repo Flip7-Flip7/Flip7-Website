@@ -15,10 +15,13 @@
 /* Draw Pile Column */
 .draw-pile-column {
     display: flex !important;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     padding: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
     min-height: 200px;
+    gap: 20px;
 }
 
 /* Players Grid - Clean 2x2 Centered Layout */
@@ -50,6 +53,10 @@
     backdrop-filter: blur(15px);
     position: relative;
     width: 100%;
+    height: 170px;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
 }
 
 .player-area.current-turn {
@@ -86,15 +93,42 @@
 
 .player-area h3 {
     text-align: center;
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
     color: var(--accent-gold);
-    font-size: 1.1em;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Hide player status - removed from HTML but keep for backwards compatibility */
+.player-stats,
+.player-status {
+    display: none;
+}
+
+/* Desktop Action Buttons */
+.desktop-action-buttons {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 150px;
+}
+
+.desktop-action-buttons .btn {
+    width: 100%;
+    padding: 12px 24px;
+    font-size: 1em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* Desktop-specific styles */
 @media (min-width: 1025px) {
-    /* Hide mobile elements on desktop */
+    /* Show desktop action buttons */
+    .desktop-action-buttons {
+        display: flex !important;
+    }
+    
+    /* Hide mobile elements and original action buttons on desktop */
     .action-buttons-mobile,
     .mobile-center-card-animation-area {
         display: none !important;
