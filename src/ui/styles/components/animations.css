@@ -80,11 +80,7 @@
     overflow: visible;
 }
 
-.player-area.stayed,
-#mobile-player-area.stayed,
-#mobile-opponent1-area.stayed,
-#mobile-opponent2-area.stayed,
-#mobile-opponent3-area.stayed {
+.player-area.stayed {
     background: linear-gradient(135deg, rgba(34, 197, 94, 0.25) 0%, rgba(16, 185, 129, 0.20) 100%) !important;
     border: 2px solid rgba(34, 197, 94, 0.8) !important;
     box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.3) !important;
@@ -92,11 +88,7 @@
 }
 
 /* Keep stayed indicator visible and properly positioned */
-.player-area.stayed .stayed-indicator,
-#mobile-player-area.stayed .stayed-indicator,
-#mobile-opponent1-area.stayed .stayed-indicator,
-#mobile-opponent2-area.stayed .stayed-indicator,
-#mobile-opponent3-area.stayed .stayed-indicator {
+.player-area.stayed .stayed-indicator {
     animation: none;
     opacity: 1;
     position: absolute;

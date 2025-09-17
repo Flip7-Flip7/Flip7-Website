@@ -1,11 +1,11 @@
 /* Flip 7 - Info Panels Component (Game Log & Scoreboard) */
 
 /* Scoreboard */
-.scoreboard, .game-log {
+.scoreboard {
     margin-bottom: 20px;
 }
 
-.scoreboard h4, .game-log h4 {
+.scoreboard h4 {
     color: var(--accent-gold);
     margin-bottom: 10px;
     font-size: 1em;
@@ -28,21 +28,4 @@
     border-radius: 5px;
     font-size: 0.8em;
     border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-#log-content {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    max-height: 150px;
-    overflow-y: auto;
-}
-
-.log-entry {
-    font-size: 0.75em;
-    padding: 4px 6px;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 4px;
-    color: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.05);
 }

@@ -42,9 +42,6 @@ class TargetingManager {
             isInitialDeal,
             isSecondChanceRedistribution
         });
-        
-        // Update UI for targeting
-        this.updateTargetingUI(card, sourcePlayer, isSecondChanceRedistribution);
     }
 
     /**
@@ -201,62 +198,6 @@ class TargetingManager {
             nameEl.classList.remove('targetable-name');
         }
     }
-
-    /**
-     * Update UI with targeting instructions
-     */
-    updateTargetingUI(card, sourcePlayer, isSecondChanceRedistribution) {
-        let message, cardName;
-        
-        if (isSecondChanceRedistribution) {
-            message = sourcePlayer.isHuman ? 
-                'Choose a player to give your Second Chance card' :
-                `${sourcePlayer.name} is choosing who gets Second Chance`;
-        } else {
-            cardName = this.getCardDisplayName(card);
-            message = sourcePlayer.isHuman ? 
-                `Choose a player to ${this.getCardAction(card)}` :
-                `${sourcePlayer.name} is choosing a target for ${cardName}`;
-        }
-        
-        // Update game status
-        this.updateGameStatus(message);
-    }
-
-    /**
-     * Get card display name
-     */
-    getCardDisplayName(card) {
-        switch (card.value) {
-            case 'freeze': return 'Freeze';
-            case 'flip3': return 'Flip 3';
-            case 'second chance': return 'Second Chance';
-            default: return card.value;
-        }
-    }
-
-    /**
-     * Get card action description
-     */
-    getCardAction(card) {
-        switch (card.value) {
-            case 'freeze': return 'freeze';
-            case 'flip3': return 'use Flip 3 on';
-            case 'second chance': return 'give Second Chance to';
-            default: return 'target';
-        }
-    }
-
-    /**
-     * Update game status message
-     */
-    updateGameStatus(message) {
-        const statusElements = document.querySelectorAll('.game-status');
-        statusElements.forEach(el => {
-            el.textContent = message;
-        });
-    }
-
 
     /**
      * Disable action buttons during targeting

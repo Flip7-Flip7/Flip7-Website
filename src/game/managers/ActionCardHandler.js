@@ -730,13 +730,6 @@ class ActionCardHandler {
                 player: player,
                 actionCards: actionCards
             });
-            
-            // Update game status
-            const message = `You must use your ${actionCards.length} action card${actionCards.length > 1 ? 's' : ''} before continuing`;
-            this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
-                type: 'updateGameStatus',
-                message: message
-            });
         }
     }
 }

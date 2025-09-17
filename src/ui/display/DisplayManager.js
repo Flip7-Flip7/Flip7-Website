@@ -62,7 +62,6 @@ class DisplayManager {
      */
     onGameStart(data) {
         console.log('Display: Game started', data);
-        this.uiUpdateManager.updateGameStatus('Game Started');
         
         // Hide any endgame overlay
         const celebration = document.getElementById('winning-celebration');

@@ -234,9 +234,6 @@ class UIUpdateManager {
         // Highlight current player
         this.highlightCurrentPlayer(playerIndex);
         
-        // Update turn indicator
-        this.updateTurnIndicator(player);
-        
         // Update action buttons
         this.updateActionButtons(player);
     }
@@ -245,10 +242,7 @@ class UIUpdateManager {
      * Handle round start
      */
     handleRoundStart(data) {
-        const { roundNumber, dealerIndex } = data;
-        
-        // Update round number
-        this.updateGameStatus(`Round ${roundNumber}`);
+        const { dealerIndex } = data;
         
         // Set dealer indicator
         this.setDealerIndicator(dealerIndex);
@@ -267,17 +261,11 @@ class UIUpdateManager {
             case 'deckReshuffled':
                 this.updateDeckCount(params.cardsRemaining);
                 break;
-            case 'gameLog':
-                this.addToGameLog(params.message);
-                break;
             case 'refreshPlayerCards':
                 this.refreshPlayerCards(params.playerId, params.player);
                 break;
             case 'showActionCardPrompt':
                 this.showActionCardPrompt(params.playerId, params.player, params.actionCards);
-                break;
-            case 'updateGameStatus':
-                this.updateGameStatus(params.message);
                 break;
             default:
                 console.log('Unknown UI update type:', type);
@@ -472,25 +460,6 @@ class UIUpdateManager {
     }
 
     /**
-     * Update turn indicator
-     */
-    updateTurnIndicator(player) {
-        const message = player.isHuman ? "Your turn!" : `${player.name}'s turn...`;
-        this.updateGameStatus(message);
-    }
-
-    /**
-     * Update game status message
-     */
-    updateGameStatus(message) {
-        // Desktop status
-        const statusElements = document.querySelectorAll('.game-status');
-        statusElements.forEach(el => {
-            el.textContent = message;
-        });
-    }
-
-    /**
      * Update action buttons based on current player
      */
     updateActionButtons(currentPlayer) {
@@ -570,27 +539,12 @@ class UIUpdateManager {
         }
         
         const elements = [
-            document.getElementById('cards-remaining'),
-            document.getElementById('mobile-cards-remaining')
+            document.getElementById('cards-remaining')
         ];
         
         elements.forEach(el => {
             if (el) el.textContent = count;
         });
-    }
-
-    /**
-     * Add message to game log
-     */
-    addToGameLog(message) {
-        const logContent = document.getElementById('log-content');
-        if (logContent) {
-            const entry = document.createElement('div');
-            entry.className = 'log-entry';
-            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            logContent.appendChild(entry);
-            logContent.scrollTop = logContent.scrollHeight;
-        }
     }
 
     /**
