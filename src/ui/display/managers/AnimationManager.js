@@ -641,7 +641,7 @@ class AnimationManager {
             
             // Create animated card copy
             const animatedCard = card.toElement();
-            animatedCard.style.cssText = `
+            animatedCard.style.cssText += `
                 position: fixed;
                 left: ${sourceRect.left}px;
                 top: ${sourceRect.top}px;
