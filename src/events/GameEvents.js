@@ -40,8 +40,8 @@ const GameEvents = {
     FLIP3_ANIMATION_COMPLETE: 'flip3:animationComplete',
     SECOND_CHANCE_ACTIVATED: 'secondChance:activated',
     SECOND_CHANCE_ANIMATION_COMPLETE: 'secondChance:animationComplete',
-    SECOND_CHANCE_ACQUIRED: 'secondChance:acquired',
     SECOND_CHANCE_GIVEN: 'secondChance:given',
+    SECOND_CHANCE_DISCARDED: 'secondChance:discarded',
     ACTION_CARD_TARGET_NEEDED: 'actionCard:targetNeeded',
     ACTION_CARD_TARGET_SELECTED: 'actionCard:targetSelected',
     

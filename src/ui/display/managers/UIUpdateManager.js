@@ -28,6 +28,7 @@ class UIUpdateManager {
         this.eventBus.on(GameEvents.CARD_DRAWN, this.handleCardDrawn.bind(this));
         this.eventBus.on(GameEvents.SECOND_CHANCE_ACTIVATED, this.handleSecondChanceActivated.bind(this));
         this.eventBus.on(GameEvents.SECOND_CHANCE_GIVEN, this.handleSecondChanceGiven.bind(this));
+        this.eventBus.on(GameEvents.SECOND_CHANCE_DISCARDED, this.handleSecondChanceDiscarded.bind(this));
         
         // Turn updates
         this.eventBus.on(GameEvents.TURN_START, this.updateTurnDisplay.bind(this));
@@ -159,16 +160,37 @@ class UIUpdateManager {
      */
     handleSecondChanceActivated(data) {
         const { player, discardedCards } = data;
-        
-        // Remove discarded cards from display
+
+        // Always ensure cards are removed from display after a delay
+        // The animation manager will try to animate them, but if it fails,
+        // we still need to clean up the display
         if (discardedCards && discardedCards.length > 0) {
-            discardedCards.forEach(card => {
-                this.removeCardFromDisplay(player.id, card);
-            });
+            // Wait for animation to complete (or fail) before removing
+            setTimeout(() => {
+                discardedCards.forEach(card => {
+                    this.removeCardFromDisplay(player.id, card);
+                });
+
+                // Also refresh to ensure consistency between data model and display
+                this.refreshPlayerCards(player.id, player);
+            }, 1500); // Wait long enough for animation to try, but not too long
         }
-        
-        // Refresh player's card display
-        this.refreshPlayerCards(player.id, player);
+    }
+
+    /**
+     * Handle Second Chance discarded (no eligible recipients)
+     */
+    handleSecondChanceDiscarded(data) {
+        const { player } = data;
+
+        console.log(`UIUpdateManager: Second Chance discarded for ${player.name} - scheduling removal after animation`);
+
+        // Wait for card flip animation to complete (1200ms) plus a small buffer
+        // THEN refresh to remove the discarded card from display
+        setTimeout(() => {
+            console.log(`UIUpdateManager: Animation complete, refreshing ${player.name}'s cards`);
+            this.refreshPlayerCards(player.id, player);
+        }, 1400); // Card animation is 1200ms, add 200ms buffer
     }
 
     /**
@@ -177,51 +199,64 @@ class UIUpdateManager {
     handleSecondChanceGiven(data) {
         const { giver, recipient, card } = data;
         
-        console.log(`UIUpdateManager: Second Chance redistributed from ${giver.name} to ${recipient.name}`);
+        if (!recipient) {
+            console.warn('UIUpdateManager: Second Chance given event missing recipient');
+            return;
+        }
+
+        const giverId = giver?.id;
+        const recipientId = recipient.id;
+        const giverName = giver?.name || 'Deck';
+
+        console.log(`UIUpdateManager: Second Chance redistributed from ${giverName} to ${recipient.name}`);
         
         // Get animation manager for transfer animation
         const displayManager = window.Flip7?.display;
         const animationManager = displayManager?.getManagers()?.animation;
         
-        if (animationManager?.animateActionCardTransfer) {
+        if (giverId && animationManager?.animateActionCardTransfer) {
             console.log(`UIUpdateManager: Starting Second Chance transfer animation`);
             
-            animationManager.animateActionCardTransfer(card, giver.id, recipient.id)
+            animationManager.animateActionCardTransfer(card, giverId, recipientId)
                 .then(() => {
                     console.log(`UIUpdateManager: Transfer animation complete, refreshing displays`);
                     // Refresh both players' displays after animation
-                    this.refreshPlayerCards(giver.id, giver);
-                    this.refreshPlayerCards(recipient.id, recipient);
+                    this.refreshPlayerCards(giverId, giver);
+                    this.refreshPlayerCards(recipientId, recipient);
                     
                     // Emit animation completion event
                     this.eventBus.emit(GameEvents.CARD_ANIMATION_END, {
-                        playerId: giver.id,
+                        playerId: giverId,
                         type: 'secondChanceTransfer'
                     });
                 })
                 .catch(error => {
                     console.error('UIUpdateManager: Transfer animation failed:', error);
                     // Fallback to immediate refresh
-                    this.refreshPlayerCards(giver.id, giver);
-                    this.refreshPlayerCards(recipient.id, recipient);
+                    this.refreshPlayerCards(giverId, giver);
+                    this.refreshPlayerCards(recipientId, recipient);
                     
                     // Still emit completion event for turn flow
                     this.eventBus.emit(GameEvents.CARD_ANIMATION_END, {
-                        playerId: giver.id,
+                        playerId: giverId,
                         type: 'secondChanceTransfer'
                     });
                 });
         } else {
             console.log(`UIUpdateManager: No transfer animation available, refreshing displays immediately`);
             // Fallback: just refresh displays immediately
-            this.refreshPlayerCards(giver.id, giver);
-            this.refreshPlayerCards(recipient.id, recipient);
+            if (giverId) {
+                this.refreshPlayerCards(giverId, giver);
+            }
+            this.refreshPlayerCards(recipientId, recipient);
             
-            // Emit completion event for turn flow
-            this.eventBus.emit(GameEvents.CARD_ANIMATION_END, {
-                playerId: giver.id,
-                type: 'secondChanceTransfer'
-            });
+            if (giverId) {
+                // Emit completion event for turn flow when applicable
+                this.eventBus.emit(GameEvents.CARD_ANIMATION_END, {
+                    playerId: giverId,
+                    type: 'secondChanceTransfer'
+                });
+            }
         }
     }
 

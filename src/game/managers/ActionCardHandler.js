@@ -39,19 +39,40 @@ class ActionCardHandler {
      * @returns {Promise}
      */
     async handleActionCard(card, sourcePlayer, options = {}) {
-        const { skipTurnEnd = false, aiManager, players } = options;
-        
+        const { skipTurnEnd = false, aiManager, players, isInitialDeal = false } = options;
+
         console.log(`ActionCardHandler: Handling action card ${card.value} for ${sourcePlayer.name}, skipTurnEnd: ${skipTurnEnd}`);
-        
+
+        // Handle Second Chance cards specially
+        if (card.value === 'second chance') {
+            const result = this.handleSecondChanceCard(sourcePlayer, card, players, aiManager);
+
+            // If it was added to hand or requires targeting, handle turn end appropriately
+            if (result.addedToHand && !skipTurnEnd) {
+                // Second Chance was kept - end turn normally
+                this.eventBus.emit(GameEvents.ACTION_CARD_EXECUTION_COMPLETE, {
+                    sourcePlayer: sourcePlayer,
+                    endTurn: true
+                });
+            }
+            // If requiresTargeting, turn will continue when target is selected
+            // If discarded or given away, those are handled in handleSecondChanceCard
+
+            return result;
+        }
+
+        // For Freeze/Flip3 cards - card is already in hand from CardManager
+        // (except during initial deal where cards are handled differently)
+
         if (sourcePlayer.isHuman) {
             const availableTargets = this.getAvailableTargets(sourcePlayer, card, players);
-            
+
             // Store action card temporarily for human players
             this.pendingActionCard = {
                 card: card,
                 sourcePlayer: sourcePlayer
             };
-            
+
             // Human player - show targeting UI
             this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
                 card: card,
@@ -60,12 +81,14 @@ class ActionCardHandler {
             });
             // Turn will continue when target is selected
         } else {
-            // AI player - auto-target and execute immediately
+            // AI player - auto-target after a delay to let card animation complete
             const target = aiManager.determineActionTarget(sourcePlayer, card, players);
             if (target) {
+                // Add delay to let the card draw animation complete before transfer animation
+                await new Promise(resolve => setTimeout(resolve, 800));
                 await this.executeActionCard(card, sourcePlayer, target);
             }
-            
+
             // Only end turn if not in Flip3 context
             if (!skipTurnEnd) {
                 this.eventBus.emit(GameEvents.ACTION_CARD_EXECUTION_COMPLETE, {
@@ -89,14 +112,22 @@ class ActionCardHandler {
         players.forEach(p => {
             console.log(`  ${p.name}: ${p.status} (canPlay: ${p.canPlay()})`);
         });
-        
+
+        if (card.value === 'second chance') {
+            // Second Chance can only go to active players without Second Chance already
+            return players.filter(p =>
+                p.id !== sourcePlayer.id &&
+                p.status === 'active' &&
+                !p.hasSecondChance
+            );
+        }
+
         // For Freeze and Flip3, can target any active player (including self)
-        // Use canPlay() instead of just checking status === 'active' for consistency
         const activeTargets = players.filter(p => p.canPlay());
-        
-        console.log(`ActionCardHandler: Found ${activeTargets.length} active targets for ${sourcePlayer.name}:`, 
+
+        console.log(`ActionCardHandler: Found ${activeTargets.length} active targets for ${sourcePlayer.name}:`,
             activeTargets.map(t => `${t.name}(${t.status})`));
-            
+
         return activeTargets;
     }
 
@@ -131,41 +162,126 @@ class ActionCardHandler {
     }
 
     /**
-     * Handle Second Chance redistribution
+     * Handle Second Chance card logic
+     * @param {Player} player - Player who drew the card
+     * @param {Card} card - Second Chance card (already in player's hand)
+     * @param {Array<Player>} players - All players
+     * @param {AIManager} aiManager - AI manager for auto-selection
+     * @returns {Object} Result
+     */
+    handleSecondChanceCard(player, card, players, aiManager) {
+        console.log(`ActionCardHandler: Handling Second Chance card for ${player.name}`);
+
+        // Check if player already had a Second Chance BEFORE this new one
+        // The new card is already in the hand, so we check if they have 2+ Second Chance cards
+        const secondChanceCards = player.actionCards.filter(c => c.value === 'second chance');
+
+        if (secondChanceCards.length === 1) {
+            // This is the player's first Second Chance - keep it
+            console.log(`ActionCardHandler: Player ${player.name} keeping first Second Chance`);
+
+            this.eventBus.emit(GameEvents.SECOND_CHANCE_ACQUIRED, {
+                player: player
+            });
+
+            return {
+                success: true,
+                card: card,
+                addedToHand: true
+            };
+        }
+
+        // Player has 2+ Second Chance cards - must redistribute the extra one
+        console.log(`ActionCardHandler: Player ${player.name} has ${secondChanceCards.length} Second Chance cards - redistributing extra`);
+
+        // Don't remove the card yet - let transferSecondChanceCard handle it
+        const eligibleRecipients = this.getAvailableTargets(player, card, players);
+        if (eligibleRecipients.length === 0) {
+            console.log(`ActionCardHandler: No eligible recipients - discarding Second Chance`);
+
+            // Remove the extra card from player's hand before discarding
+            player.removeCard(card);
+
+            // Discard the card
+            this.cardManager.discardCards([card]);
+
+            // Emit a specific event for UI to handle the removal
+            this.eventBus.emit(GameEvents.SECOND_CHANCE_DISCARDED, {
+                player: player,
+                card: card,
+                reason: 'no_eligible_recipients'
+            });
+
+            // Just end the turn after a delay - UI update is handled by SECOND_CHANCE_DISCARDED event
+            setTimeout(() => {
+                // End turn
+                this.eventBus.emit(GameEvents.ACTION_CARD_EXECUTION_COMPLETE, {
+                    sourcePlayer: player,
+                    endTurn: true
+                });
+            }, player.isHuman ? 500 : 800); // Delay to ensure animations complete
+
+            return {
+                success: true,
+                card: card,
+                discarded: true
+            };
+        }
+
+        if (player.isHuman) {
+            console.log(`ActionCardHandler: Human player must choose recipient for Second Chance`);
+            // Human player needs to choose recipient
+            this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
+                card: card,
+                sourcePlayer: player,
+                availableTargets: eligibleRecipients,
+                isSecondChanceRedistribution: true
+            });
+
+            return {
+                success: true,
+                card: card,
+                requiresTargeting: true
+            };
+        } else {
+            console.log(`ActionCardHandler: AI auto-selecting recipient for Second Chance`);
+            // Auto-select recipient (prefer player with lowest total score)
+            const recipient = eligibleRecipients.sort((a, b) => a.totalScore - b.totalScore)[0];
+
+            // Add delay to let the card draw animation complete before transfer animation
+            setTimeout(() => {
+                // Transfer using CardManager (card will be removed from source)
+                this.cardManager.transferSecondChanceCard({
+                    sourcePlayer: player,  // Pass source player for proper removal and UI update
+                    targetPlayer: recipient,
+                    card: card
+                });
+
+                // End turn after giving away
+                this.eventBus.emit(GameEvents.ACTION_CARD_EXECUTION_COMPLETE, {
+                    sourcePlayer: player,
+                    endTurn: true
+                });
+            }, 800);
+
+            return {
+                success: true,
+                card: card,
+                givenTo: recipient.id
+            };
+        }
+    }
+
+    /**
+     * Handle Second Chance redistribution from targeting UI
      */
     handleSecondChanceRedistribution(sourcePlayer, targetPlayer, card) {
         console.log(`ActionCardHandler: Redistributing Second Chance from ${sourcePlayer.name} to ${targetPlayer.name}`);
-        
-        // Remove card from source player's hand
-        sourcePlayer.removeCard(card);
-        
-        // Update source player's hasSecondChance flag
-        const remainingSecondChanceCards = sourcePlayer.actionCards.filter(c => c.value === 'second chance');
-        if (remainingSecondChanceCards.length === 0) {
-            sourcePlayer.hasSecondChance = false;
-        }
-        
-        // Add card to target player's hand
-        targetPlayer.addCard(card);
-        targetPlayer.hasSecondChance = true;
-        
-        // Emit event for UI updates
-        this.eventBus.emit(GameEvents.SECOND_CHANCE_GIVEN, {
-            giver: sourcePlayer,
-            recipient: targetPlayer,
-            card: card
-        });
-        
-        // Refresh UI for both players
-        this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
-            type: 'refreshPlayerCards',
-            playerId: sourcePlayer.id,
-            player: sourcePlayer
-        });
-        this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
-            type: 'refreshPlayerCards',
-            playerId: targetPlayer.id,
-            player: targetPlayer
+        // Pass source player for proper removal and UI update
+        this.cardManager.transferSecondChanceCard({
+            sourcePlayer: sourcePlayer,  // Pass source for proper removal
+            targetPlayer,
+            card
         });
     }
 
@@ -174,42 +290,21 @@ class ActionCardHandler {
      * @param {Object} data - Action card data
      */
     handleInitialDealAction(data) {
-        const { card, sourcePlayer, availableTargets, isInitialDeal } = data;
+        const { card, sourcePlayer, isInitialDeal } = data;
         console.log(`ActionCardHandler: Handling initial deal action - ${sourcePlayer?.name} drew ${card?.value}`);
-        
-        if (sourcePlayer.isHuman) {
-            console.log('ActionCardHandler: Human player needs to select target via UI');
-            // Human player needs to select target via UI
-            this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
-                card: card,
-                sourcePlayer: sourcePlayer,
-                availableTargets: availableTargets,
-                isInitialDeal: isInitialDeal
-            });
-        } else {
-            console.log('ActionCardHandler: AI player auto-selecting target');
-            // AI player auto-selects target - get context from GameEngine
-            const gameEngine = window.Flip7?.gameEngine;
-            const aiManager = gameEngine?.aiManager;
-            const players = gameEngine?.players || [];
-            
-            if (!aiManager) {
-                console.error('ActionCardHandler: AIManager not available');
-                return;
-            }
-            
-            const target = aiManager.determineActionTarget(sourcePlayer, card, players);
-            if (target) {
-                console.log(`ActionCardHandler: AI ${sourcePlayer.name} targeting ${target.name} with ${card.value}`);
-                // Execute action immediately during initial deal
-                this.executeActionCard(card, sourcePlayer, target).then(() => {
-                    console.log(`ActionCardHandler: AI ${sourcePlayer.name} completed ${card.value} action during initial deal`);
-                });
-            } else {
-                console.log('ActionCardHandler: No valid target found for AI player');
-            }
-            // The CardManager's waitForActionResolution will handle continuation
-        }
+
+        // Get game context
+        const gameEngine = window.Flip7?.gameEngine;
+        const players = gameEngine?.players || [];
+        const aiManager = gameEngine?.aiManager;
+
+        // Handle action card with initial deal flag
+        this.handleActionCard(card, sourcePlayer, {
+            skipTurnEnd: true,
+            aiManager: aiManager,
+            players: players,
+            isInitialDeal: isInitialDeal
+        });
     }
 
     /**
@@ -243,33 +338,41 @@ class ActionCardHandler {
      * Execute Freeze card
      */
     async executeFreezeCard(card, sourcePlayer, targetPlayer) {
-        console.log('ActionCardHandler: Processing freeze card');
-        
-        // Apply freeze via CardManager
-        await this.cardManager.handleActionCard(card, sourcePlayer, targetPlayer);
-        console.log('ActionCardHandler: Freeze action completed, removing card from hand');
-        
+        console.log(`ActionCardHandler: Processing freeze card - ${sourcePlayer.name} freezing ${targetPlayer.name}`);
+
+        // Apply freeze effect directly
+        targetPlayer.status = 'frozen';
+
         // Remove from source player's hand and discard
-        const removed = sourcePlayer.removeCard(card);
-        console.log(`ActionCardHandler: Card removal ${removed ? 'successful' : 'failed'}`);
+        sourcePlayer.removeCard(card);
         this.cardManager.discardCards([card]);
-        console.log('ActionCardHandler: Freeze card discarded');
-        
+
+        // Emit freeze event
+        this.eventBus.emit(GameEvents.FREEZE_CARD_USED, {
+            sourcePlayer: sourcePlayer,
+            targetPlayer: targetPlayer
+        });
+
+        // Check if we froze the current turn player
+        this.eventBus.emit(GameEvents.PLAYER_FROZEN, {
+            player: targetPlayer,
+            needsTurnAdvance: true
+        });
+
         // Force UI refresh for source player to remove the used action card
         this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
             type: 'refreshPlayerCards',
             playerId: sourcePlayer.id,
             player: sourcePlayer
         });
-        
+
         // Update score/state for target
         this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
             playerId: targetPlayer.id,
             roundScore: targetPlayer.calculateScore(),
             totalScore: targetPlayer.totalScore
         });
-        console.log(`ActionCardHandler: Updated ${targetPlayer.name} status to ${targetPlayer.status}`);
-        
+
         // Check if human player still has action cards to resolve after freeze
         if (sourcePlayer.isHuman && this.hasUnusedActionCards(sourcePlayer)) {
             console.log(`ActionCardHandler: ${sourcePlayer.name} still has action cards to resolve after using freeze`);
@@ -284,41 +387,13 @@ class ActionCardHandler {
     async executeSecondChanceCard(card, sourcePlayer, targetPlayer) {
         console.log('ActionCardHandler: Processing second chance redistribution');
         
-        // Remove from source player's hand
-        const removed = sourcePlayer.removeCard(card);
-        console.log(`ActionCardHandler: Removed Second Chance from ${sourcePlayer.name}: ${removed ? 'success' : 'failed'}`);
-        
-        // Update source player's hasSecondChance flag
-        const remainingSecondChanceCards = sourcePlayer.actionCards.filter(c => c.value === 'second chance');
-        if (remainingSecondChanceCards.length === 0) {
-            sourcePlayer.hasSecondChance = false;
-            console.log(`ActionCardHandler: ${sourcePlayer.name} no longer has Second Chance`);
-        }
-        
-        // Add card to target player's hand
-        targetPlayer.addCard(card);
-        targetPlayer.hasSecondChance = true;
-        console.log(`ActionCardHandler: Added Second Chance to ${targetPlayer.name}`);
-        
-        // Emit event for game logic
-        this.eventBus.emit(GameEvents.SECOND_CHANCE_GIVEN, {
-            giver: sourcePlayer,
-            recipient: targetPlayer,
-            card: card
+        const transferResult = this.cardManager.transferSecondChanceCard({
+            sourcePlayer,
+            targetPlayer,
+            card
         });
-        
-        // Force UI refresh for both players to show transfer
-        this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
-            type: 'refreshPlayerCards',
-            playerId: sourcePlayer.id,
-            player: sourcePlayer
-        });
-        this.eventBus.emit(GameEvents.UI_UPDATE_NEEDED, {
-            type: 'refreshPlayerCards',
-            playerId: targetPlayer.id,
-            player: targetPlayer
-        });
-        
+        console.log(`ActionCardHandler: Second Chance transferred → ${transferResult.recipient?.name || targetPlayer.name}`);
+
         // Check if human player still has action cards to resolve after second chance
         if (sourcePlayer.isHuman && this.hasUnusedActionCards(sourcePlayer)) {
             console.log(`ActionCardHandler: ${sourcePlayer.name} still has action cards to resolve after using second chance`);
@@ -331,14 +406,22 @@ class ActionCardHandler {
      * Execute Flip3 card
      */
     async executeFlip3Card(card, sourcePlayer, targetPlayer) {
+        console.log(`ActionCardHandler: Processing Flip3 - ${sourcePlayer.name} forcing ${targetPlayer.name} to draw 3`);
+
         // Start Flip 3 animation and wait for completion
         const animationPromise = new Promise((resolve) => {
             this.flip3AnimationResolver = resolve;
         });
-        
-        const outcome = await this.cardManager.handleActionCard(card, sourcePlayer, targetPlayer);
-        const dealtCards = outcome.dealtCards || [];
-        const actionCards = outcome.actionCards || [];
+
+        // Emit Flip3 start event
+        this.eventBus.emit(GameEvents.FLIP3_CARD_USED, {
+            sourcePlayer: sourcePlayer,
+            targetPlayer: targetPlayer
+        });
+
+        // Draw 3 cards
+        const dealtCards = this.cardManager.drawCards(3);
+        const actionCards = [];
         let busted = false;
         
         // Add all dealt cards to target player, but stop early on bust
@@ -368,31 +451,32 @@ class ActionCardHandler {
                 break; // Stop Flip3 immediately
             }
             
+            // Track action cards for later processing
+            if (c.type === 'action') {
+                actionCards.push(c);
+            }
+
             // Special handling for Second Chance cards during Flip3
             if (c.type === 'action' && c.value === 'second chance') {
                 console.log(`ActionCardHandler: ${targetPlayer.name} drew Second Chance during Flip3`);
-                
-                if (targetPlayer.hasSecondChance) {
-                    console.log(`ActionCardHandler: ${targetPlayer.name} already has Second Chance - routing through redistribution`);
-                    const redistributionResult = this.cardManager.handleSecondChanceCard(targetPlayer, c);
-                    
-                    if (redistributionResult.givenTo) {
-                        console.log(`ActionCardHandler: Second Chance redistributed to ${redistributionResult.givenTo}`);
-                    } else if (redistributionResult.discarded) {
-                        console.log(`ActionCardHandler: Second Chance discarded (no eligible recipients)`);
-                    } else if (redistributionResult.requiresTargeting) {
-                        console.log(`ActionCardHandler: Second Chance requires human targeting`);
-                        this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
-                            card: c,
-                            sourcePlayer: targetPlayer,
-                            availableTargets: redistributionResult.availableTargets,
-                            isSecondChanceRedistribution: true
-                        });
-                    }
-                    continue; // Skip normal addCard processing
-                } else {
-                    console.log(`ActionCardHandler: Adding first Second Chance to ${targetPlayer.name} during Flip3`);
+
+                // Get game context
+                const gameEngine = window.Flip7?.gameEngine;
+                const players = gameEngine?.players || [];
+                const aiManager = gameEngine?.aiManager;
+
+                const redistributionResult = this.handleSecondChanceCard(targetPlayer, c, players, aiManager);
+
+                if (redistributionResult.givenTo) {
+                    console.log(`ActionCardHandler: Second Chance redistributed to ${redistributionResult.givenTo}`);
+                } else if (redistributionResult.discarded) {
+                    console.log(`ActionCardHandler: Second Chance discarded (no eligible recipients)`);
+                } else if (redistributionResult.requiresTargeting) {
+                    console.log(`ActionCardHandler: Second Chance requires human targeting`);
+                    // Human player needs to choose target - this will pause Flip3
+                    // The event is already emitted by handleSecondChanceCard
                 }
+                continue; // Skip normal addCard processing
             }
             
             const addResult = targetPlayer.addCard(c);
@@ -442,18 +526,7 @@ class ActionCardHandler {
                 break; // Stop dealing cards immediately when Flip7 is achieved
             }
         }
-        
-        // Check if target player busted (this happens in CardManager now)
-        if (outcome.bustOnCard) {
-            targetPlayer.status = 'busted';
-            targetPlayer.roundScore = 0;
-            this.eventBus.emit(GameEvents.PLAYER_BUST, { 
-                player: targetPlayer, 
-                card: dealtCards[dealtCards.length - 1] // Last dealt card before bust
-            });
-            busted = true;
-        }
-        
+
         // Store action cards for processing after animation completes
         if (!busted && actionCards.length > 0) {
             this.pendingFlip3ActionCards = { 
@@ -520,8 +593,8 @@ class ActionCardHandler {
             
             if (actionCard.value === 'second chance') {
                 console.log('ActionCardHandler: Handling Second Chance from Flip3');
-                // Handle Second Chance through CardManager
-                const result = this.cardManager.handleSecondChanceCard(targetPlayer, actionCard);
+                // Handle Second Chance through our own method
+                const result = this.handleSecondChanceCard(targetPlayer, actionCard, players, aiManager);
                 if (result.addedToHand) {
                     console.log('ActionCardHandler: Second Chance added to player hand');
                 } else if (result.givenTo) {
@@ -530,13 +603,7 @@ class ActionCardHandler {
                     console.log('ActionCardHandler: Second Chance discarded (no eligible recipients)');
                 } else if (result.requiresTargeting) {
                     console.log(`ActionCardHandler: Second Chance requires targeting by ${targetPlayer.name}`);
-                    // Human player needs to select target for Second Chance redistribution
-                    this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
-                        card: actionCard,
-                        sourcePlayer: targetPlayer,
-                        availableTargets: result.availableTargets,
-                        isSecondChanceRedistribution: true
-                    });
+                    // Event already emitted by handleSecondChanceCard
                     // Turn continues after target selection
                 }
                 continue;

@@ -254,15 +254,8 @@ class TurnManager {
      * Handle hit result
      */
     handleHitResult(player, result) {
-        // Only emit CARD_DRAWN for cards that are actually added to hand
-        if (!result.requiresAction && !result.secondChanceUsed) {
-            this.eventBus.emit(GameEvents.CARD_DRAWN, {
-                player: player,
-                card: result.card,
-                result: result
-            });
-        }
-        
+        // CardManager already emits CARD_DRAWN, so we don't need to emit it here
+
         if (!result.success && result.reason === 'bust') {
             // Player busts
             player.status = 'busted';
@@ -284,34 +277,18 @@ class TurnManager {
             };
             this.eventBus.on(GameEvents.CARD_ANIMATION_END, onAnimEnd);
         } else if (result.requiresAction) {
-            // Handle special action cards - block game and show card for 1 second
-            this.actionDisplayPhase = true;
-            console.log(`TurnManager: Action card ${result.card.value} drawn by ${player.name} - starting 1-second display phase`);
-            
-            // Wait 1 second to show action card in player's hand
+            // Handle action cards - route to ActionCardHandler after a delay
+            this.actionInProgress = true;
+            console.log(`TurnManager: Action card ${result.card.value} drawn by ${player.name}`);
+
+            // Small delay to ensure card animation completes before showing targeting UI
             setTimeout(() => {
-                this.actionDisplayPhase = false;
-                this.actionInProgress = true;
-                
                 // Emit event for ActionCardHandler to process
                 this.eventBus.emit(GameEvents.ACTION_CARD_DRAWN, {
                     card: result.card,
                     sourcePlayer: player
                 });
-            }, 1000);
-        } else if (result.requiresTargeting) {
-            // Handle Second Chance redistribution targeting for human players
-            this.eventBus.emit(GameEvents.ACTION_CARD_TARGET_NEEDED, {
-                card: result.card,
-                sourcePlayer: player,
-                availableTargets: result.availableTargets,
-                isSecondChanceRedistribution: true
-            });
-            // Turn will continue when target is selected
-        } else if (result.givenTo) {
-            // AI auto-redistributed Second Chance - wait for animation then end turn
-            console.log(`TurnManager: AI ${player.name} auto-redistributed Second Chance to ${result.givenTo}`);
-            this.setupAnimationEndTurnListener(player);
+            }, 500); // 0.5 second delay for animation to complete
         } else if (result.secondChanceUsed) {
             // Second Chance was used - cards already removed from hand and discarded
             // Update score and continue turn
@@ -473,9 +450,14 @@ class TurnManager {
                     }
                 } else {
                     // AI player - auto-redistribute all extras
-                    const cardManager = gameEngine?.cardManager;
+                    const actionHandler = gameEngine?.actionCardHandler;
                     for (const extraCard of extrasToRedistribute) {
-                        const result = cardManager?.handleSecondChanceCard(currentPlayer, extraCard);
+                        const result = actionHandler?.handleSecondChanceCard(
+                            currentPlayer,
+                            extraCard,
+                            players,
+                            gameEngine?.aiManager
+                        );
                         if (result?.givenTo) {
                             console.log(`TurnManager: AI ${currentPlayer.name} auto-redistributed extra Second Chance`);
                         } else if (result?.discarded) {
@@ -614,7 +596,7 @@ class TurnManager {
      * Handle Second Chance animation complete
      */
     handleSecondChanceAnimationComplete(data) {
-        const { player } = data;
+        const { player } = data || {};
         console.log(`TurnManager: Second Chance animation complete for ${player?.name || 'unknown'}, ending turn`);
         
         if (player && !this.turnEnding && !this.actionInProgress) {
