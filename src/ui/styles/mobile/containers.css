@@ -64,8 +64,7 @@
 
     /* Control buttons styling - compact width */
     .controls-panel #rules-btn,
-    .controls-panel #scoreboard-btn,
-    .controls-panel #new-game-btn {
+    .controls-panel #scoreboard-btn {
         flex: 0 0 auto !important;
         padding: 5px 12px !important;
         font-size: 0.85em !important;
@@ -90,19 +89,7 @@
         display: inline-block !important;
     }
 
-    /* Hide the second control section on mobile */
-    .controls-panel #pre-game-controls {
-        display: flex !important;
-        flex-direction: row !important;
-        gap: 8px !important;
-    }
-
-    .controls-panel #pre-game-controls #new-game-btn {
-        flex: 1 !important;
-    }
-
     /* Hide desktop-only elements in controls */
-    .controls-panel .game-settings,
     .controls-panel .desktop-info {
         display: none !important;
     }
@@ -325,8 +312,7 @@
 
     /* Control buttons for tablet */
     .controls-panel #rules-btn,
-    .controls-panel #scoreboard-btn,
-    .controls-panel #new-game-btn {
+    .controls-panel #scoreboard-btn {
         font-size: 0.9em !important;
         padding: 6px 10px !important;
     }
@@ -363,8 +349,7 @@
     }
 
     .controls-panel #rules-btn,
-    .controls-panel #scoreboard-btn,
-    .controls-panel #new-game-btn {
+    .controls-panel #scoreboard-btn {
         font-size: 0.7em !important;
         padding: 4px 10px !important;
         line-height: 1.2 !important;
@@ -407,4 +392,3 @@
         padding-bottom: 60px !important;
     }
 }
-

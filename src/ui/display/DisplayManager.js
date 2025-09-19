@@ -62,7 +62,6 @@ class DisplayManager {
      */
     onGameStart(data) {
         console.log('Display: Game started', data);
-        this.uiUpdateManager.updateGameStatus('Game Started');
         
         // Hide any endgame overlay
         const celebration = document.getElementById('winning-celebration');
@@ -163,13 +162,6 @@ class DisplayManager {
      * Add frozen state to player
      */
     addFrozenState(playerId) {
-        const container = document.getElementById(playerId);
-        if (!container) return;
-
-        container.classList.add('frozen');
-        
-        // Status text removed - frozen state shown via CSS class only
-
         // Disable action buttons if human player
         if (playerId === 'player') {
             this.disableAllActionButtons();

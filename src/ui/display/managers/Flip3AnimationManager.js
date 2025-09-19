@@ -25,15 +25,18 @@ class Flip3AnimationManager {
     setupEventListeners() {
         // Listen for Flip 3 card usage
         this.eventBus.on(GameEvents.FLIP3_CARD_USED, this.startFlip3Animation.bind(this));
-        
+
         // Listen for player bust during Flip 3
         this.eventBus.on(GameEvents.PLAYER_BUST, this.handlePlayerBust.bind(this));
-        
+
         // Listen for Second Chance activation during Flip 3
         this.eventBus.on(GameEvents.SECOND_CHANCE_ACTIVATED, this.handleSecondChanceActivated.bind(this));
-        
+
         // Listen for Flip 3 specific card dealt events
         this.eventBus.on(GameEvents.FLIP3_CARD_DEALT, this.handleCardDealt.bind(this));
+
+        // Listen for Flip7 achievement during Flip 3
+        this.eventBus.on(GameEvents.PLAYER_FLIP7, this.handleFlip7Achievement.bind(this));
     }
 
     /**
@@ -317,42 +320,51 @@ class Flip3AnimationManager {
      */
     handleCardDealt(data) {
         if (!this.isActive || this.isCancelled) return;
-        
-        const { card, playerId, cardIndex } = data;
-        
+
+        const { card, playerId, cardIndex, isBustCard } = data;
+
         // Check if we have a valid target player
         if (!this.targetPlayer || !this.targetPlayer.id) {
             console.warn('Flip3AnimationManager: No valid target player for card dealt event');
             return;
         }
-        
+
         // Check if this card is for our target player
         if (playerId !== this.targetPlayer.id) {
             console.log(`Flip3AnimationManager: Card dealt to ${playerId} but we're tracking ${this.targetPlayer.id}, ignoring`);
             return;
         }
-        
+
         // Use the cardIndex from the event
         const slotNumber = cardIndex || (this.currentCardIndex + 1);
-        
+
         // Debug card targeting only in development mode
         if (window.DEBUG_MODE) {
             console.log(`Flip3AnimationManager: Card targeting debug - cardIndex: ${cardIndex}, currentCardIndex: ${this.currentCardIndex}, calculated slotNumber: ${slotNumber}`);
         }
-        
+
         // Check if this is part of the Flip 3 sequence
         if (slotNumber > 3) return;
-        
-        console.log(`Flip3AnimationManager: Card ${slotNumber} dealt - ${card.type}:${card.value}`);
-        
+
+        console.log(`Flip3AnimationManager: Card ${slotNumber} dealt - ${card.type}:${card.value}${isBustCard ? ' (BUST!)' : ''}`);
+
         this.dealtCards.push(card);
         this.currentCardIndex = slotNumber - 1; // Update index based on slot number
-        
+
         // Update progress immediately
         this.updateProgress(slotNumber);
-        
-        // Animate card to slot
-        this.animateCardToSlot(card, slotNumber);
+
+        // If it's a bust card, immediately update status
+        if (isBustCard) {
+            const statusEl = document.getElementById('flip3-status');
+            if (statusEl) {
+                statusEl.textContent = `BUSTED on duplicate ${card.value}!`;
+                statusEl.style.color = '#ef4444';
+            }
+        }
+
+        // Animate card to slot - highlight if it's a bust card
+        this.animateCardToSlot(card, slotNumber, isBustCard);
         
         // Check completion after a delay
         setTimeout(() => {
@@ -368,14 +380,20 @@ class Flip3AnimationManager {
     /**
      * Animate card flip directly to specific slot (sequential)
      */
-    animateCardToSlot(card, slotNumber) {
+    animateCardToSlot(card, slotNumber, isBustCard = false) {
         const slot = document.getElementById(`flip3-slot-${slotNumber}`);
         if (!slot) return;
-        
+
         // Clear slot placeholder
         slot.innerHTML = '';
-        
-        // Get slot position and center screen for flip animation  
+
+        // If it's a bust card, immediately highlight the slot
+        if (isBustCard) {
+            slot.style.borderColor = '#ef4444';
+            slot.style.boxShadow = '0 0 20px rgba(239, 68, 68, 0.5)';
+        }
+
+        // Get slot position and center screen for flip animation
         const slotRect = slot.getBoundingClientRect();
         const screenCenterX = window.innerWidth / 2;
         const screenCenterY = window.innerHeight / 2;
@@ -490,36 +508,73 @@ class Flip3AnimationManager {
      */
     handleSecondChanceActivated(data) {
         if (!this.isActive || this.isCancelled) return;
-        
+
         const { player } = data;
-        
+
         // Check if Second Chance activation is for our target player
         if (player.id !== this.targetPlayer.id) return;
-        
+
         console.log(`Flip3AnimationManager: Second Chance activated for ${player.name} - continuing Flip3 sequence`);
-        
+
         // Update status to show Second Chance saved the player
         const statusEl = document.getElementById('flip3-status');
         if (statusEl) {
             statusEl.textContent = 'SAVED! Continuing Flip3...';
             statusEl.style.color = '#10b981';
         }
-        
+
         // Flash the current slot green to show Second Chance activation
         const currentSlot = document.getElementById(`flip3-slot-${this.currentCardIndex + 1}`);
         if (currentSlot) {
             currentSlot.style.borderColor = '#10b981';
             currentSlot.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.5)';
-            
+
             // Reset slot styling after flash
             setTimeout(() => {
                 currentSlot.style.borderColor = '#60a5fa';
                 currentSlot.style.boxShadow = '';
             }, 1500);
         }
-        
+
         // Continue with Flip3 sequence - don't cancel or complete
         // The sequence will naturally continue when the next FLIP3_CARD_DEALT event arrives
+    }
+
+    /**
+     * Handle Flip7 achievement during Flip 3
+     */
+    handleFlip7Achievement(data) {
+        if (!this.isActive || this.isCancelled) return;
+
+        const { player } = data;
+
+        // Check if Flip7 is for our target player
+        if (!this.targetPlayer || player.id !== this.targetPlayer.id) return;
+
+        console.log(`Flip3AnimationManager: Player achieved Flip7 during Flip3 - closing modal`);
+
+        // Clear safety timeout
+        if (this.safetyTimeout) {
+            clearTimeout(this.safetyTimeout);
+            this.safetyTimeout = null;
+        }
+
+        // Mark as cancelled and immediately close modal
+        this.isCancelled = true;
+        this.isActive = false;
+
+        // Close modal immediately to show the regular Flip7 celebration
+        this.hidePopup();
+
+        // Emit completion event so game can continue
+        this.eventBus.emit(GameEvents.FLIP3_ANIMATION_COMPLETE, {
+            targetPlayer: player,
+            completed: true,
+            reason: 'flip7'
+        });
+
+        // Process any queued animations
+        this.processAnimationQueue();
     }
 
     /**

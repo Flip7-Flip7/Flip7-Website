@@ -64,9 +64,7 @@ function initializeGame() {
     const displayManager = new window.DisplayManager();
     displayManager.initialize();
     
-    const winningInput = document.getElementById('win-points');
-    const winningScore = winningInput ? Number(winningInput.value) : window.GameConstants.WINNING_SCORE;
-    const engine = new window.GameEngine({ winningScore });
+    const engine = new window.GameEngine({ winningScore: window.GameConstants.WINNING_SCORE });
     
     // Expose instances
     window.Flip7.display = displayManager;
@@ -103,7 +101,6 @@ function initializeGame() {
         if (el) el.addEventListener('click', handler);
     };
     
-    bind('new-game-btn', () => engine.startNewGame());
     bind('mobile-hit-btn', (event) => {
         event.preventDefault();
         event.stopPropagation();
