@@ -436,19 +436,30 @@ class ActionCardHandler {
             // Check for bust BEFORE adding card to hand
             if (c.type === 'number' && targetPlayer.uniqueNumbers.has(c.value) && !targetPlayer.hasSecondChance) {
                 console.log(`ActionCardHandler: ${targetPlayer.name} would bust on duplicate ${c.value} during Flip3`);
+
+                // Still emit FLIP3_CARD_DEALT so the card shows in the modal
+                this.eventBus.emit(GameEvents.FLIP3_CARD_DEALT, {
+                    card: c,
+                    playerId: targetPlayer.id,
+                    cardIndex: i + 1,
+                    isInitialDeal: false,
+                    isBustCard: true  // Mark this as the bust card
+                });
+
+                // Set player status after showing the card
                 targetPlayer.status = 'busted';
                 targetPlayer.roundScore = 0;
-                
-                // Delay PLAYER_BUST emission until after card animation
+
+                // Delay PLAYER_BUST emission to let Flip3 animation show the bust
                 setTimeout(() => {
                     this.eventBus.emit(GameEvents.PLAYER_BUST, {
                         player: targetPlayer,
                         card: c
                     });
-                }, 1200);
-                
+                }, 2000); // Increased delay to let Flip3 show the bust card
+
                 busted = true;
-                break; // Stop Flip3 immediately
+                break; // Stop Flip3 after showing bust card
             }
             
             // Track action cards for later processing
@@ -518,11 +529,18 @@ class ActionCardHandler {
             
             if (addResult.isFlip7) {
                 console.log(`ActionCardHandler: ${targetPlayer.name} achieved Flip7 during Flip3 - stopping immediately`);
+
+                // Emit Flip7 event to close modal and show regular celebration
+                this.eventBus.emit(GameEvents.PLAYER_FLIP7, {
+                    player: targetPlayer
+                });
+
                 this.eventBus.emit(GameEvents.PLAYER_SCORE_UPDATE, {
                     playerId: targetPlayer.id,
                     roundScore: targetPlayer.calculateScore(),
                     totalScore: targetPlayer.totalScore
                 });
+
                 break; // Stop dealing cards immediately when Flip7 is achieved
             }
         }
